@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sphinx-rtl"
+version = "0.1.0"
+description = "Automated RTL (VHDL, Verilog, SystemVerilog) documentation generator."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache License Version 2.0" }
+authors = [{ name = "Leonard HEYWANG" }]
+
+dependencies = ["sphinx>=7.0.0", "myst-parser>=2.0.0", "verible>=0.0.3400"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
