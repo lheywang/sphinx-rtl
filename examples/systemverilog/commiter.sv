@@ -11,17 +11,12 @@ import core_config_pkg::IF_TRAP_UCODE;
 
 module commiter (
 
-    // Standard interface
     input logic clk,
     input logic rst_n,
-
-    // ALU interfaces
     input  logic                                         alu0_error,
     input  logic                                         alu0_valid,
-    /* verilator lint_off UNUSEDSIGNAL */
     input  logic                                         alu0_req,
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu0_jmp,
-    /* verilator lint_on UNUSEDSIGNAL */
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu0_res,
     input  logic [(core_config_pkg::REG_ADDR_W - 1) : 0] alu0_rd,
     output logic                                         alu0_clear,
@@ -34,52 +29,38 @@ module commiter (
     output logic                                         alu1_clear,
     input  logic                                         alu2_error,
     input  logic                                         alu2_valid,
-    /* verilator lint_off UNUSEDSIGNAL */
     input  logic                                         alu2_req,
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu2_jmp,
-    /* verilator lint_on UNUSEDSIGNAL */
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu2_res,
     input  logic [(core_config_pkg::REG_ADDR_W - 1) : 0] alu2_rd,
     output logic                                         alu2_clear,
     input  logic                                         alu3_error,
     input  logic                                         alu3_valid,
-    /* verilator lint_off UNUSEDSIGNAL */
     input  logic                                         alu3_req,
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu3_jmp,
-    /* verilator lint_on UNUSEDSIGNAL */
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu3_res,
     input  logic [(core_config_pkg::REG_ADDR_W - 1) : 0] alu3_rd,
     output logic                                         alu3_clear,
     input  logic                                         alu4_error,
     input  logic                                         alu4_valid,
-    /* verilator lint_off UNUSEDSIGNAL */
     input  logic                                         alu4_req,
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu4_jmp,
-    /* verilator lint_on UNUSEDSIGNAL */
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu4_res,
     input  logic [(core_config_pkg::REG_ADDR_W - 1) : 0] alu4_rd,
     output logic                                         alu4_clear,
     input  logic                                         alu5_error,
     input  logic                                         alu5_valid,
-    /* verilator lint_off UNUSEDSIGNAL */
     input  logic                                         alu5_req,
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu5_jmp,
-    /* verilator lint_on UNUSEDSIGNAL */
     input  logic [      (core_config_pkg::XLEN - 1) : 0] alu5_res,
     input  logic [(core_config_pkg::REG_ADDR_W - 1) : 0] alu5_rd,
     output logic                                         alu5_clear,
-
-    // Register file interface
     output logic [      (core_config_pkg::XLEN - 1) : 0] reg_data,
     output logic [(core_config_pkg::REG_ADDR_W - 1) : 0] reg_addr,
     output logic                                         reg_we,
-
-    // Program counter overwrite
     output logic [(core_config_pkg::XLEN - 1) : 0] pc_value,
     output logic                                   pc_enable,
     output logic                                   pc_we,
-
-    // General purpose IO
     input  logic halt_needed,
     output logic issuer_flush,
     output logic commit_err

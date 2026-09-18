@@ -18,8 +18,8 @@ module decoder (
     input  logic                            rst_n,
     input  logic     [    (IF_LEN - 1) : 0] instruction,
     input  logic     [      (XLEN - 1) : 0] i_address,
-    input  logic                            i_busy,       // Busy input from later stages.
-    output logic                            o_busy,       // Busy output for previous stages.
+    input  logic                            i_busy,       
+    output logic                            o_busy,    
     output logic     [(REG_ADDR_W - 1) : 0] rs1,
     output logic     [(REG_ADDR_W - 1) : 0] rs2,
     output logic     [(REG_ADDR_W - 1) : 0] rd,

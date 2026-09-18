@@ -12,20 +12,13 @@ interface avalon_st #(
     parameter int                   ERROR_WIDTH = 4,
     parameter int                   SYMBOL_WIDTH = 8
 );
-    // Doing math for the EMPTY signal width
+
     assign EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH);
-
-    // Common signals
     logic [CHANNEL_WIDTH - 1 : 0]   channel;
-
-    // Data signals
     logic [DATA_WIDTH - 1 : 0]      data;
     logic [ERROR_WIDTH - 1 : 0]     error;
     logic                           ready;
     logic                           valid;
-
-
-    // Packets support
     logic [EMPTY_WIDTH - 1 : 0]     empty;
     logic                           startofpacket;
     logic                           endofpacket;
