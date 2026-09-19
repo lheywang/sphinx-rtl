@@ -11,12 +11,13 @@ import logging
 from pathlib import Path
 
 from ..models import Component
+from .xParser import xParser
 
 # Logger config
 logger = logging.getLogger(__name__)
 
 
-class xVerilogParser:
+class xVerilogParser(xParser):
     """
     Define the standard Verilog Parser model.
     Designed to be reused (can be openned only once and parse more than one file).
@@ -27,17 +28,15 @@ class xVerilogParser:
         Init the xVerilog parser for different operations.
         """
 
-        # Ensure the tools are presents
-        self.isVeribleAvailable = False
-        self.cmd = shutil.which("verible-verilog-syntax")
-        if self.cmd is not None:
-            logger.info(f"Found verible at {self.cmd}")
-            self.isVeribleAvailable = True
-        else:
-            logger.error("Cannot found a valid verible install.")
+        super().__init__("verible-verilog-syntax")
 
     def parse_file(self, file: Path):
         """
         Parse the passed file as verilog, and output the built class.
         """
-        pass
+
+        # First get the file Infos
+        infos = self.getFileInfo(file)
+        print(infos)
+
+        return Component("unknown", "unknown", "", infos, [], [], [], [], [])

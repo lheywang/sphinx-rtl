@@ -75,14 +75,15 @@ class RTLAutodocDirective(Directive):
             # Call the matching parser :
             suffix = match.suffix.lower()
             if suffix in [".sv", ".v"]:
-                component = None
-                # rendered_nodes.extend(self._render(component))
+                component = xVerilogTool.parse_file(match)
+                rendered_nodes.extend(self._render(component))
             elif suffix in [".vhd", ".vhdl"]:
-                component = None
+                # component = VHDLTool.parse_file(match)
                 # rendered_nodes.extend(self._render(component))
+                pass
             else:
                 return self.state.reporter.error(
-                    f"Unknown format ({suffix}) for {path}.",
+                    f"Unknown format ({suffix}) for {match}.",
                     line=self.lineno,
                 )
 

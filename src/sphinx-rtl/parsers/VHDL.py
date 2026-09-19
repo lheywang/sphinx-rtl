@@ -13,30 +13,24 @@ import logging
 from pathlib import Path
 
 from ..models import Component
+from .xParser import xParser
 
 # Logger config
 logger = logging.getLogger(__name__)
 
 
-class VHDLParser:
+class VHDLParser(xParser):
     """
-    Define the standard Verilog Parser model.
+    Define the standard VHDL Parser model.
     Designed to be reused (can be openned only once and parse more than one file).
     """
 
     def __init__(self):
         """
-        Init the xVerilog parser for different operations.
+        Init the VHDL parser for different operations.
         """
 
-        # Ensure the tools are presents
-        self.isGHDLAvailable = False
-        self.cmd = shutil.which("ghdl")
-        if self.cmd is not None:
-            logger.info(f"Found GHDL at {self.cmd}")
-            self.isGHDLAvailable = True
-        else:
-            logger.error("Cannot found a valid GHDL install.")
+        super().__init__("ghdl")
 
     def parse_file(self, file: Path):
         """

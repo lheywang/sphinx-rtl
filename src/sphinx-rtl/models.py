@@ -76,11 +76,13 @@ class FileInfo:
 
     name: str
     path: str
-    author: str
+    creation_author: str
     creation_hash: str
-    edit_date: str
     creation_date: str
     edit_date: str
+    edit_hash: str
+    edit_author: str
+    is_dirty: bool
 
 
 @dataclass

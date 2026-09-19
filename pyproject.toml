@@ -11,7 +11,12 @@ requires-python = ">=3.11"
 license = { text = "Apache License Version 2.0" }
 authors = [{ name = "Leonard HEYWANG" }]
 
-dependencies = ["sphinx>=7.0.0", "myst-parser>=2.0.0", "verible>=0.0.3400"]
+dependencies = [
+    "sphinx>=7.0.0",
+    "myst-parser>=2.0.0",
+    "verible>=0.0.3400",
+    "gitpython>=3.1.62",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0.0"]
