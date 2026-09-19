@@ -19,6 +19,7 @@ class Parameter:
     hdl_type: str
     hdl_value: str = ""
     description: str = ""
+    line: int = -1
 
 
 @dataclass
@@ -30,9 +31,11 @@ class Port:
     name: str
     direction: str
     hdl_type: str
+    hdl_size: list[str]
     hdl_sync: str = ""
     hdl_reset: str = ""
     description: str = ""
+    line: int = -1
 
 
 @dataclass
@@ -44,16 +47,18 @@ class Enum:
     name: str
     values: list[str]
     description: str = ""
+    line: int = -1
 
 
 @dataclass
-class Imports:
+class Import:
     """
     Store the different values for a single import (Verilog Only) entry.
     """
 
     name: str
     description: str = ""
+    line: int = -1
 
 
 @dataclass
@@ -67,6 +72,7 @@ class Signal:
     hdl_value: str = ""
     hdl_attribute: str = ""
     description: str = ""
+    line: int = -1
 
 
 @dataclass
@@ -80,6 +86,7 @@ class Process:
     hdl_clock: str = ""
     hdl_reset: str = ""
     description: str = ""
+    line: int = -1
 
 
 @dataclass
@@ -118,6 +125,6 @@ class Component:
     parameters: list[Parameter]
     ports: list[Port]
     enums: list[Enum]
-    imports: list[Imports]
+    imports: list[Import]
     signals: list[Signal]
     process: list[Process]

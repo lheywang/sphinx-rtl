@@ -75,10 +75,10 @@ class RTLAutodocDirective(Directive):
             # Call the matching parser :
             suffix = match.suffix.lower()
             if suffix in [".sv", ".v"]:
-                component = xVerilogTool.parse_file(match)
+                component = xVerilogTool.parse(match)
                 rendered_nodes.extend(self._render(component))
             elif suffix in [".vhd", ".vhdl"]:
-                # component = VHDLTool.parse_file(match)
+                # component = VHDLTool.parse(match)
                 # rendered_nodes.extend(self._render(component))
                 pass
             else:

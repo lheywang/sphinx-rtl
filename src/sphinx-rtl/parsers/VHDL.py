@@ -32,7 +32,7 @@ class VHDLParser(xParser):
 
         super().__init__("ghdl")
 
-    def parse_file(self, file: Path):
+    def parse(self, file: Path):
         """
         Parse the passed file as VHDL, and output the built class.
         """
