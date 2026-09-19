@@ -30,6 +30,8 @@ class Port:
     name: str
     direction: str
     hdl_type: str
+    hdl_sync: str = ""
+    hdl_reset: str = ""
     description: str = ""
 
 
@@ -64,7 +66,19 @@ class Signal:
     hdl_type: str
     hdl_value: str = ""
     hdl_attribute: str = ""
-    hdl_value: str = ""
+    description: str = ""
+
+
+@dataclass
+class Process:
+    """
+    Store the different values for a single process / alway entry.
+    """
+
+    name: str
+    hdl_type: str
+    hdl_clock: str = ""
+    hdl_reset: str = ""
     description: str = ""
 
 
@@ -83,6 +97,7 @@ class FileInfo:
     edit_hash: str
     edit_author: str
     is_dirty: bool
+    message: str
 
 
 @dataclass

@@ -58,6 +58,7 @@ class xParser:
                 "unknown",
                 "unknown",
                 False,
+                "none",
             )
 
         obj = file.resolve()
@@ -76,6 +77,7 @@ class xParser:
                 "unknown",
                 "unknown",
                 False,
+                "none",
             )
 
         commits = list(repo.iter_commits(paths=str(rel_obj)))
@@ -90,6 +92,7 @@ class xParser:
                 "unknown",
                 "unknown",
                 False,
+                "none",
             )
 
         # Fetch the last commits
@@ -112,4 +115,9 @@ class xParser:
             creation_hash=first_commit.hexsha[:12],
             edit_hash=last_commit.hexsha[:12],
             is_dirty=is_dirty,
+            message=(
+                last_commit.message.decode("utf8")
+                if type(last_commit.message) == bytes
+                else str(last_commit.message)
+            ).strip(),
         )
