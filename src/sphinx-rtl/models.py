@@ -120,3 +120,4 @@ class Component:
     enums: list[Enum]
     imports: list[Imports]
     signals: list[Signal]
+    process: list[Process]
