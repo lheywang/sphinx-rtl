@@ -28,7 +28,8 @@ module alu0 (
     output logic                                                  valid,
     output logic                                                  o_error,
     output logic                                                  req,
-    input  logic                                                  clear
+    input  logic                                                  clear,
+    axi4_stream.source                                            stream
 );
     /*
      *  Storages types

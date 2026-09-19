@@ -15,6 +15,22 @@ import core_config_pkg::opcodes_t;
 module prediction (
 
     // Standards
+    clk,
+    rst_n,
+    predict_ok,
+    mispredict,
+    addr_in,
+    addr_out,
+    rom_flush,
+    PC_value,
+    PC_write,
+    actual_addr,
+    actual_imm,
+    actual_instr,
+    bpu_branch_taken
+
+);
+
     input  logic                                       clk,
     input  logic                                       rst_n,
     input  logic                                       predict_ok,
@@ -28,8 +44,6 @@ module prediction (
     input  logic     [(core_config_pkg::XLEN - 1) : 0] actual_imm,
     input  opcodes_t                                   actual_instr,
     output logic                                       bpu_branch_taken
-
-);
 
     /*
      *  Implementing the small counter that register the taken / not taken IOs.

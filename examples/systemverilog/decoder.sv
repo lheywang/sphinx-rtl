@@ -13,21 +13,21 @@ import core_config_pkg::opcodes_t;
 import core_config_pkg::decoders_t;
 
 module decoder (
-    input  logic                            clk,
-    input  logic                            clk_en,
-    input  logic                            rst_n,
-    input  logic     [    (IF_LEN - 1) : 0] instruction,
-    input  logic     [      (XLEN - 1) : 0] i_address,
-    input  logic                            i_busy,       
-    output logic                            o_busy,    
-    output logic     [(REG_ADDR_W - 1) : 0] rs1,
-    output logic     [(REG_ADDR_W - 1) : 0] rs2,
-    output logic     [(REG_ADDR_W - 1) : 0] rd,
-    output logic     [      (XLEN - 1) : 0] imm,
-    output logic     [      (XLEN - 1) : 0] o_address,
-    output opcodes_t                        opcode,
-    output logic                            illegal,
-    output logic                            decoded_cnt
+    input  logic                                    clk,
+    input  logic                                    clk_en,
+    input  logic                                    rst_n,
+    input  logic     [    (IF_LEN - 1) : 0][1:0]    instruction,
+    input  logic     [      (XLEN - 1) : 0][1:0]    i_address,
+    input  logic                                    i_busy,       
+    output logic                                    o_busy,    
+    output logic     [(REG_ADDR_W - 1) : 0][1:0]    rs1,
+    output logic     [(REG_ADDR_W - 1) : 0][1:0]    rs2,
+    output logic     [(REG_ADDR_W - 1) : 0][1:0]    rd,
+    output logic     [      (XLEN - 1) : 0][1:0]    imm,
+    output logic     [      (XLEN - 1) : 0][1:0]    o_address,
+    output opcodes_t                       [1:0]    opcode,
+    output logic                           [1:0]    illegal,
+    output logic                                    decoded_cnt
 );
 
     /*
