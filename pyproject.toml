@@ -14,8 +14,9 @@ authors = [{ name = "Leonard HEYWANG" }]
 dependencies = [
     "sphinx>=7.0.0",
     "myst-parser>=2.0.0",
-    "verible>=0.0.3400",
     "gitpython>=3.1.62",
+    "pyslang>=11.0.0",
+    "pyghdl>=1.0.dev0",
 ]
 
 [project.optional-dependencies]

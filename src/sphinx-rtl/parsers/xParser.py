@@ -26,19 +26,22 @@ class xParser:
     Common core logic for the file
     """
 
-    def __init__(self, tool):
+    def __init__(self, tool=None):
         """
         Init the xVerilog parser for different operations.
         """
 
         # Ensure the tools are presents
         self.isToolAvailable = False
-        self.tool = shutil.which(tool)
-        if self.tool is not None:
-            logger.info(f"Found {tool} at {self.tool}")
-            self.isToolAvailable = True
+        if tool is not None:
+            self.tool = shutil.which(tool)
+            if self.tool is not None:
+                logger.info(f"Found {tool} at {self.tool}")
+                self.isToolAvailable = True
+            else:
+                logger.error(f"Cannot found a valid {tool} install.")
         else:
-            logger.error(f"Cannot found a valid {tool} install.")
+            self.tool = ""
 
     def runTool(self, args: str) -> str:
         """
@@ -56,94 +59,6 @@ class xParser:
             )
 
         return res.stdout
-
-    def flatten(self, node, leaveNames: list[str], branchName: str) -> str:
-        """
-        Flatten the incoming tree. Designed to be reusable over a broad range by configuring the searched patterns.
-        """
-        if not node:
-            return ""
-
-        if isinstance(node, dict):
-            children = node.get(branchName)
-
-            if children:
-                return "".join(
-                    t
-                    for t in (
-                        self.flatten(c, leaveNames, branchName) for c in children if c
-                    )
-                    if t
-                )
-
-            for leaveName in leaveNames:
-                if leaveName in node:
-                    return str(node[leaveName])
-
-        return ""
-
-    def walk(self, node):
-        """
-        Recursive iterator over each branches.
-        """
-        if not isinstance(node, dict):
-            return
-        yield node
-        for child in node.get("children", []):
-            if isinstance(child, dict):
-                yield from self.walk(child)
-
-    def find(
-        self, node, tag: str, children: str, depth: int = 0, exclude: list[str] = []
-    ):
-        """
-        Iterate over the tree and search for the specified tag.
-
-        Arguments :
-            node : The root dict to be searched
-            children : The keyword to access to a children
-            depth : The starting depth. Essentially used internally.
-            exclude : A list of leafs to be ignored.
-
-        Returns :
-            Generator(
-                depth, (where do we found this leave)
-                leave, (the found leave)
-            )
-        """
-        if not isinstance(node, dict):
-            return
-
-        node_tag = node.get("tag")
-
-        # Exclude list
-        if node_tag in exclude:
-            return
-
-        # Direct match ?
-        if node_tag == tag:
-            yield depth, node
-
-        # Look for childs
-        for child in node.get(children, []):
-            if child is not None:
-                yield from self.find(
-                    node=child,
-                    tag=tag,
-                    children=children,
-                    depth=depth + 1,
-                    exclude=exclude,
-                )
-
-        return
-
-    def get(self, node, leaf: str) -> str:
-        """
-        Return the text value for the request
-        """
-        if not node:
-            return ""
-        return node.get(leaf)
 
     def getFileInfo(self, file: Path) -> FileInfo:
         """
