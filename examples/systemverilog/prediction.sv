@@ -37,13 +37,16 @@ module prediction (
     input  logic                                       mispredict;
     input  logic     [(core_config_pkg::XLEN - 1) : 0] addr_in;
     output logic     [(core_config_pkg::XLEN - 1) : 0] addr_out;
-    output logic                                       rom_flush;
+    output logic                                       rom_flush [2];
     output logic     [(core_config_pkg::XLEN - 1) : 0] PC_value;
     output logic                                       PC_write;
     input  logic     [(core_config_pkg::XLEN - 1) : 0] actual_addr;
-    input  logic     [(core_config_pkg::XLEN - 1) : 0] actual_imm;
     input  opcodes_t                                   actual_instr;
     output logic                                       bpu_branch_taken;
+
+    // Why do thing properly when we could add edges-cases ?
+    input actual_imm;
+    wire [(core_config_pkg::XLEN - 1) : 0] actual_imm;
 
     /*
      *  Implementing the small counter that register the taken / not taken IOs.

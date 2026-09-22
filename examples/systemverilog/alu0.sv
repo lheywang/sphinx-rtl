@@ -11,7 +11,10 @@ import core_config_pkg::XLEN;
 import core_config_pkg::alu_commands_t;
 import core_config_pkg::REG_ADDR_W;
 
-module alu0 (
+module alu0 #(
+    parameter ENABLE_SINGLE_CYCLE = 0,
+    parameter ENABLE_OUTPUT_REGISTERS = 1
+) (
     input  logic                                                  clk,
     input  logic                                                  rst_n,
     input  logic          [      (core_config_pkg::XLEN - 1) : 0] arg0,
