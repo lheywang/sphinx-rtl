@@ -83,8 +83,9 @@ class Process:
 
     name: str
     hdl_type: str
-    hdl_clock: str = ""
-    hdl_reset: str = ""
+    signals_write: list[str]
+    hdl_clock: list[str]
+    hdl_reset: list[str]
     description: str = ""
     line: int = -1
 

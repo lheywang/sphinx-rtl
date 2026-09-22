@@ -11,6 +11,7 @@ import pyslang.syntax as syntax
 from pyslang import SourceManager
 import logging
 from pathlib import Path
+import re
 
 from ..models import Component, Parameter, Port, Enum, Import, Signal, Process
 from .xParser import xParser
@@ -33,7 +34,7 @@ class xVerilogParser(xParser):
         # No tools are needed, they're handled by the wheel !
         super().__init__()
 
-        # Init the elements to induce the memory effect between the calls:
+        # Init the elements to induce the memory effect between the calls required by the Verilog specification.
         self.port = Port("unknown", "unknown", "unknown", ["none"])
 
         # Append the source manager :
@@ -118,6 +119,10 @@ class xVerilogParser(xParser):
     def build_port(self, node: ast.PortSymbol) -> Port:
         """
         Build a port object from the passed source !
+
+        The code is crap, I know. But, due to the slight variations between each cases,
+        it's hard to efficiently move to functions the redundant code. So, it work, I won't
+        touch it...
         """
 
         # Get default values
@@ -133,7 +138,9 @@ class xVerilogParser(xParser):
             case ast.ArgumentDirection.InOut:
                 self.port.direction = "inout"
 
-        # Two cases : If the port is declared as ANSI, or not.
+        # -------------------------------------------------------------------
+        # PORT IS DECLARED AS ANSI
+        # -------------------------------------------------------------------
         if node.isAnsiPort:
 
             # If Ansi port, the parameters are in the PortDeclarationSyntax:
@@ -183,17 +190,22 @@ class xVerilogParser(xParser):
 
                 # Attempt to split the pairs, if fail that's a Scalar
                 for size_pair in size_pairs:
-
-                    bounds = [x.strip() for x in size_pair.split(":")]
+                    temp = size_pair.replace("::", ";;")
+                    bounds = [x.strip() for x in temp.split(":")]
 
                     # scalar
                     if len(bounds) == 1:
-                        self.port.hdl_size.append(f"{int(bounds[0]) - 1}")
+                        if bounds[0].isdecimal():
+                            self.port.hdl_size.append(
+                                f"{int(bounds[0].replace(";;", "::")) - 1}"
+                            )
+                        else:
+                            self.port.hdl_size.append(bounds[0].replace(";;", "::"))
                         self.port.hdl_size.append("0")
 
                     elif len(bounds) == 2:
-                        self.port.hdl_size.append(bounds[0])
-                        self.port.hdl_size.append(bounds[1])
+                        self.port.hdl_size.append(bounds[0].replace(";;", "::"))
+                        self.port.hdl_size.append(bounds[1].replace(";;", "::"))
 
             # Add the line
             source = self.sm.getLineNumber(node_declarator.sourceRange.start)
@@ -202,31 +214,178 @@ class xVerilogParser(xParser):
             else:
                 self.port.line = -1
 
+        # -------------------------------------------------------------------
+        # PORT IS DECLARED AS NON-ANSI
+        # -------------------------------------------------------------------
         else:
 
-            pass
+            internal: ast.Symbol = node.internalSymbol
+
+            decl_syntax: syntax.DeclaratorSyntax = internal.syntax
+            parent: syntax.SyntaxNode = decl_syntax.parent
+
+            # Fetch the parent node (sometimes not on the same place ...)
+            data_type = None
+            if hasattr(parent, "header") and hasattr(parent.header, "dataType"):
+                data_type = parent.header.dataType
+            elif hasattr(parent, "dataType"):
+                data_type = parent.dataType
+
+            # Extract the dimensions
+            raw_syntax = str(data_type).strip().split(" ", 1)
+
+            # Update the type
+            if raw_syntax[0].strip():
+                self.port.hdl_type = raw_syntax[0].strip()
+            else:
+                self.port.hdl_type = "logic"
+
+            # Extract the dimensions
+            if len(raw_syntax) > 1:
+
+                # Extract each pairs
+                size_pairs = [
+                    x.strip() for x in raw_syntax[1].replace("[", "").split("]")
+                ]
+
+                # Clear the list
+                self.port.hdl_size = []
+
+                # For each pairs, append one to the port
+                for size_pair in size_pairs:
+                    temp = size_pair.replace("::", ";;")
+                    bounds = [x.strip() for x in temp.split(":")]
+
+                    # If there's at least two bounds
+                    if len(bounds) >= 2:
+                        self.port.hdl_size.append(bounds[0].replace(";;", "::"))
+                        self.port.hdl_size.append(bounds[1].replace(";;", "::"))
+
+            else:
+                self.port.hdl_size = ["0", "0"]
+
+            # Add the declarator part size
+            for dimension in decl_syntax.dimensions:
+
+                raw_dimension = str(dimension)
+                size_pairs = [
+                    x.strip()
+                    for x in raw_dimension.replace("[", "").split("]")
+                    if len(x) > 1
+                ]
+
+                # Attempt to split the pairs, if fail that's a Scalar
+                for size_pair in size_pairs:
+                    temp = size_pair.replace("::", ";;")
+                    bounds = [x.strip() for x in temp.split(":")]
+
+                    # scalar
+                    if len(bounds) == 1:
+                        if bounds[0].isdecimal():
+                            self.port.hdl_size.append(
+                                f"{int(bounds[0].replace(";;", "::")) - 1}"
+                            )
+                        else:
+                            self.port.hdl_size.append(bounds[0].replace(";;", "::"))
+                        self.port.hdl_size.append("0")
+
+                    elif len(bounds) == 2:
+                        self.port.hdl_size.append(bounds[0].replace(";;", "::"))
+                        self.port.hdl_size.append(bounds[1].replace(";;", "::"))
+
+            # Add the line
+            source = self.sm.getLineNumber(node.location)
+            if source > 0:
+                self.port.line = source
+            else:
+                self.port.line = -1
 
         # Build the port
-        print(self.port)
         return self.port
 
+    def build_process(self, node: ast.ProceduralBlockSymbol) -> Process:
         """
-        header_node = m.syntax
-                                    print(type(m))
-                                    print(
-                                        f"En-tête (m.syntax)           : {to_text(header_node), m.direction}"
-                                    )
-                                    print(m.isAnsiPort)
-        
-                                    # 2. La déclaration réelle avec le type dans le corps
-                                    internal = getattr(m, "internalSymbol", None)
-                                    if internal and internal.syntax:
-                                        # internal.syntax est le signal, son parent est la ligne complète (ex: input logic [XLEN-1:0] addr_in;)
-                                        body_decl_node = internal.syntax.parent
-                                        print(
-                                            f"Corps (internalSymbol.parent) : {to_text(body_decl_node)}"
-                                        )
+        Build a process object from the passed source.
         """
+
+        # hdl_type: str
+        # signals_read: list[str]
+        # signals_write: list[str]
+        # hdl_clock: str = ""
+        # hdl_reset: str = ""
+
+        # Fetch the line of the process :
+        line = self.sm.getLineNumber(node.location)
+
+        # Get the name (generally empty)
+        name = node.name
+
+        # Init variables
+        clocks: list[str] = []
+        resets: list[str] = []
+        targets: list[str] = []
+
+        # Fetch the syntax
+        node_syntax: syntax.ProceduralBlockSyntax = node.syntax
+        statements: syntax.TimingControlStatementSyntax = node_syntax.statement
+
+        # Fetch the type. We let it to None for cases
+        hdl_type = None
+        if (
+            node.procedureKind == ast.ProceduralBlockKind.AlwaysFF
+            or node.procedureKind == ast.ProceduralBlockKind.AlwaysLatch
+        ):
+            hdl_type = "flipflop"
+        elif node.procedureKind == ast.ProceduralBlockKind.AlwaysComb:
+            hdl_type = "comb"
+
+        for statement in str(statements).split("\n"):
+            assignements = statement.split("=")
+
+            if len(assignements) > 1:
+                lhs = assignements[0].strip()
+
+                # That's a non blocking assignment !
+                if "<" in lhs and lhs.split(" ")[0] not in targets:
+                    targets.append(lhs.split(" ")[0])
+
+        # First, fetch the procedural type:
+        if hdl_type is None:
+            if "posedge" in statements or "negedge" in statements:
+                hdl_type = "flipflop"
+
+        # Now, look for the clocks and resets :
+        if hdl_type == "flipflop":
+
+            # Fetch any markers within the passed tokens :
+            markers = re.findall(
+                r"(?:posedge|negedge)\s+([a-zA-Z_0-9]+)", str(statements)
+            )
+
+            # Identify clock and resets :
+            for marker in markers:
+                if any(kw in marker.lower() for kw in ("rst", "reset")):
+                    resets.append(marker)
+                else:
+                    clocks.append(marker)
+
+        # Add the line
+        source = self.sm.getLineNumber(node.location)
+        line = -1
+        if source > 0:
+            line = source
+        else:
+            line = -1
+
+        # Build the output port
+        return Process(
+            name=name,
+            hdl_type=str(hdl_type),
+            hdl_clock=clocks,
+            hdl_reset=resets,
+            signals_write=targets,
+            line=line,
+        )
 
     # ----------------------------------------------------------------------------
     # GLOBAL PARSER
@@ -286,17 +445,16 @@ class xVerilogParser(xParser):
                             print(f"Import : {type(m).__name__}")
 
                         case ast.SymbolKind.Port:
-                            # Backup the port name
+                            # Add the port here
                             ports_names.append(m.name)
-
-                            # Build the port
                             ports.append(self.build_port(m))
 
                         case ast.SymbolKind.Net | ast.SymbolKind.Variable:
                             print(f"Signal : {type(m).__name__}")
 
                         case ast.SymbolKind.ProceduralBlock:
-                            print(f"Procedural : {type(m).__name__}")
+                            processes.append(self.build_process(m))
+                            print(processes[-1])
 
         # Return the final component
         return Component(
