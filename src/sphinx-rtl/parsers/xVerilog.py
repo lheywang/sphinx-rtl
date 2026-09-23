@@ -6,14 +6,26 @@
 # ----------------------------------------------------------------------------
 
 # Imports
+import pyslang
 import pyslang.ast as ast
 import pyslang.syntax as syntax
-from pyslang import SourceManager
 import logging
-from pathlib import Path
 import re
+import copy
+from pyslang import SourceManager
+from pathlib import Path
 
-from ..models import Component, Parameter, Port, Enum, Import, Signal, Process
+from ..models import (
+    Component,
+    Parameter,
+    Port,
+    Enum,
+    Import,
+    Signal,
+    Process,
+    Assignment,
+    Interface,
+)
 from .xParser import xParser
 
 # Logger config
@@ -116,6 +128,7 @@ class xVerilogParser(xParser):
     # ----------------------------------------------------------------------------
     # SYMBOLS BUILDERS
     # ----------------------------------------------------------------------------
+
     def build_port(self, node: ast.PortSymbol) -> Port:
         """
         Build a port object from the passed source !
@@ -271,7 +284,7 @@ class xVerilogParser(xParser):
                 size_pairs = [
                     x.strip()
                     for x in raw_dimension.replace("[", "").split("]")
-                    if len(x) > 1
+                    if len(x) > 0
                 ]
 
                 # Attempt to split the pairs, if fail that's a Scalar
@@ -301,7 +314,7 @@ class xVerilogParser(xParser):
                 self.port.line = -1
 
         # Build the port
-        return self.port
+        return copy.deepcopy(self.port)
 
     def build_process(self, node: ast.ProceduralBlockSymbol) -> Process:
         """
@@ -369,6 +382,11 @@ class xVerilogParser(xParser):
                 else:
                     clocks.append(marker)
 
+        # Fetch all the signals names
+        signals = set(re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_$]*\b", str(statements)))
+        exclude = set(clocks) | set(resets)
+        signals = signals - exclude
+
         # Add the line
         source = self.sm.getLineNumber(node.location)
         line = -1
@@ -384,8 +402,256 @@ class xVerilogParser(xParser):
             hdl_clock=clocks,
             hdl_reset=resets,
             signals_write=targets,
+            signals=list(signals),
             line=line,
         )
+
+    def build_parameter(self, node: ast.ParameterSymbol) -> Parameter:
+        """
+        Build the parameter object from a passed parameter node.
+
+        This one is really easy to do !
+        """
+
+        line = self.sm.getLineNumber(node.location)
+        if not line > 0:
+            line = -1
+
+        return Parameter(
+            name=str(node.name),
+            hdl_type=str(node.type),
+            hdl_value=str(node.value),
+            line=line,
+        )
+
+    def build_signal(self, node: ast.VariableSymbol | ast.NetSymbol) -> Signal:
+        """
+        Build the signal object from a passed signal node.
+
+        Another slightly different usage of the standard procedure matching,
+        """
+
+        line = self.sm.getLineNumber(node.location)
+        if not line > 0:
+            line = -1
+
+        # Extract the name
+        name = node.name.strip()
+
+        parent: syntax.DataDeclarationSyntax = node.syntax.parent
+        unpacked_dims = (
+            [str(d).strip() for d in node.syntax.dimensions]
+            if hasattr(node.syntax, "dimensions")
+            else []
+        )
+
+        # Make the thing cleaner
+        clean_type = re.sub(
+            r"/\*.*?\*/|//.*", "", str(parent.type), flags=re.DOTALL
+        ).strip()
+
+        # Extract the dimensions
+        raw_syntax = clean_type.strip().split(" ", 1)
+
+        # Update the type
+        hdl_type = "none"
+        if raw_syntax[0].strip():
+            hdl_type = raw_syntax[0].strip()
+        else:
+            hdl_type = "logic"
+
+        # Clear the list
+        hdl_size = []
+
+        # Extract the dimensions
+        if len(raw_syntax) > 1:
+
+            # Extract each pairs
+            size_pairs = [x.strip() for x in raw_syntax[1].replace("[", "").split("]")]
+
+            # For each pairs, append one to the port
+            for size_pair in size_pairs:
+                temp = size_pair.replace("::", ";;")
+                bounds = [x.strip() for x in temp.split(":")]
+
+                # If there's at least two bounds
+                if len(bounds) >= 2:
+                    hdl_size.append(bounds[0].replace(";;", "::"))
+                    hdl_size.append(bounds[1].replace(";;", "::"))
+
+        else:
+            hdl_size = ["0", "0"]
+
+        # Add the declarator part size
+        for raw_dimension in unpacked_dims:
+
+            size_pairs = [
+                x.strip()
+                for x in raw_dimension.replace("[", "").split("]")
+                if len(x) > 0
+            ]
+
+            # Attempt to split the pairs, if fail that's a Scalar
+            for size_pair in size_pairs:
+                temp = size_pair.replace("::", ";;")
+                bounds = [x.strip() for x in temp.split(":")]
+
+                # scalar
+                if len(bounds) == 1:
+                    if bounds[0].isdecimal():
+                        hdl_size.append(f"{int(bounds[0].replace(";;", "::")) - 1}")
+                    else:
+                        hdl_size.append(bounds[0].replace(";;", "::"))
+                    hdl_size.append("0")
+
+                elif len(bounds) == 2:
+                    hdl_size.append(bounds[0].replace(";;", "::"))
+                    hdl_size.append(bounds[1].replace(";;", "::"))
+
+        # Build the output node
+        return Signal(
+            name=name,
+            hdl_type=hdl_type,
+            hdl_size=hdl_size,
+            hdl_value="unknown",
+            line=line,
+        )
+
+    def build_assignment(self, node: ast.ContinuousAssignSymbol) -> Assignment:
+        """
+        Build the assignement object from a passed assign node.
+        """
+
+        # Extract the LHS and RHS
+        syntax = str(node.syntax)
+        assigns = syntax.split("=", 1)
+
+        # Alloc output
+        rhs = ""
+        lhs = []
+
+        if len(assigns) > 1:
+            rhs = assigns[0].strip()
+            lhs = list(re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_$]*\b", assigns[1]))
+
+        line = self.sm.getLineNumber(node.location)
+        if not line > 0:
+            line = -1
+
+        # Build the output object
+        return Assignment(
+            target=rhs, source=lhs, isComb=False if len(lhs) == 1 else True, line=line
+        )
+
+    def build_enum(self, node: ast.TypeAliasType) -> Enum:
+        """
+        Build the enum definition from a TypeAlias node.
+        """
+        # Fetch the resolved type
+        node_type: str = str(node.targetType.type)
+        width = node.bitstreamWidth
+
+        # Extract the elements
+        enum, name = node_type.split("}", 1) if "}" in node_type else ("", "")
+
+        # Allocate variables
+        values: list[int] = []
+        ids: list[str] = []
+
+        # Extract the elements :
+        if enum.startswith("enum{"):
+            members = enum.split("enum{", 1)[1].split(",")
+
+            # Extract the values
+            for member in members:
+                temp = member.split("=")
+
+                if len(temp) > 1:
+                    ids.append(temp[0])
+                    values.append(int(temp[1].replace(f"{width}'d", "")))
+
+        # Get the line
+        line = self.sm.getLineNumber(node.location)
+        if not line > 0:
+            line = -1
+
+        # Build the output
+        return Enum(name=name.split(".")[-1], values=values, members=ids, line=line)
+
+    def build_interfacePort(self, node: ast.InterfacePortSymbol) -> Port:
+        """
+        Extract the data from an Interface used as Port.
+        """
+
+        # Get the line
+        line = self.sm.getLineNumber(node.location)
+        if not line > 0:
+            line = -1
+
+        # Extract name
+        name = node.name
+
+        # Extract some infos
+        raw_syntax = [
+            x.strip() for x in str(node.syntax.parent).strip().split(" ") if len(x) > 0
+        ]
+
+        interface = "unknown"
+        modport = "unknown"
+        if len(raw_syntax) > 1 and raw_syntax[1] == name.strip():
+            interface, modport = raw_syntax[0].split(".", 1)
+
+        # Build the port we'll return :
+        return Port(
+            name=name,
+            direction=modport,
+            hdl_type=interface,
+            hdl_size=["0", "0"],
+            line=line,
+        )
+
+    def build_interface(self, node: ast.InstanceSymbol) -> Interface:
+        """
+        Build an interface from the passed node.
+        """
+        body: ast.InstanceBodySymbol = node.body
+        print(body.definition)
+        print(body.portList)
+        print(body.parameters)
+
+    # ----------------------------------------------------------------------------
+    # COMMENT LINKER
+    # ----------------------------------------------------------------------------
+    def link_comments(
+        self,
+        elements: list[
+            Port
+            | Signal
+            | Interface
+            | Enum
+            | Import
+            | Signal
+            | Process
+            | Assignment
+            | Parameter
+        ],
+        comments: tuple[int, str],
+    ) -> list[
+        Port
+        | Signal
+        | Interface
+        | Enum
+        | Import
+        | Signal
+        | Process
+        | Assignment
+        | Parameter
+    ]:
+        """
+        Insert the comments that match the declaration line or the previous one into the element structure.
+        Return the modified list.
+        """
+        pass
 
     # ----------------------------------------------------------------------------
     # GLOBAL PARSER
@@ -416,11 +682,34 @@ class xVerilogParser(xParser):
         imports: list[Import] = []
         signals: list[Signal] = []
         processes: list[Process] = []
+        assigns: list[Assignment] = []
+        interfaces: list[Interface] = []
 
         # Run the tool to parse the file
         tree = syntax.SyntaxTree.fromFile(str(file))
         compilation = ast.Compilation()
         compilation.addSyntaxTree(tree)
+
+        interfaces = []
+        modules = []
+        for member in tree.root.members:
+            if hasattr(member, "header") and hasattr(member.header, "name"):
+                name = member.header.name.valueText
+                if member.kind == syntax.SyntaxKind.InterfaceDeclaration:
+                    interfaces.append(name)
+                elif member.kind == syntax.SyntaxKind.ModuleDeclaration:
+                    modules.append(name)
+
+        # If nothing is found, perhaps we need to add a small empty module ?
+        if len(interfaces) > 0 and len(modules) == 0:
+            stub = "\n".join(
+                [
+                    f"module __doc_top_{iface}; {iface} __inst(); endmodule"
+                    for iface in interfaces
+                ]
+            )
+            stub_tree = syntax.SyntaxTree.fromText(stub)
+            compilation.addSyntaxTree(stub_tree)
 
         # Iterate over the different nodes :
         root = compilation.getRoot()
@@ -431,30 +720,50 @@ class xVerilogParser(xParser):
             ports_names = []
             if isinstance(instance, ast.InstanceSymbol):
                 for m in instance.body:
+
                     match m.kind:
                         case ast.SymbolKind.Parameter:
-                            print(f"Parameter : {type(m).__name__}")
+                            parameters.append(self.build_parameter(m))
 
                         case ast.SymbolKind.TypeAlias:
-                            print(f"Type Alias : {type(m).__name__}")
+                            enums.append(self.build_enum(m))
 
                         case (
                             ast.SymbolKind.WildcardImport
                             | ast.SymbolKind.ExplicitImport
                         ):
-                            print(f"Import : {type(m).__name__}")
+                            print(f"Import : {type(m)}")
 
                         case ast.SymbolKind.Port:
                             # Add the port here
                             ports_names.append(m.name)
                             ports.append(self.build_port(m))
 
+                        case ast.SymbolKind.InterfacePort:
+                            ports_names.append(m.name)
+                            ports.append(self.build_interfacePort(m))
+
                         case ast.SymbolKind.Net | ast.SymbolKind.Variable:
-                            print(f"Signal : {type(m).__name__}")
+                            if m.name not in ports_names:
+                                signals.append(self.build_signal(m))
 
                         case ast.SymbolKind.ProceduralBlock:
                             processes.append(self.build_process(m))
-                            print(processes[-1])
+
+                        case ast.SymbolKind.ContinuousAssign:
+                            assigns.append(self.build_assignment(m))
+
+                        case ast.SymbolKind.Instance:
+                            interfaces.append(self.build_interface(m))
+
+                        # We don't care about these, they're proxies to enums and other stuff like that
+                        case ast.SymbolKind.TransparentMember:
+                            pass
+
+                        case _:
+                            print(m.kind)
+
+        # Finally, add the comments to the different elements
 
         # Return the final component
         return Component(
