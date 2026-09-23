@@ -48,8 +48,7 @@ module commiter (
     /*
      *  Storages
      */
-    alu_t last_active_alu;
-    alu_t active_alu;
+    alu_t last_active_alu [2], active_alu [2];
 
     /*
      *  First, some combinational logic to choose the ALU that will get the right

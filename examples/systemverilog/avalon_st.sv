@@ -11,6 +11,9 @@ interface avalon_st #(
     parameter int                   CHANNEL_WIDTH = 4,
     parameter int                   ERROR_WIDTH = 4,
     parameter int                   SYMBOL_WIDTH = 8
+) (
+    input logic clk, // master clock
+    input logic rst_n // master reset
 );
 
     assign EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH);

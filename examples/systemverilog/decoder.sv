@@ -30,9 +30,7 @@ module decoder (
      * First latches, registering the inputs, on each rising edges of the clock.
      */
 
-    logic [(XLEN - 1) : 0] r0_instruction;
-    logic [(XLEN - 1) : 0] r0_addr;
-    logic [(XLEN - 1) : 0] r1_addr;
+    logic [(XLEN - 1) : 0] r0_instruction, r0_addr, r1_addr [2], temp [2][3];
     logic                  first_flag;
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -97,9 +95,9 @@ module decoder (
      * Second registration stage, for the second decoding stage
      */
 
-    logic      [(XLEN - 1) : 0] r1_instruction;
-    decoders_t                  r_selected_decoder;
-    logic                       r_decoder_illegal;
+    logic      [(XLEN - 1) : 0] r1_instruction [2];
+    decoders_t                  r_selected_decoder [2];
+    logic                       r_decoder_illegal [2];
 
     always_ff @(posedge clk or negedge rst_n) begin
 
