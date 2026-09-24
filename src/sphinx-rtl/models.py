@@ -10,74 +10,71 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class Parameter:
+class Element:
     """
-    Store the different values for a single parameter (or generic in VHDL) entry.
+    Basic config for an element to be defined. Shall not be used as it.
     """
 
     name: str = ""
-    hdl_type: str = ""
-    hdl_value: str = ""
     description: str = ""
     line: int = -1
 
 
 @dataclass
-class Port:
+class Parameter(Element):
+    """
+    Store the different values for a single parameter (or generic in VHDL) entry.
+    """
+
+    hdl_type: str = ""
+    hdl_value: str = ""
+
+
+@dataclass
+class Port(Element):
     """
     Store the different values for a single port entry.
     """
 
-    name: str = ""
     direction: str = ""
     hdl_type: str = ""
     hdl_size: list[str] = field(default_factory=list)
     hdl_sync: str = ""
     hdl_reset: str = ""
-    description: str = ""
-    line: int = -1
 
 
 @dataclass
-class Enum:
+class Enum(Element):
     """
     Store the different values for single enumeration (or type in VHDL) entry.
     """
 
-    name: str = ""
     values: list[int] = field(default_factory=list)
     members: list[str] = field(default_factory=list)
-    description: str = ""
-    line: int = -1
 
 
 @dataclass
-class Import:
+class Import(Element):
     """
     Store the different values for a single import (Verilog Only) entry.
     """
 
-    name: str = ""
-    description: str = ""
-    line: int = -1
+    target: str = ""
 
 
 @dataclass
-class Signal:
+class Signal(Element):
     """
     Store the different values for a single single reg / wire (or signal in VHDL) entry.
     """
 
-    name: str = ""
     hdl_type: str = ""
     hdl_size: list[str] = field(default_factory=list)
     hdl_value: str = ""
-    description: str = ""
-    line: int = -1
 
 
 @dataclass
-class Assignment:
+class Assignment(Element):
     """
     Store a constant assignment for a variable.
     """
@@ -85,51 +82,53 @@ class Assignment:
     target: str = ""
     source: list[str] = field(default_factory=list)
     isComb: bool = True
-    description: str = ""
-    line: int = -1
 
 
 @dataclass
-class Process:
+class Process(Element):
     """
     Store the different values for a single process / alway entry.
     """
 
-    name: str = ""
     hdl_type: str = ""
     signals_write: list[str] = field(default_factory=list)
     signals: list[str] = field(default_factory=list)
     hdl_clock: list[str] = field(default_factory=list)
     hdl_reset: list[str] = field(default_factory=list)
-    description: str = ""
-    line: int = -1
 
 
 @dataclass
-class Modport:
+class Modport(Element):
     """
     Store a modport informations.
     """
 
-    name: str = ""
     signals: list[Port] = field(default_factory=list)
-    description: str = ""
-    line: int = -1
 
 
 @dataclass
-class Interface:
+class Interface(Element):
     """
     Store the config for an interface entry.
     """
 
-    name: str = ""
     parameters: list[Parameter] = field(default_factory=list)
     ports: list[Port] = field(default_factory=list)
     signals: list[Signal] = field(default_factory=list)
     modports: list[Modport] = field(default_factory=list)
-    description: str = ""
-    line: int = -1
+
+
+@dataclass
+class Module(Element):
+    """
+    Store the config for a known module, instantianed within the passed design.
+    """
+
+    entity: str = ""
+    connections: list[tuple[str, str]] = field(default_factory=list)
+    params: list[Parameter] = field(default_factory=list)
+    isVendor: bool = False
+    vendor: str = ""
 
 
 @dataclass
@@ -173,3 +172,4 @@ class Component:
     process: list[Process] = field(default_factory=list)
     assigns: list[Assignment] = field(default_factory=list)
     interfaces: list[Interface] = field(default_factory=list)
+    modules: list[Module] = field(default_factory=list)
