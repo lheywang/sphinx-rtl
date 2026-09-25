@@ -18,6 +18,7 @@ class RenderConfig:
         - inferClocks :         Do we need to infer clocks for the different ports ?
         - inferResets :         Do we need to infer resets for the output ports ?
         - inferIOs :            Do we need to infer IO for the different processes ?
+        - inferType:            Do we need to infer the component type (testbench, package, interface...) ?
         - resolution :          Do we need to resolve the different modules ?
         - mermaid :             Do we need to load the mermaid render from a CDN ?
         - wavedrom :            Do we need to load wavefrom render from a CDN ?
@@ -36,6 +37,9 @@ class RenderConfig:
 
     # @noio
     inferIOs: bool = True
+
+    # @notype
+    inferType: bool = True
 
     # nosourceresolution
     resolution: bool = True

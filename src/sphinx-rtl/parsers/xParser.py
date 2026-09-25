@@ -68,7 +68,7 @@ class xParser:
         # First, open the repo. Ensure a fallback to ensure a working doc...
         try:
             repo = git.Repo(file, search_parent_directories=True)
-        except (git.exc.InvalidGitRepositoryError, git.exc.NoSuchPathError):
+        except (git.exc.InvalidGitRepositoryError, git.exc.NoSuchPathError):  # type: ignore
             return FileInfo(
                 file.name,
                 str(file),

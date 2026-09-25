@@ -27,7 +27,7 @@ class RTLAutodocDirective(Directive):
     has_content = False
 
     # Build the functions
-    def run(self):
+    def run(self):  # type: ignore
 
         # Fetch the settings
         env = self.state.document.settings.env

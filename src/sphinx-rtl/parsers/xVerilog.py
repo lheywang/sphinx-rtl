@@ -23,6 +23,7 @@ from ..models import (
     Assignment,
     Interface,
     Module,
+    Element,
 )
 from .xParser import xParser
 from .xVerilogFunctions import (
@@ -35,6 +36,8 @@ from .xVerilogFunctions import (
     build_enum,
     build_assignment,
     build_module,
+    extract_imports,
+    build_function,
 )
 
 # Logger config
@@ -56,7 +59,8 @@ class xVerilogParser(xParser):
         super().__init__()
 
         # Init the elements to induce the memory effect between the calls required by the Verilog specification.
-        self.port = Port("unknown", "unknown", "unknown", ["none"])
+        self.port = Port()
+        self.ports_names: list[str] = []
 
         # Append the source manager :
         self.sm: SourceManager = SourceManager()
@@ -150,40 +154,85 @@ class xVerilogParser(xParser):
     # ----------------------------------------------------------------------------
     def link_comments(
         self,
-        elements: list[
-            Port
-            | Signal
-            | Interface
-            | Enum
-            | Import
-            | Signal
-            | Process
-            | Assignment
-            | Parameter
-            | Module
-        ],
+        elements: list[Element],
         comments: tuple[int, str],
-    ) -> list[
-        Port
-        | Signal
-        | Interface
-        | Enum
-        | Import
-        | Signal
-        | Process
-        | Assignment
-        | Parameter
-        | Module
-    ]:
+    ) -> list[Element]:
         """
         Insert the comments that match the declaration line or the previous one into the element structure.
         Return the modified list.
         """
-        pass
+        return [Element()]
 
     # ----------------------------------------------------------------------------
     # GLOBAL PARSER
     # ----------------------------------------------------------------------------
+
+    def populate_component(
+        self, comp: Component, scope: ast.Scope, is_package: bool = False
+    ) -> None:
+        """
+        Populate a component from the right sources.
+        """
+
+        for m in scope:
+
+            match m.kind:
+                case ast.SymbolKind.Parameter:
+                    comp.parameters.append(
+                        build_parameter(m, self.get_line(m.location))  # type: ignore
+                    )
+
+                case ast.SymbolKind.TypeAlias:
+                    comp.enums.append(build_enum(m, self.get_line(m.location)))  # type: ignore
+
+                case ast.SymbolKind.WildcardImport | ast.SymbolKind.ExplicitImport:
+                    print(f"Import : {type(m)}")
+
+                case ast.SymbolKind.Port:
+                    # Add the port here
+                    self.ports_names.append(m.name)
+                    port = build_port(self.port, m, self.get_line(m.location))  # type: ignore
+                    comp.ports.append(port)
+                    self.port = port
+
+                case ast.SymbolKind.InterfacePort:
+                    self.ports_names.append(m.name)
+                    port = build_interfacePort(self.port, m, self.get_line(m.location))  # type: ignore
+                    comp.ports.append(port)
+                    self.port = port
+
+                case ast.SymbolKind.Net | ast.SymbolKind.Variable:
+                    if m.name not in self.ports_names:
+                        comp.signals.append(build_signal(m, self.get_line(m.location)))  # type: ignore
+
+                case ast.SymbolKind.ProceduralBlock:
+                    comp.process.append(build_process(m, self.get_line(m.location)))  # type: ignore
+
+                case ast.SymbolKind.ContinuousAssign:
+                    comp.assigns.append(build_assignment(m, self.get_line(m.location)))  # type: ignore
+
+                case ast.SymbolKind.Instance:
+                    comp.interfaces.append(
+                        build_interface(m, self.get_line(m.location), self.sm)  # type: ignore
+                    )
+
+                case ast.SymbolKind.Subroutine:
+                    comp.functions.append(build_function(m, self.get_line(m.location)))  # type: ignore
+
+                case ast.SymbolKind.UninstantiatedDef:
+                    comp.modules.append(build_module(m, self.get_line(m.location)))
+
+                # We don't care about these, they're proxies to enums and other stuff like that
+                case ast.SymbolKind.TransparentMember:
+                    pass
+
+                case _:
+                    print(f"Unknown element : {m.kind}")
+
+        # Update the package type.
+        if is_package:
+            comp.comp_type = "package"
+            comp.config.isPackage = True
 
     def parse(self, file: Path):
         """
@@ -203,17 +252,6 @@ class xVerilogParser(xParser):
         if not details.endswith("."):
             details += "."
 
-        # Build the elements
-        parameters: list[Parameter] = []
-        ports: list[Port] = []
-        enums: list[Enum] = []
-        imports: list[Import] = []
-        signals: list[Signal] = []
-        processes: list[Process] = []
-        assigns: list[Assignment] = []
-        interfaces: list[Interface] = []
-        modules: list[Module] = []
-
         # Run the tool to parse the file
         tree = syntax.SyntaxTree.fromFile(str(file))
         compilation = ast.Compilation()
@@ -221,7 +259,7 @@ class xVerilogParser(xParser):
 
         interfaces = []
         modules = []
-        for member in tree.root.members:
+        for member in tree.root.members:  # type: ignore
             if hasattr(member, "header") and hasattr(member.header, "name"):
                 name = member.header.name.valueText
                 if member.kind == syntax.SyntaxKind.InterfaceDeclaration:
@@ -237,92 +275,31 @@ class xVerilogParser(xParser):
                     for iface in interfaces
                 ]
             )
-            stub_tree = syntax.SyntaxTree.fromText(stub)
+            stub_tree: syntax.SyntaxTree = syntax.SyntaxTree.fromText(stub)
             compilation.addSyntaxTree(stub_tree)
 
-        # Iterate over the different nodes :
-        root = compilation.getRoot()
-        self.sm = compilation.sourceManager
+        # Fetch the compilation root
+        root: ast.RootSymbol = compilation.getRoot()
+        self.sm: SourceManager = compilation.sourceManager
+
+        # Extract the different packages
+        packages = [x for x in compilation.getPackages() if x.name != "std"]
+
+        # Iterate over the nodes available.
+        # Doing in this way enable us to reuse the same logic, and therefore reduce the bug surface...
+        comp = Component(file=infos)
+
         for instance in root.topInstances:
+            self.populate_component(comp, instance.body, False)
+        for package in packages:
+            self.populate_component(comp, package, True)
 
-            # List to track if the port name is already known, or not ?!?
-            ports_names = []
-            if isinstance(instance, ast.InstanceSymbol):
-                for m in instance.body:
+        # Extract the imports
+        comp.imports = extract_imports(tree, self.sm)
 
-                    match m.kind:
-                        case ast.SymbolKind.Parameter:
-                            parameters.append(
-                                build_parameter(m, self.get_line(m.location))
-                            )
-
-                        case ast.SymbolKind.TypeAlias:
-                            enums.append(build_enum(m, self.get_line(m.location)))
-
-                        case (
-                            ast.SymbolKind.WildcardImport
-                            | ast.SymbolKind.ExplicitImport
-                        ):
-                            print(f"Import : {type(m)}")
-
-                        case ast.SymbolKind.Port:
-                            # Add the port here
-                            ports_names.append(m.name)
-                            port = build_port(self.port, m, self.get_line(m.location))
-                            ports.append(port)
-                            self.port = port
-
-                        case ast.SymbolKind.InterfacePort:
-                            ports_names.append(m.name)
-                            port = build_interfacePort(
-                                self.port, m, self.get_line(m.location)
-                            )
-                            ports.append(port)
-                            self.port = port
-
-                        case ast.SymbolKind.Net | ast.SymbolKind.Variable:
-                            if m.name not in ports_names:
-                                signals.append(
-                                    build_signal(m, self.get_line(m.location))
-                                )
-
-                        case ast.SymbolKind.ProceduralBlock:
-                            processes.append(
-                                build_process(m, self.get_line(m.location))
-                            )
-
-                        case ast.SymbolKind.ContinuousAssign:
-                            assigns.append(
-                                build_assignment(m, self.get_line(m.location))
-                            )
-
-                        case ast.SymbolKind.Instance:
-                            interfaces.append(
-                                build_interface(m, self.get_line(m.location))
-                            )
-
-                        case ast.SymbolKind.UninstantiatedDef:
-                            modules.append(build_module(m, self.get_line(m.location)))
-
-                        # We don't care about these, they're proxies to enums and other stuff like that
-                        case ast.SymbolKind.TransparentMember:
-                            pass
-
-                        case _:
-                            print(m.kind)
-
-        # Finally, add the comments to the different elements
+        # Finally, add the comments to the different elements.
+        # As designed, this function is agnostic from the design type, and is already done within the IR reduction pass.
 
         # Return the final component
-        return Component(
-            name="name",
-            brief=brief,
-            details=details,
-            file=infos,
-            parameters=parameters,
-            ports=ports,
-            enums=enums,
-            imports=imports,
-            signals=signals,
-            process=processes,
-        )
+        # print(comp)
+        return comp

@@ -49,6 +49,7 @@ class Port(Element):
         - direction :       The direction of the port (input, output, inout...)
         - hdl_type :        The type of the port, as passed on the file. May be standard or custom ports.
         - hdl_size :        An array of N pairs of size, typically MSB:LSB. Single bit ports are expressed as "0", "0" (or any same value pair)
+        - hdl_value :       The default value given for the port.
         - hdl_sync :        The clock to which this port is linked, in both reading and writing. This is inferred by the IR reduction pass.
         - hdl_reset :       The reset port to which this port is linked, in writing only.
     """
@@ -56,6 +57,7 @@ class Port(Element):
     direction: str = ""
     hdl_type: str = ""
     hdl_size: list[str] = field(default_factory=list)
+    hdl_value: str = ""
     hdl_sync: str = ""
     hdl_reset: str = ""
 
@@ -192,6 +194,16 @@ class Module(Element):
 
 
 @dataclass
+class Function(Element):
+    """
+    Store the config for a known function, instantiated within the passed design.
+    """
+
+    func_inputs: list[Port] = field(default_factory=list)
+    func_outputs: list[Port] = field(default_factory=list)
+
+
+@dataclass
 class FileInfo:
     """
     Store the different values for a single file info entry.
@@ -230,13 +242,18 @@ class ComponentConfig:
     linked to the user config rather than pure HDL elements.
 
     Fields :
-        - isTestbench :     Define the current component as a testbench. This change some behaviors when the rendering pass is done.
+        - isTestbench :     Define the current component as a testbench. This change some behaviors when the rendering pass is done*.
         - testbenchTarget : The name of the component to be tested. Only evaluated if this module is a testbench.
+        - isPackage :       Define the current component as a package. This does change some behaviors when the rendering pass is done*.
+        - isInterface:      Define the current component as an interface. This does change some behaviors when the rendering pass is done*.
         - status :          The status of the component. Could be any string, but standard (beta, release, stable ...) shall be preferred.
         - version :         The version of the module.
         - task :            Insert here the current task this module is relevant to. Could be @task Project XX or @task Client YY
         - copyright :       Is this module copyrighted to anything ?
         - tags :            A list of free tags to be used anywhere.
+
+    * : Different elements may or may not be useful for the different kind of objects. Therefore, these flags are checking them
+        to configure the optimal render method for the current component.
     """
 
     # @testbench
@@ -244,6 +261,12 @@ class ComponentConfig:
 
     # @target module_xx
     testbenchTarget: str = ""
+
+    # @package
+    isPackage: bool = False
+
+    # @interface
+    isInterface: bool = False
 
     # @status released
     status: str = "release"
@@ -272,6 +295,7 @@ class Component:
         - brief :           The brief description of the component.
         - details :         The long description of the component.
         - config :          The extended config file to be used.
+        - comp_type :       The component type, to eventually be inferred by the IR.
 
         - parameters :      The list of available parameters for this component.
         - ports :           The list of module ports.
@@ -282,6 +306,7 @@ class Component:
         - assigns :         The list of internal assignments.
         - interfaces :      The list of available interfaces. Only exposed when this file describe at least an interface.
         - modules :         The list of included elements within the design.
+        - functions :       The list of functions the element may define.
 
         - flags :           The list of unresolved flags, to be passed to the render stage(s).
     """
@@ -293,9 +318,10 @@ class Component:
     name: str = ""
     brief: str = ""
     details: str = ""
+    comp_type: str = ""
 
     # Render config
-    config: ComponentConfig = ComponentConfig()
+    config: ComponentConfig = field(default_factory=ComponentConfig)
 
     # HDL elements
     parameters: list[Parameter] = field(default_factory=list)
@@ -307,6 +333,7 @@ class Component:
     assigns: list[Assignment] = field(default_factory=list)
     interfaces: list[Interface] = field(default_factory=list)
     modules: list[Module] = field(default_factory=list)
+    functions: list[Function] = field(default_factory=list)
 
     # Unknown flags
     flags: list[str] = field(default_factory=list)

@@ -51,7 +51,7 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
         node_header: syntax.PortHeaderSyntax = node_syntax.header
 
         # We need to process the dimension of the "global" definition:
-        raw_syntax = str(node_header.dataType).strip().split(" ", 1)
+        raw_syntax = str(node_header.dataType).strip().split(" ", 1)  # type: ignore
 
         # Update the type
         if raw_syntax[0] != "":
@@ -120,10 +120,10 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
 
         # Fetch the parent node (sometimes not on the same place ...)
         data_type = None
-        if hasattr(parent, "header") and hasattr(parent.header, "dataType"):
-            data_type = parent.header.dataType
+        if hasattr(parent, "header") and hasattr(parent.header, "dataType"):  # type: ignore
+            data_type = parent.header.dataType  # type: ignore
         elif hasattr(parent, "dataType"):
-            data_type = parent.dataType
+            data_type = parent.dataType  # type: ignore
 
         # Extract the dimensions
         raw_syntax = str(data_type).strip().split(" ", 1)

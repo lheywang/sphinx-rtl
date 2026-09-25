@@ -28,7 +28,7 @@ def build_process(node: ast.ProceduralBlockSymbol, line: int) -> Process:
 
     # Fetch the syntax
     node_syntax: syntax.ProceduralBlockSyntax = node.syntax
-    statements: syntax.TimingControlStatementSyntax = node_syntax.statement
+    statements: syntax.TimingControlStatementSyntax = node_syntax.statement  # type: ignore
 
     # Fetch the type. We let it to None for cases
     hdl_type = None
