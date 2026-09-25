@@ -19,4 +19,12 @@ package my_design_pkg;
             reverse_bits[WIDTH-1-i] = data[i];
     endfunction
 
+    typedef struct packed {
+        logic [ADDR_WIDTH-1:0] addr;
+        logic [WIDTH-1:0]      data;
+        logic                  we;
+        logic [1:0]            burst;
+        logic [3:0]            mask;
+    } mem_req_t;
+
 endpackage
