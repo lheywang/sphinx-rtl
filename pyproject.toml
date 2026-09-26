@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Automated RTL (VHDL, Verilog, SystemVerilog) documentation generator."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache License Version 2.0" }
+license-files = ["LICENSE"]
 authors = [{ name = "Leonard HEYWANG" }]
 
 dependencies = [
@@ -20,4 +20,4 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
+dev = ["pytest>=8.0.0", "build", "twine"]
