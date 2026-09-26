@@ -5,4 +5,4 @@
 # Brief :   Fetch the size of a port.
 # ----------------------------------------------------------------------------
 
-from .size import get_size
+from .size import get_size_and_type

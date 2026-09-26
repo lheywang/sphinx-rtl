@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 
-def get_size(raw: str) -> list[str]:
+def get_size_and_type(raw: str) -> tuple[str, list[str]]:
     """
     Return the list of strings that define the size of an element, according to the spec.
 
@@ -21,7 +21,16 @@ def get_size(raw: str) -> list[str]:
     ret_size: list[str] = []
 
     # Extract each pairs
-    size_pairs = [x.strip() for x in raw.replace("[", "").split("]") if len(x) > 0]
+    elements = raw.split("[", 1)
+
+    if len(elements) > 1:
+        type = elements[0].strip()
+        size = elements[1].strip()
+    else:
+        type = "logic"
+        size = ""
+
+    size_pairs = [x.strip() for x in size.replace("]", "").split("[") if len(x) > 0]
 
     # For each pairs, append one to the port
     if len(size_pairs) > 0:
@@ -47,14 +56,14 @@ def get_size(raw: str) -> list[str]:
     else:
         ret_size = ["0", "0"]
 
-    return ret_size
+    return type, ret_size
 
 
 if __name__ == "__main__":
-    print(get_size("         [      (core_config_pkg::XLEN - 1) : 0]"))
-    print(get_size("    [    (IF_LEN - 1) : 0][1:0]"))
-    print(get_size("    [2]"))
-    print(get_size("    [IF_LEN]"))
-    print(get_size("    [    (IF_LEN - 1) : 1][1:0]"))
-    print(get_size(""))
-    print(get_size(" [WIDTH-1:0]"))
+    print(get_size_and_type("         logic[      (core_config_pkg::XLEN - 1) : 0]"))
+    print(get_size_and_type("    logic[    (IF_LEN - 1) : 0][1:0]"))
+    print(get_size_and_type(" logic   logic[2]"))
+    print(get_size_and_type("logic    [IF_LEN]"))
+    print(get_size_and_type("    logic[    (IF_LEN - 1) : 1][1:0]"))
+    print(get_size_and_type("logic"))
+    print(get_size_and_type("logic                                      [WIDTH-1:0]"))
