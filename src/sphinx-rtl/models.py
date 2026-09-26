@@ -77,6 +77,20 @@ class Enum(Element):
 
 
 @dataclass
+class Structure(Element):
+    """
+    Store the element contained within a structure.
+
+    Fields :
+        - signals:          A list of signals to be stored within the struct.
+        - isPacked :        Is the struct packed ?
+    """
+
+    signals: list[Signal] = field(default_factory=list)
+    isPacked: bool = False
+
+
+@dataclass
 class Import(Element):
     """
     Store the different values for a single import (Verilog Only) entry.
@@ -99,11 +113,13 @@ class Signal(Element):
         hdl_type :          The type of the signal as wrote on the source file.
         hdl_size :          The size of the signal, passed as N pairs of strings, typically under the form MSB,LSB. Single bit signals are expressed "x", "x" (or any value, they just must be equal)
         hdl_value :         The value hold by this signal when declared.
+        isImplicit :        Was this signal declared by the user or by some superior entity ?
     """
 
     hdl_type: str = ""
     hdl_size: list[str] = field(default_factory=list)
     hdl_value: str = ""
+    isImplicit: bool = False
 
 
 @dataclass
@@ -184,6 +200,11 @@ class Module(Element):
         - params :          The list of parameters passed to this module.
         - isVendor :        Does the module target something that looks like a vendor primitive ?
         - vendor :          The name of the vendor of this module, if applicable.
+        - isConditionnal:   Is this module member of a conditionnal generate loop ?
+        - isRepeated :      Is this module repeated in a for generate structure ?
+        - condParameters :  The parameters that affect the conditions.
+        - loopParameters :  The parameters that affect the loop generations.
+        - count :           If fixed, the number of repetitions.
     """
 
     entity: str = ""
@@ -191,6 +212,11 @@ class Module(Element):
     params: list[Parameter] = field(default_factory=list)
     isVendor: bool = False
     vendor: str = ""
+    isConditionnal: bool = False
+    isRepeated: bool = False
+    condParameters: list[Parameter] = field(default_factory=list)
+    loopParameters: list[Parameter] = field(default_factory=list)
+    count: str = "1"
 
 
 @dataclass
@@ -307,6 +333,7 @@ class Component:
         - interfaces :      The list of available interfaces. Only exposed when this file describe at least an interface.
         - modules :         The list of included elements within the design.
         - functions :       The list of functions the element may define.
+        - structures :      The list of structures the element may define.
 
         - flags :           The list of unresolved flags, to be passed to the render stage(s).
     """
@@ -334,6 +361,7 @@ class Component:
     interfaces: list[Interface] = field(default_factory=list)
     modules: list[Module] = field(default_factory=list)
     functions: list[Function] = field(default_factory=list)
+    structures: list[Structure] = field(default_factory=list)
 
     # Unknown flags
     flags: list[str] = field(default_factory=list)

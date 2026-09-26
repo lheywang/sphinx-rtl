@@ -7,12 +7,17 @@
 
 # Imports
 import glob
+from sphinx.util import logging
 from pathlib import Path
 from docutils import nodes
 from docutils.parsers.rst import Directive
 
 from .parsers import xVerilogParser, VHDLParser
 from .models import Component
+
+# Configure the logger
+logger = logging.getLogger(__name__)
+
 
 # Open the different parsers
 xVerilogTool = xVerilogParser()
@@ -70,7 +75,7 @@ class RTLAutodocDirective(Directive):
         for match in matches:
             env.note_dependency(str(match))
 
-            print("Processing ", match)
+            logger.info(f"[INFO] Processing file : {str(match)}")
 
             # Call the matching parser :
             suffix = match.suffix.lower()

@@ -6,6 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Imports
+
 from .directive import RTLAutodocDirective
 
 
