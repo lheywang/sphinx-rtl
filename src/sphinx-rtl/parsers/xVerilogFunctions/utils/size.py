@@ -57,3 +57,4 @@ if __name__ == "__main__":
     print(get_size("    [IF_LEN]"))
     print(get_size("    [    (IF_LEN - 1) : 1][1:0]"))
     print(get_size(""))
+    print(get_size(" [WIDTH-1:0]"))
