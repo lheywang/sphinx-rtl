@@ -13,10 +13,15 @@ package my_design_pkg;
     parameter DONE = 2'b10;
 
     // Shared utility function
-    function [WIDTH-1:0] reverse_bits (input [WIDTH-1:0] data);
+    function logic [WIDTH-1:0] reverse_bits (input logic [WIDTH-1:0] data);
         integer i;
         for (i = 0; i < WIDTH; i = i + 1)
             reverse_bits[WIDTH-1-i] = data[i];
+    endfunction
+
+    function void swap (inout logic [WIDTH-1:0] dataA, inout logic [WIDTH-1:0] dataB);
+        dataA <= dataB;
+        dataB <= dataA;
     endfunction
 
     typedef struct packed {
