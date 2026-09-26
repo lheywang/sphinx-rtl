@@ -8,7 +8,7 @@
 # Imports
 import pyslang.ast as ast
 import pyslang.syntax as syntax
-import logging
+from sphinx.util import logging
 from pyslang import SourceManager
 from pathlib import Path
 
@@ -38,9 +38,11 @@ from .xVerilogFunctions import (
     build_module,
     extract_imports,
     build_function,
+    build_struct,
+    build_generate,
 )
 
-# Logger config
+# Configure the logger
 logger = logging.getLogger(__name__)
 
 
@@ -64,6 +66,9 @@ class xVerilogParser(xParser):
 
         # Append the source manager :
         self.sm: SourceManager = SourceManager()
+
+        # Get some stats
+        self.ignored = 0
 
     # ----------------------------------------------------------------------------
     # COMMENTS PARSERS
@@ -177,17 +182,21 @@ class xVerilogParser(xParser):
         for m in scope:
 
             match m.kind:
+
+                # PARAMETER
                 case ast.SymbolKind.Parameter:
                     comp.parameters.append(
                         build_parameter(m, self.get_line(m.location))  # type: ignore
                     )
 
+                # TYPE ALIAS
                 case ast.SymbolKind.TypeAlias:
-                    comp.enums.append(build_enum(m, self.get_line(m.location)))  # type: ignore
+                    if m.isEnum:  # type: ignore
+                        comp.enums.append(build_enum(m, self.get_line(m.location)))  # type: ignore
+                    elif m.isStruct:  # type: ignore
+                        comp.structures.append(build_struct(m, self.get_line(m.location), self.sm))  # type: ignore
 
-                case ast.SymbolKind.WildcardImport | ast.SymbolKind.ExplicitImport:
-                    print(f"Import : {type(m)}")
-
+                # PORTS
                 case ast.SymbolKind.Port:
                     # Add the port here
                     self.ports_names.append(m.name)
@@ -195,39 +204,54 @@ class xVerilogParser(xParser):
                     comp.ports.append(port)
                     self.port = port
 
+                # INTERFACE PORT
                 case ast.SymbolKind.InterfacePort:
                     self.ports_names.append(m.name)
                     port = build_interfacePort(self.port, m, self.get_line(m.location))  # type: ignore
                     comp.ports.append(port)
                     self.port = port
 
+                # SYMBOL / NET
                 case ast.SymbolKind.Net | ast.SymbolKind.Variable:
                     if m.name not in self.ports_names:
                         comp.signals.append(build_signal(m, self.get_line(m.location)))  # type: ignore
 
+                # PROCESS
                 case ast.SymbolKind.ProceduralBlock:
                     comp.process.append(build_process(m, self.get_line(m.location)))  # type: ignore
 
+                # ASSIGN
                 case ast.SymbolKind.ContinuousAssign:
                     comp.assigns.append(build_assignment(m, self.get_line(m.location)))  # type: ignore
 
+                # INSTANCE
                 case ast.SymbolKind.Instance:
                     comp.interfaces.append(
                         build_interface(m, self.get_line(m.location), self.sm)  # type: ignore
                     )
 
+                # FUNCTIONS
                 case ast.SymbolKind.Subroutine:
                     comp.functions.append(build_function(m, self.get_line(m.location)))  # type: ignore
 
+                # INSTANCE MODULE
                 case ast.SymbolKind.UninstantiatedDef:
                     comp.modules.append(build_module(m, self.get_line(m.location)))
 
+                # GENERATE
+                case ast.SymbolKind.GenerateBlock | ast.SymbolKind.GenerateBlockArray:
+                    build_generate(m, self.get_line(m.location))  # type: ignore
+
                 # We don't care about these, they're proxies to enums and other stuff like that
-                case ast.SymbolKind.TransparentMember:
-                    pass
+                case (
+                    ast.SymbolKind.TransparentMember
+                    | ast.SymbolKind.Genvar
+                    | ast.SymbolKind.EmptyMember
+                ):
+                    self.ignored += 1
 
                 case _:
-                    print(f"Unknown element : {m.kind}")
+                    logger.warning(f"[WARN] Unknown element ({m.kind}) : {str(m.name)}")
 
         # Update the package type.
         if is_package:
@@ -301,5 +325,10 @@ class xVerilogParser(xParser):
         # As designed, this function is agnostic from the design type, and is already done within the IR reduction pass.
 
         # Return the final component
+
+        # Add some logs in the console :
+        if self.ignored > 0:
+            logger.debug(f"[INFO] Ignored {self.ignored} nodes from the source file.")
+
         # print(comp)
         return comp

@@ -11,7 +11,7 @@ import pyslang.ast as ast
 import pyslang.syntax as syntax
 
 from ...models import Signal
-from .utils import get_size
+from .utils import get_size_and_type
 
 
 def build_signal(node: ast.VariableSymbol | ast.NetSymbol, line: int) -> Signal:
@@ -23,38 +23,44 @@ def build_signal(node: ast.VariableSymbol | ast.NetSymbol, line: int) -> Signal:
 
     # Extract the name
     name = node.name.strip()
+    implicit = False
 
-    parent: syntax.DataDeclarationSyntax = node.syntax.parent
-    unpacked_dims = (
-        [str(d).strip() for d in node.syntax.dimensions]
-        if hasattr(node.syntax, "dimensions")
-        else []
-    )
+    if node.kind == ast.SymbolKind.Variable:
 
-    # Make the thing cleaner
-    clean_type = re.sub(
-        r"/\*.*?\*/|//.*", "", str(parent.type), flags=re.DOTALL
-    ).strip()
+        parent: syntax.DataDeclarationSyntax = node.syntax.parent
+        unpacked_dims = (
+            [str(d).strip() for d in node.syntax.dimensions]
+            if hasattr(node.syntax, "dimensions")
+            else []
+        )
 
-    # Extract the dimensions
-    raw_syntax = clean_type.strip().split(" ", 1)
+        # Make the thing cleaner
+        clean_type = re.sub(
+            r"/\*.*?\*/|//.*", "", str(parent.type), flags=re.DOTALL
+        ).strip()
 
-    # Update the type
-    hdl_type = "none"
-    if raw_syntax[0].strip():
-        hdl_type = raw_syntax[0].strip()
-    else:
+        hdl_type, hdl_size = get_size_and_type(clean_type.strip())
+
+        # Add the declarator part size
+        _, size = get_size_and_type(str(unpacked_dims))
+        if size[0] != size[1]:
+            hdl_size.extend(size)
+
+    elif node.kind == ast.SymbolKind.Net:
+
+        parent: syntax.DataDeclarationSyntax = node.syntax.parent
+        unpacked_dims = (
+            node.syntax.dimensions if hasattr(node.syntax, "dimensions") else "[0:0]"
+        )
+
         hdl_type = "logic"
+        _, hdl_size = get_size_and_type(unpacked_dims)
+        implicit = node.isImplicit  # type: ignore
 
-    # Clear the list
-    hdl_size = []
+    else:
 
-    # Extract the dimensions
-    if len(raw_syntax) > 1:
-        hdl_size = get_size(raw_syntax[1])
-
-    # Add the declarator part size
-    hdl_size.extend(get_size(str(unpacked_dims)))
+        hdl_type = "unknown"
+        hdl_size = ["0", "0"]
 
     # Build the output node
     return Signal(
@@ -63,4 +69,5 @@ def build_signal(node: ast.VariableSymbol | ast.NetSymbol, line: int) -> Signal:
         hdl_size=hdl_size,
         hdl_value="unknown",
         line=line,
+        isImplicit=implicit,
     )

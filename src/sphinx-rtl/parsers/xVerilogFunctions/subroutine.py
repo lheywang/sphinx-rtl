@@ -9,7 +9,7 @@
 import pyslang.ast as ast
 
 from ...models import Function, Port
-from .utils import get_size
+from .utils import get_size_and_type
 
 
 def build_function(node: ast.SubroutineSymbol, line: int = -1) -> Function:
@@ -43,14 +43,9 @@ def build_function(node: ast.SubroutineSymbol, line: int = -1) -> Function:
             .replace(dir_str, "")
             .replace(argument.name, "")
             .strip()
-            .split(" ", 1)
         )
-        if len(raw_size) > 1:
-            hdl_size = get_size(raw_size[1])
-            hdl_type = raw_size[0].strip()
-        else:
-            hdl_size = get_size(raw_size[0])
-            hdl_type = "logic"
+
+        hdl_type, hdl_size = get_size_and_type(raw_size)
 
         args.append(
             Port(
@@ -63,20 +58,7 @@ def build_function(node: ast.SubroutineSymbol, line: int = -1) -> Function:
         )
 
     # Fetch the type of return
-    raw_return = [
-        x.strip() for x in str(node.syntax.prototype.returnType).strip().split(" ", 1)
-    ]
-    print(raw_return)
-    if len(raw_return) > 1:
-        hdl_size = get_size(raw_return[1])
-        hdl_type = raw_return[0].strip()
-    else:
-        if any(c.isdigit() for c in raw_return[0]):
-            hdl_size = get_size(raw_return[0])
-            hdl_type = "logic"
-        else:
-            hdl_size = ["0", "0"]
-            hdl_type = raw_return[0]
+    hdl_type, hdl_size = get_size_and_type(str(node.syntax.prototype.returnType))
 
     # Build the return port :
     returns: list[Port] = [
@@ -84,5 +66,4 @@ def build_function(node: ast.SubroutineSymbol, line: int = -1) -> Function:
     ]
 
     # Return the function
-    print(Function(name=node.name, line=line, func_inputs=args, func_outputs=returns))
     return Function(name=node.name, line=line, func_inputs=args, func_outputs=returns)

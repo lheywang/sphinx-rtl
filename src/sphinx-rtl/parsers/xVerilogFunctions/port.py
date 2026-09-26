@@ -11,7 +11,7 @@ import pyslang.ast as ast
 import pyslang.syntax as syntax
 
 from ...models import Port
-from .utils import get_size
+from .utils import get_size_and_type
 
 
 def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
@@ -51,20 +51,14 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
         node_syntax: syntax.ImplicitAnsiPortSyntax = node.syntax.parent
         node_header: syntax.PortHeaderSyntax = node_syntax.header
 
-        # We need to process the dimension of the "global" definition:
-        raw_syntax = str(node_header.dataType).strip().split(" ", 1)  # type: ignore
-
-        # Update the type
-        if raw_syntax[0] != "":
-            port.hdl_type = raw_syntax[0].strip()
-
-        # Extract the dimensions
-        if len(raw_syntax) > 1:
-            port.hdl_size = get_size(raw_syntax[1])
+        port.hdl_type, port.hdl_size = get_size_and_type(
+            str(node_header.dataType).strip()  # type: ignore
+        )
 
         # Finally, processing the last elements (a size that may be specific to the declaration)
-        node_declarator: syntax.DeclaratorSyntax = node_syntax.declarator
-        port.hdl_size.extend(get_size(str(node_declarator.dimensions)))
+        _, size = get_size_and_type(str(node_syntax.declarator.dimensions))
+        if size[0] != size[1]:
+            port.hdl_size.extend(size)
 
     # -------------------------------------------------------------------
     # PORT IS DECLARED AS NON-ANSI
@@ -83,21 +77,12 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
         elif hasattr(parent, "dataType"):
             data_type = parent.dataType  # type: ignore
 
-        # Extract the dimensions
-        raw_syntax = str(data_type).strip().split(" ", 1)
-
-        # Update the type
-        if raw_syntax[0].strip():
-            port.hdl_type = raw_syntax[0].strip()
-        else:
-            port.hdl_type = "logic"
-
-        # Extract the dimensions
-        if len(raw_syntax) > 1:
-            port.hdl_size = get_size(raw_syntax[1])
+        port.hdl_type, port.hdl_size = get_size_and_type(str(data_type))
 
         # Add the declarator part size
-        port.hdl_size.extend(get_size(str(decl_syntax.dimensions)))
+        _, size = get_size_and_type(str(decl_syntax.dimensions))
+        if size[0] != size[1]:
+            port.hdl_size.extend(size)
 
     # Build the port
     return port

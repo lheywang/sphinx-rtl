@@ -10,6 +10,7 @@ import pyslang.ast as ast
 import pyslang.syntax as syntax
 
 from ...models import Module, Parameter
+from .utils import get_size_and_type
 
 
 def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  # type: ignore
@@ -23,6 +24,14 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  
     conns: list[syntax.NamedPortConnectionSyntax] = [
         x for x in mod.syntax.connections if type(x) is syntax.NamedPortConnectionSyntax
     ]
+
+    # Is the instance present more than once ?
+    repeat = False
+    count = 1
+    _, size = get_size_and_type(str(node.syntax.decl))
+    if size[0] != size[1]:
+        repeat = True
+        count = int(size[0]) - 1
 
     # Extract the connections
     connections: list[tuple[str, str]] = []
@@ -59,4 +68,6 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  
         connections=connections,
         params=params,
         line=line,
+        isRepeated=repeat,
+        count=f"{count}",
     )
