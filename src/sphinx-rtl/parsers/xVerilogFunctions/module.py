@@ -12,7 +12,7 @@ import pyslang.syntax as syntax
 from ...models import Module, Parameter
 
 
-def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:
+def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  # type: ignore
     """
     Build a module from the passed informations.
     """
@@ -45,7 +45,7 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:
             val = ""
             match type(parameter):
                 case syntax.NamedParamAssignmentSyntax:
-                    name = str(parameter.name)
+                    name = str(parameter.name)  # type: ignore
                     val = str(parameter.expr) if parameter.expr else ""
                 case syntax.OrderedParamAssignmentSyntax:
                     val = str(parameter.expr) if parameter.expr else ""

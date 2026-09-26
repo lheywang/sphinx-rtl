@@ -11,6 +11,7 @@ import pyslang.ast as ast
 import pyslang.syntax as syntax
 
 from ...models import Port
+from .utils import get_size
 
 
 def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
@@ -59,54 +60,11 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
 
         # Extract the dimensions
         if len(raw_syntax) > 1:
-
-            # Extract each pairs
-            size_pairs = [x.strip() for x in raw_syntax[1].replace("[", "").split("]")]
-
-            # Clear the list
-            port.hdl_size = []
-
-            # For each pairs, append one to the port
-            for size_pair in size_pairs:
-                bounds = [x.strip() for x in size_pair.split(":")]
-
-                # If there's at least two bounds
-                if len(bounds) >= 2:
-                    port.hdl_size.append(bounds[0])
-                    port.hdl_size.append(bounds[1])
-
-        else:
-            port.hdl_size = ["0", "0"]
+            port.hdl_size = get_size(raw_syntax[1])
 
         # Finally, processing the last elements (a size that may be specific to the declaration)
         node_declarator: syntax.DeclaratorSyntax = node_syntax.declarator
-        for dimension in node_declarator.dimensions:
-
-            raw_dimension = str(dimension)
-            size_pairs = [
-                x.strip()
-                for x in raw_dimension.replace("[", "").split("]")
-                if len(x) > 1
-            ]
-
-            # Attempt to split the pairs, if fail that's a Scalar
-            for size_pair in size_pairs:
-                temp = size_pair.replace("::", ";;")
-                bounds = [x.strip() for x in temp.split(":")]
-
-                # scalar
-                if len(bounds) == 1:
-                    if bounds[0].isdecimal():
-                        port.hdl_size.append(
-                            f"{int(bounds[0].replace(";;", "::")) - 1}"
-                        )
-                    else:
-                        port.hdl_size.append(bounds[0].replace(";;", "::"))
-                    port.hdl_size.append("0")
-
-                elif len(bounds) == 2:
-                    port.hdl_size.append(bounds[0].replace(";;", "::"))
-                    port.hdl_size.append(bounds[1].replace(";;", "::"))
+        port.hdl_size.extend(get_size(str(node_declarator.dimensions)))
 
     # -------------------------------------------------------------------
     # PORT IS DECLARED AS NON-ANSI
@@ -136,54 +94,10 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
 
         # Extract the dimensions
         if len(raw_syntax) > 1:
-
-            # Extract each pairs
-            size_pairs = [x.strip() for x in raw_syntax[1].replace("[", "").split("]")]
-
-            # Clear the list
-            port.hdl_size = []
-
-            # For each pairs, append one to the port
-            for size_pair in size_pairs:
-                temp = size_pair.replace("::", ";;")
-                bounds = [x.strip() for x in temp.split(":")]
-
-                # If there's at least two bounds
-                if len(bounds) >= 2:
-                    port.hdl_size.append(bounds[0].replace(";;", "::"))
-                    port.hdl_size.append(bounds[1].replace(";;", "::"))
-
-        else:
-            port.hdl_size = ["0", "0"]
+            port.hdl_size = get_size(raw_syntax[1])
 
         # Add the declarator part size
-        for dimension in decl_syntax.dimensions:
-
-            raw_dimension = str(dimension)
-            size_pairs = [
-                x.strip()
-                for x in raw_dimension.replace("[", "").split("]")
-                if len(x) > 0
-            ]
-
-            # Attempt to split the pairs, if fail that's a Scalar
-            for size_pair in size_pairs:
-                temp = size_pair.replace("::", ";;")
-                bounds = [x.strip() for x in temp.split(":")]
-
-                # scalar
-                if len(bounds) == 1:
-                    if bounds[0].isdecimal():
-                        port.hdl_size.append(
-                            f"{int(bounds[0].replace(";;", "::")) - 1}"
-                        )
-                    else:
-                        port.hdl_size.append(bounds[0].replace(";;", "::"))
-                    port.hdl_size.append("0")
-
-                elif len(bounds) == 2:
-                    port.hdl_size.append(bounds[0].replace(";;", "::"))
-                    port.hdl_size.append(bounds[1].replace(";;", "::"))
+        port.hdl_size.extend(get_size(str(decl_syntax.dimensions)))
 
     # Build the port
     return port
