@@ -28,10 +28,7 @@ module assembly_csr (
     output logic                                         csr_err,
 
     // Counter interface
-    input logic count_waited,
-    input logic count_decoded,
-    input logic count_flushed,
-    input logic count_commited,
+    input logic [4:0] counter_enable,
 
     // Issuer interface
     output logic halt_pending,
@@ -42,65 +39,44 @@ module assembly_csr (
     /*
      *  Internals signals
      */
-    logic [(core_config_pkg::XLEN - 1) : 0] waitL;
-    logic [(core_config_pkg::XLEN - 1) : 0] waitH;
-    logic [(core_config_pkg::XLEN - 1) : 0] decodedL;
-    logic [(core_config_pkg::XLEN - 1) : 0] decodedH;
-    logic [(core_config_pkg::XLEN - 1) : 0] flushL;
-    logic [(core_config_pkg::XLEN - 1) : 0] flushH;
-    logic [(core_config_pkg::XLEN - 1) : 0] commitL;
-    logic [(core_config_pkg::XLEN - 1) : 0] commitH;
-    logic [(core_config_pkg::XLEN - 1) : 0] countL;
-    logic [(core_config_pkg::XLEN - 1) : 0] countH;
+    logic [(core_config_pkg::XLEN - 1) : 0][4:0]  LSBs;
+    logic [(core_config_pkg::XLEN - 1) : 0][4:0]  MSBs;
 
 
     /*
      *  Instantiating counters
      */
-    counter wait_cnt (
-        .clk   (clk),
-        .clk_en(clk_en),
-        .rst_n (rst_n),
-        .enable(count_waited),
-        .outL  (waitL),
-        .outH  (waitH)
-    );
 
-    counter decode_cnt (
-        .clk   (clk),
-        .clk_en(clk_en),
-        .rst_n (rst_n),
-        .enable(count_decoded),
-        .outL  (decodedL),
-        .outH  (decodedH)
-    );
+    genvar i;
+    generate
+        for (i = 0; i < NUM_LANES; i = i + 1) begin : gen_loop_lanes
+            counter #(
+                .DATA_WIDTH(DATA_WIDTH)
+            ) cnt (
+                .clk   (clk),
+                .clk_en(clk_en),
+                .rst_n (rst_n),
+                .enable(counter_enable[i]),
+                .outL  (LSBs[i]),
+                .outH  (MSBs[i])
+            );
+        end
+    endgenerate
 
-    counter flush_cnt (
-        .clk   (clk),
-        .clk_en(clk_en),
-        .rst_n (rst_n),
-        .enable(count_flushed),
-        .outL  (flushL),
-        .outH  (flushH)
-    );
-
-    counter commit_cnt (
-        .clk   (clk),
-        .clk_en(clk_en),
-        .rst_n (rst_n),
-        .enable(count_commited),
-        .outL  (commitL),
-        .outH  (commitH)
-    );
-
-    counter count_cnt (
-        .clk   (clk),
-        .clk_en(clk_en),
-        .rst_n (rst_n),
-        .enable(1'b1),
-        .outL  (countL),
-        .outH  (countH)
-    );
+    generate
+        for (i = 0; i < 2; i = i + 1) begin : gen_loop_lanes
+            counter #(
+                .DATA_WIDTH(DATA_WIDTH)
+            ) cnt (
+                .clk   (clk),
+                .clk_en(clk_en),
+                .rst_n (rst_n),
+                .enable(counter_enable[i]),
+                .outL  (LSBs[i]),
+                .outH  (MSBs[i])
+            );
+        end
+    endgenerate
 
     /*
      *  Adding the global CSR register module
@@ -116,16 +92,16 @@ module assembly_csr (
         .ra            (csr_ra),
         .rd            (csr_rd),
         .err           (csr_err),
-        .cycleL        (countL),
-        .cycleH        (countH),
-        .instructionsL (commitL),
-        .instructionsH (commitH),
-        .flushsL       (flushL),
-        .flushsH       (flushH),
-        .waitsL        (waitL),
-        .waitsH        (waitH),
-        .decodedL      (decodedL),
-        .decodedH      (decodedH),
+        .cycleL        (LSBs[0]),
+        .cycleH        (MSBs[0]),
+        .instructionsL (LSBs[1]),
+        .instructionsH (MSBs[1]),
+        .flushsL       (LSBs[2]),
+        .flushsH       (MSBs[2]),
+        .waitsL        (LSBs[3]),
+        .waitsH        (MSBs[3]),
+        .decodedL      (LSBs[4]),
+        .decodedH      (MSBs[4]),
         .interrupt_vect(interrupt_vect),
         .int_pend      (halt_pending)
 

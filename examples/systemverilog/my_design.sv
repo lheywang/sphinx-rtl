@@ -32,4 +32,12 @@ package my_design_pkg;
         logic [3:0]            mask;
     } mem_req_t;
 
+    typedef struct {
+        logic                   enable [2];
+        logic                   disable_req [2];
+        logic                   irq [4];
+        logic [3:0]             status;
+        logic                   rst_req;
+    } comp_cfg;
+
 endpackage
