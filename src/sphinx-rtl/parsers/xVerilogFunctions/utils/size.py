@@ -21,7 +21,7 @@ def get_size_and_type(raw: str) -> tuple[str, list[str]]:
     ret_size: list[str] = []
 
     # Extract each pairs
-    elements = raw.split("[", 1)
+    elements = str(raw).split("[", 1)
 
     if len(elements) > 1:
         type = elements[0].strip()
