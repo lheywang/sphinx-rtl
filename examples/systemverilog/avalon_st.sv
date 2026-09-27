@@ -7,16 +7,17 @@
  */
 
 interface avalon_st #(
-    parameter int                   DATA_WIDTH = 32,
-    parameter int                   CHANNEL_WIDTH = 4,
-    parameter int                   ERROR_WIDTH = 4,
-    parameter int                   SYMBOL_WIDTH = 8
+    parameter int                   DATA_WIDTH = 32,    // Data width
+    parameter int                   CHANNEL_WIDTH = 5,  // Channel width
+    parameter int                   ERROR_WIDTH = 4,    // Error width
+    parameter int                   SYMBOL_WIDTH = 8    // Symbol size
 ) (
     input logic clk, // master clock
     input logic rst_n // master reset
 );
 
     localparam EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH);
+
     logic [CHANNEL_WIDTH - 1 : 0]   channel;
     logic [DATA_WIDTH - 1 : 0]      data;
     logic [ERROR_WIDTH - 1 : 0]     error;
@@ -27,6 +28,9 @@ interface avalon_st #(
     logic                           endofpacket;
 
 
+    /*
+     * Avalon-ST Streaming source
+     */
     modport source (
         // Common signals
         output channel,
@@ -43,6 +47,9 @@ interface avalon_st #(
         output  endofpacket
     );
 
+    /*
+     * Avalon-ST Streaming sink
+     */
     modport sink (
         // Common signals
         input   channel,

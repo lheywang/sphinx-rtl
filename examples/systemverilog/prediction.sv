@@ -31,18 +31,18 @@ module prediction (
 
 );
 
-    input  logic                                       clk;
-    input  logic                                       rst_n;
-    input  logic                                       predict_ok;
-    input  logic                                       mispredict;
-    input  logic     [(core_config_pkg::XLEN - 1) : 0] addr_in;
-    output logic     [(core_config_pkg::XLEN - 1) : 0] addr_out;
-    output logic                                       rom_flush [2];
-    output logic     [(core_config_pkg::XLEN - 1) : 0] PC_value;
-    output logic                                       PC_write;
-    input  logic     [(core_config_pkg::XLEN - 1) : 0] actual_addr;
-    input  opcodes_t                                   actual_instr;
-    output logic                                       bpu_branch_taken;
+    input  logic                                       clk;                 // Master clock
+    input  logic                                       rst_n;               // Master reset
+    input  logic                                       predict_ok;          // Prediction was okay
+    input  logic                                       mispredict;          // Prediction was wrong
+    input  logic     [(core_config_pkg::XLEN - 1) : 0] addr_in;             // Current address
+    output logic     [(core_config_pkg::XLEN - 1) : 0] addr_out;            // Predicted address
+    output logic                                       rom_flush [2];       // Flush the rom reading
+    output logic     [(core_config_pkg::XLEN - 1) : 0] PC_value;            // Current PC value
+    output logic                                       PC_write;            // Overwrite the PC
+    input  logic     [(core_config_pkg::XLEN - 1) : 0] actual_addr;         // Current address
+    input  opcodes_t                                   actual_instr;        // Current instruction from the decoder
+    output logic                                       bpu_branch_taken;    // Is the current instruction predicted to be taken ? Only applicable for a jump.
 
     // Why do thing properly when we could add edges-cases ?
     input actual_imm;

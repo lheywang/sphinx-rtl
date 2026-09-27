@@ -11,24 +11,24 @@ import core_config_pkg::IF_TRAP_UCODE;
 
 module commiter (
 
-    input logic clk,
-    input logic rst_n,
-    input  logic                                         alu_error  [4:0],
-    input  logic                                         alu_valid  [4:0],
-    input  logic                                         alu_req    [4:0],
-    input  logic [      (core_config_pkg::XLEN - 1) : 0] alu_jmp    [4:0],
-    input  logic [      (core_config_pkg::XLEN - 1) : 0] alu_res    [4:0],
-    input  logic [(core_config_pkg::REG_ADDR_W - 1) : 0] alu_rd     [4:0],
-    output logic                                         alu_clear  [4:0],
-    output logic [      (core_config_pkg::XLEN - 1) : 0] reg_data,
-    output logic [(core_config_pkg::REG_ADDR_W - 1) : 0] reg_addr,
-    output logic                                         reg_we,
-    output logic [(core_config_pkg::XLEN - 1) : 0] pc_value,
-    output logic                                   pc_enable,
-    output logic                                   pc_we,
-    input  logic halt_needed,
-    output logic issuer_flush,
-    output logic commit_err
+    input   logic                                           clk,                // Master clock
+    input   logic                                           rst_n,              // Master reset
+    input   logic                                           alu_error  [4:0],   // ALUs error status
+    input   logic                                           alu_valid  [4:0],   // ALUs valid
+    input   logic                                           alu_req    [4:0],   // ALUs request
+    input   logic [      (core_config_pkg::XLEN - 1) : 0]   alu_jmp    [4:0],   // ALUs jump
+    input   logic [      (core_config_pkg::XLEN - 1) : 0]   alu_res    [4:0],   // ALUs results
+    input   logic [(core_config_pkg::REG_ADDR_W - 1) : 0]   alu_rd     [4:0],   // ALUs read register
+    output  logic                                           alu_clear  [4:0],   // ALUs clear
+    output  logic [      (core_config_pkg::XLEN - 1) : 0]   reg_data,           // Register data
+    output  logic [(core_config_pkg::REG_ADDR_W - 1) : 0]   reg_addr,           // Register address
+    output  logic                                           reg_we,             // Register write enable
+    output  logic [(core_config_pkg::XLEN - 1) : 0]         pc_value,           // Program counter value
+    output  logic                                           pc_enable,          // Program counter enable
+    output  logic                                           pc_we,              // Program counter write
+    input   logic                                           halt_needed,        // Halt the core
+    output  logic                                           issuer_flush,       // Flush the issuer
+    output  logic                                           commit_err          // Error when committing the result.
 );
 
     /*
@@ -56,7 +56,7 @@ module commiter (
      *
      *  Note :  The ALU aren't ordered, that's because we prioritize the ALU's 
      *          with the most critical functions. First, the branches conditions, 
-     *          because they could influes on the program counter outputs !
+     *          because they could modify how the program counter outputs !
      *          Then, the long operations (MUL, DIV...) to ensure we liberate them
      *          the fastest as possible. And then, the remaining ALUs.
      */

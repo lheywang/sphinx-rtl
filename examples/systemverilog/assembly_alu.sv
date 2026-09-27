@@ -17,118 +17,118 @@ import core_config_pkg::CSR_ADDR_W;
 import core_config_pkg::alu_commands_t;
 
 module assembly_alu #(
-        parameter int ENABLE_CSR = 1
+        parameter int ENABLE_CSR = 1 // Enable the CSR on this ALU.
     ) (
 
-    input logic clk,
-    input logic clk_en,
-    input logic rst_n,
+    input logic clk, // Master clock input.
+    input logic clk_en, // Clock enable bit.
+    input logic rst_n, // Master reset
 
     // From decoder
-    input  logic     [(REG_ADDR_W - 1) : 0] rs1,
-    input  logic     [(REG_ADDR_W - 1) : 0] rs2,
-    input  logic     [(REG_ADDR_W - 1) : 0] rd,
-    input  logic     [      (XLEN - 1) : 0] imm,
-    input  logic     [      (XLEN - 1) : 0] address,
-    input  opcodes_t                        opcode,
-    input  logic                            illegal,
-    output logic                            busy,
-    output logic                            flush,
-    input  logic                            branch_taken,
-    input  logic                            count_decoded,
+    input  logic     [(REG_ADDR_W - 1) : 0] rs1,                    // Operand A
+    input  logic     [(REG_ADDR_W - 1) : 0] rs2,                    // Operand B
+    input  logic     [(REG_ADDR_W - 1) : 0] rd,                     // Output register
+    input  logic     [      (XLEN - 1) : 0] imm,                    // Immediate
+    input  logic     [      (XLEN - 1) : 0] address,                // Address
+    input  opcodes_t                        opcode,                 // Opcode
+    input  logic                            illegal,                // Is this opcode illegal ?
+    output logic                            busy,                   // Is the current stream busy ?
+    output logic                            flush,                  // Do we need to flush the pipeline ?
+    input  logic                            branch_taken,           // Is this branch predicted to be taken ?
+    input  logic                            count_decoded,      
 
     // Output logic
-    output logic PC_en,
-    output logic PC_load,
-    output logic [(XLEN - 1) : 0] PC_addr,
-    input logic PC_ovf,
+    output logic PC_en,                                             // Enable the program counter. No stall required.
+    output logic PC_load,                                           // Load the program counter
+    output logic [(XLEN - 1) : 0] PC_addr,                          // The loaded address.
+    input logic PC_ovf,                                             // Did the PC output an overflow ?
 
     // memory interface
-    output logic [      (XLEN - 1) : 0] mem_addr,
-    output logic [((XLEN / 8) - 1) : 0] mem_byteen,
-    output logic                        mem_we,
-    output logic                        mem_req,
-    output logic [      (XLEN - 1) : 0] mem_wdata,
-    input  logic [      (XLEN - 1) : 0] mem_rdata,
-    input  logic                        mem_err,
+    output logic [      (XLEN - 1) : 0] mem_addr,                   // Memory address
+    output logic [((XLEN / 8) - 1) : 0] mem_byteen,                 // Memory byteenable
+    output logic                        mem_we,                     // Memory write 
+    output logic                        mem_req,                    // Memory request
+    output logic [      (XLEN - 1) : 0] mem_wdata,                  // Memory write data
+    input  logic [      (XLEN - 1) : 0] mem_rdata,                  // Memory read data
+    input  logic                        mem_err,                    // Memory error
 
     // Branch prediction feedback
-    output logic bpu_branch_taken,
-    output logic bpu_branch_not_taken,
+    output logic bpu_branch_taken,                                  // Did we take the branch ?        
+    output logic bpu_branch_not_taken,                              // Didn't we take the branch ?
 
     // Interrupts vector
-    input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect
+    input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect    // Interrupt vector input
 
 );
 
     /*
      *  Issuer <-> Registers
      */
-    logic          [(REG_ADDR_W - 1) : 0] reg_ra0;
-    logic          [(REG_ADDR_W - 1) : 0] reg_ra1;
-    logic          [      (XLEN - 1) : 0] reg_rd0;
-    logic          [      (XLEN - 1) : 0] reg_rd1;
+    logic          [(REG_ADDR_W - 1) : 0] reg_ra0;              // Register address 0
+    logic          [(REG_ADDR_W - 1) : 0] reg_ra1;              // Register address 1
+    logic          [      (XLEN - 1) : 0] reg_rd0;              // Register data 0
+    logic          [      (XLEN - 1) : 0] reg_rd1;              // Register data 1
 
     /*
       * Issuer <-> Occupancy
       */
-    logic          [(REG_ADDR_W - 1) : 0] occupancy_rd;
-    logic          [(REG_ADDR_W - 1) : 0] occupancy_rs1;
-    logic          [(REG_ADDR_W - 1) : 0] occupancy_rs2;
-    logic                                 occupancy_exec;
-    logic                                 occupancy_lock;
+    logic          [(REG_ADDR_W - 1) : 0] occupancy_rd;         // Target register to be reserved  
+    logic          [(REG_ADDR_W - 1) : 0] occupancy_rs1;        // Read register 0
+    logic          [(REG_ADDR_W - 1) : 0] occupancy_rs2;        // Read register 1
+    logic                                 occupancy_exec;       // Free these registers
+    logic                                 occupancy_lock;       // Lock these registers
 
     /*
       * Issuer <-> ALUs
       */
-    logic          [      (XLEN - 1) : 0][4:0] alu0_arg0;
-    logic          [      (XLEN - 1) : 0][4:0] alu0_arg1;
-    logic          [      (XLEN - 1) : 0][4:0] alu0_addr;
-    logic          [      (XLEN - 1) : 0][4:0] alu0_imm;
-    alu_commands_t                       [4:0] alu0_cmd;
-    logic          [(REG_ADDR_W - 1) : 0][4:0] alu0_i_rd;
-    logic                                [4:0] alu0_busy;
-    logic                                [4:0] alu0_i_error;
+    logic          [      (XLEN - 1) : 0][4:0] alu0_arg0;       // ALUs Operand A
+    logic          [      (XLEN - 1) : 0][4:0] alu0_arg1;       // ALUs Operand B
+    logic          [      (XLEN - 1) : 0][4:0] alu0_addr;       // ALUs address
+    logic          [      (XLEN - 1) : 0][4:0] alu0_imm;        // ALUs immediates
+    alu_commands_t                       [4:0] alu0_cmd;        // ALUs opcodes
+    logic          [(REG_ADDR_W - 1) : 0][4:0] alu0_i_rd;       // ALUs output registers
+    logic                                [4:0] alu0_busy;       // ALUs busy state 
+    logic                                [4:0] alu0_i_error;    // ALUs errors
 
     /*
      *  ALUs <-> Commiter
      */
-    logic                                [4:0] alu0_o_error;
-    logic                                [4:0] alu0_valid;
-    logic                                [4:0] alu0_req;
-    logic          [      (XLEN - 1) : 0][4:0] alu0_res;
-    logic          [      (XLEN - 1) : 0][4:0] alu0_jmp;
-    logic          [(REG_ADDR_W - 1) : 0][4:0] alu0_o_rd;
-    logic                                [4:0] alu0_clear;
+    logic                                [4:0] alu0_o_error;    // ALUs errors
+    logic                                [4:0] alu0_valid;      // ALUs valid
+    logic                                [4:0] alu0_req;        // ALUs request
+    logic          [      (XLEN - 1) : 0][4:0] alu0_res;        // ALUs results
+    logic          [      (XLEN - 1) : 0][4:0] alu0_jmp;        // ALUs jump
+    logic          [(REG_ADDR_W - 1) : 0][4:0] alu0_o_rd;       // ALUs target register
+    logic                                [4:0] alu0_clear;      // ALUs clear
 
     /*
      *  Commiter <-> Registers
      */
-    logic          [      (XLEN - 1) : 0] reg_data;
-    logic          [(REG_ADDR_W - 1) : 0] reg_addr;
-    logic                                 reg_we;
+    logic          [      (XLEN - 1) : 0] reg_data;             // Output register data
+    logic          [(REG_ADDR_W - 1) : 0] reg_addr;             // Output register address
+    logic                                 reg_we;               // Output register write enable
 
     /*
      *  Commiter <-> Issuer
      */
-    logic                                 int_flush;
-    logic                                 halt_needed;
-    logic                                 commit_err;
+    logic                                 int_flush;            // Flush the issuer
+    logic                                 halt_needed;          // Pause the issuer pipeline
+    logic                                 commit_err;           // Could not commit
 
     /*
      *  ALU 4 <-> CSR
      */
-    logic          [(CSR_ADDR_W - 1) : 0] csr_wa;
-    logic          [(CSR_ADDR_W - 1) : 0] csr_ra;
-    logic                                 csr_we;
-    logic          [      (XLEN - 1) : 0] csr_wd;
-    logic          [      (XLEN - 1) : 0] csr_rd;
-    logic                                 csr_err;
+    logic          [(CSR_ADDR_W - 1) : 0] csr_wa;               // CSR Write address
+    logic          [(CSR_ADDR_W - 1) : 0] csr_ra;               // CSR Read address
+    logic                                 csr_we;               // CSR Write enable
+    logic          [      (XLEN - 1) : 0] csr_wd;               // CSR Write data
+    logic          [      (XLEN - 1) : 0] csr_rd;               // CSR Read data
+    logic                                 csr_err;              // CSR Error
 
     /*
      *  CSR <-> Issuer
      */
-    logic                                 halt_pend;
+    logic                                 halt_pend;            // Do we need to interrupt ?
 
     /*
      *  Instiating the issuer module

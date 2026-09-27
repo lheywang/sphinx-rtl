@@ -19,25 +19,31 @@ package my_design_pkg;
             reverse_bits[WIDTH-1-i] = data[i];
     endfunction
 
+    /*
+     * Swap two data of any arbitrary size
+     */
     function void swap (inout logic [WIDTH-1:0] dataA, inout logic [WIDTH-1:0] dataB);
         dataA <= dataB;
         dataB <= dataA;
     endfunction
 
     typedef struct packed {
-        logic [ADDR_WIDTH-1:0] addr;
-        logic [WIDTH-1:0]      data;
-        logic                  we;
-        logic [1:0]            burst;
-        logic [3:0]            mask;
+        logic [ADDR_WIDTH-1:0] addr;    // Address of the request
+        logic [WIDTH-1:0]      data;    // Data of the request
+        logic                  we;      // Write enable
+        logic [1:0]            burst;   // Shall we burst ?
+        logic [3:0]            mask;    // Byte enable mask
     } mem_req_t;
 
+    /*
+     * Standard structure to be used to send signals to configure a component
+     */
     typedef struct {
-        logic                   enable [2];
-        logic                   disable_req [2];
-        logic                   irq [4];
-        logic [3:0]             status;
-        logic                   rst_req;
+        logic                   enable      [2];    // Enable the component
+        logic                   disable_req [2];    // Disable the component
+        logic                   irq         [4];    // IRQs requests
+        logic [3:0]             status;             // Status
+        logic                   rst_req;            // Reset request
     } comp_cfg;
 
 endpackage

@@ -15,38 +15,37 @@ import core_config_pkg::XLEN;
 
 module assembly_csr (
 
-    input logic clk,
-    input logic clk_en,
-    input logic rst_n,
+    input logic clk,        // Master clock
+    input logic clk_en,     // Clock enable
+    input logic rst_n,      // Master reset
 
     // ALU (4) interface
-    input  logic [(core_config_pkg::CSR_ADDR_W - 1) : 0] csr_wa,
-    input  logic [(core_config_pkg::CSR_ADDR_W - 1) : 0] csr_ra,
-    input  logic                                         csr_we,
-    input  logic [      (core_config_pkg::XLEN - 1) : 0] csr_wd,
-    output logic [      (core_config_pkg::XLEN - 1) : 0] csr_rd,
-    output logic                                         csr_err,
+    input  logic [(core_config_pkg::CSR_ADDR_W - 1) : 0] csr_wa,    // CSR Write address
+    input  logic [(core_config_pkg::CSR_ADDR_W - 1) : 0] csr_ra,    // CSR Read address
+    input  logic                                         csr_we,    // CSR Write enable
+    input  logic [      (core_config_pkg::XLEN - 1) : 0] csr_wd,    // CSR Write data
+    output logic [      (core_config_pkg::XLEN - 1) : 0] csr_rd,    // CSR Read data
+    output logic                                         csr_err,   // CSR Error
 
     // Counter interface
-    input logic [4:0] counter_enable,
+    input logic [4:0] counter_enable,                               // CSR Counter enable bits
 
     // Issuer interface
-    output logic halt_pending,
+    output logic halt_pending,                                      // CSR Halt pending (IRQ)
 
     // External interface
-    input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect
+    input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect    // CSR Input interrupt vector
 );
     /*
      *  Internals signals
      */
-    logic [(core_config_pkg::XLEN - 1) : 0][4:0]  LSBs;
-    logic [(core_config_pkg::XLEN - 1) : 0][4:0]  MSBs;
+    logic [(core_config_pkg::XLEN - 1) : 0][4:0]  LSBs;             // LSBs of the counters
+    logic [(core_config_pkg::XLEN - 1) : 0][4:0]  MSBs;             // MSBs of the counters
 
 
     /*
      *  Instantiating counters
      */
-
     genvar i;
     generate
         for (i = 0; i < NUM_LANES; i = i + 1) begin : gen_loop_lanes

@@ -13,17 +13,17 @@ import core_config_pkg::opcodes_t;
 import core_config_pkg::decoders_t;
 
 module decoder (
-    input  logic                                    clk,
-    input  logic                                    clk_en,
-    input  logic                                    rst_n,
-    input  logic     [    (IF_LEN - 1) : 0][1:0]    instruction,
-    input  logic     [      (XLEN - 1) : 0]         i_address [1:0],
-    input  logic                                    i_busy [2],       
-    output logic                                    o_busy [2],    
-    output logic     [(REG_ADDR_W - 1) : 0]         rs1 [2], rs2 [2], rd [2],
-    output logic     [      (XLEN - 1) : 0]         imm [2], o_address [2],
-    output opcodes_t                                opcode [2],
-    output logic                                    illegal [2], decoded_cnt                                
+    input  logic                                    clk,                                                    // Master clock          
+    input  logic                                    clk_en,                                                 // Clock enable
+    input  logic                                    rst_n,                                                  // Master reset
+    input  logic     [    (IF_LEN - 1) : 0][1:0]    instruction,                                            // Incoming 32 bits instruction
+    input  logic     [      (XLEN - 1) : 0]         i_address       [1:0],                                  // Currently decoded addresses
+    input  logic                                    i_busy          [2],                                    // Busy inputs
+    output logic                                    o_busy          [2],                                    // Busy outputs
+    output logic     [(REG_ADDR_W - 1) : 0]         rs1             [2],    rs2         [2],    rd  [2],    // Decoded registers outputs
+    output logic     [      (XLEN - 1) : 0]         imm             [2],    o_address   [2],                // Decoded immediate and address
+    output opcodes_t                                opcode          [2],                                    // Decoded opcode
+    output logic                                    illegal         [2],    decoded_cnt                     // Decoded count
 );
 
     /*
@@ -62,13 +62,12 @@ module decoder (
         end
     end
 
-    /*
-     * Second, combinational logic to choose the right decoder
-     */
-
     logic      decoder_illegal;
     decoders_t selected_decoder;
 
+    /*
+     * Second, combinational logic to choose the right decoder
+     */
     always_comb begin
 
         decoder_illegal = 0;

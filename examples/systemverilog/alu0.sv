@@ -15,24 +15,24 @@ module alu0 #(
     parameter ENABLE_SINGLE_CYCLE = 0,
     parameter ENABLE_OUTPUT_REGISTERS = 1
 ) (
-    input  logic                                                  clk,
-    input  logic                                                  rst_n,
-    input  logic          [      (core_config_pkg::XLEN - 1) : 0] arg0,
-    input  logic          [      (core_config_pkg::XLEN - 1) : 0] arg1,
-    input  logic          [      (core_config_pkg::XLEN - 1) : 0] addr,
-    input  logic          [      (core_config_pkg::XLEN - 1) : 0] imm,
-    input  alu_commands_t                                         cmd,
-    input  logic          [(core_config_pkg::REG_ADDR_W - 1) : 0] i_rd,
-    output logic                                                  busy,
-    output logic                                                  i_error,
-    output logic          [      (core_config_pkg::XLEN - 1) : 0] res,
-    output logic          [      (core_config_pkg::XLEN - 1) : 0] jmp,
-    output logic          [(core_config_pkg::REG_ADDR_W - 1) : 0] o_rd,
-    output logic                                                  valid,
-    output logic                                                  o_error,
-    output logic                                                  req,
-    input  logic                                                  clear,
-    axi4_stream.source                                            stream
+    input  logic                                                  clk,      // **Master clock** input
+    input  logic                                                  rst_n,    // **Master reset** input
+    input  logic          [      (core_config_pkg::XLEN - 1) : 0] arg0,     // Operand A
+    input  logic          [      (core_config_pkg::XLEN - 1) : 0] arg1,     // Operand B
+    input  logic          [      (core_config_pkg::XLEN - 1) : 0] addr,     // Target address (unused)
+    input  logic          [      (core_config_pkg::XLEN - 1) : 0] imm,      // Immediate value
+    input  alu_commands_t                                         cmd,      // Decoded opcode
+    input  logic          [(core_config_pkg::REG_ADDR_W - 1) : 0] i_rd,     // Target register
+    output logic                                                  busy,     // Busy flag. This alu never assert it.
+    output logic                                                  i_error,  // Error input
+    output logic          [      (core_config_pkg::XLEN - 1) : 0] res,      // Result value
+    output logic          [      (core_config_pkg::XLEN - 1) : 0] jmp,      // Does a jump is needed ?
+    output logic          [(core_config_pkg::REG_ADDR_W - 1) : 0] o_rd,     // Output register
+    output logic                                                  valid,    // Valid output bit
+    output logic                                                  o_error,  // Output error code.
+    output logic                                                  req,      // Output request
+    input  logic                                                  clear,    // Output clear
+    axi4_stream.source                                            stream    // AXI4-ST Stream to another ALU.
 );
     /*
      *  Storages types
