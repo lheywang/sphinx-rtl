@@ -18,14 +18,14 @@ interface avalon_st #(
 
     localparam EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH);
 
-    logic [CHANNEL_WIDTH - 1 : 0]   channel;
-    logic [DATA_WIDTH - 1 : 0]      data;
-    logic [ERROR_WIDTH - 1 : 0]     error;
-    logic                           ready;
-    logic                           valid;
-    logic [EMPTY_WIDTH - 1 : 0]     empty;
-    logic                           startofpacket;
-    logic                           endofpacket;
+    logic [CHANNEL_WIDTH - 1 : 0]   channel;            // Channel data
+    logic [DATA_WIDTH - 1 : 0]      data;               // Data data
+    logic [ERROR_WIDTH - 1 : 0]     error;              // Error markers
+    logic                           ready;              // Ready bit
+    logic                           valid;              // Valid bit
+    logic [EMPTY_WIDTH - 1 : 0]     empty;              // Empty markers
+    logic                           startofpacket;      // Start of packet (optional)
+    logic                           endofpacket;        // End of packet (optional)
 
 
     /*
