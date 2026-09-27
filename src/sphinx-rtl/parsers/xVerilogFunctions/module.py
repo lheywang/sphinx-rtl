@@ -8,12 +8,13 @@
 # Imports
 import pyslang.ast as ast
 import pyslang.syntax as syntax
+from pyslang import SourceManager
 
 from ...models import Module, Parameter
 from .utils import get_size_and_type
 
 
-def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  # type: ignore
+def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int, sm: SourceManager) -> Module:  # type: ignore
     """
     Build a module from the passed informations.
     """
@@ -21,8 +22,13 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  
     mod: ast.UninstantiatedDefSymbol = node
 
     # Extract the connections from the CST
-    conns: list[syntax.NamedPortConnectionSyntax] = [
-        x for x in mod.syntax.connections if type(x) is syntax.NamedPortConnectionSyntax
+    conns: list[
+        syntax.NamedPortConnectionSyntax | syntax.OrderedPortConnectionSyntax
+    ] = [
+        x
+        for x in mod.syntax.connections
+        if type(x) is syntax.NamedPortConnectionSyntax
+        or type(x) is syntax.OrderedPortConnectionSyntax
     ]
 
     # Is the instance present more than once ?
@@ -36,7 +42,7 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  
     # Extract the connections
     connections: list[tuple[str, str]] = []
     for conn, name in zip(conns, mod.portNames):
-        connections.append((name, str(conn.expr)))
+        connections.append((name.strip(), str(conn.expr).strip()))
 
     # Extract the parameters
     params = []
@@ -52,6 +58,7 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  
         for parameter in parameters:
             name = ""
             val = ""
+            param_line = -1
             match type(parameter):
                 case syntax.NamedParamAssignmentSyntax:
                     name = str(parameter.name)  # type: ignore
@@ -59,7 +66,11 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int) -> Module:  
                 case syntax.OrderedParamAssignmentSyntax:
                     val = str(parameter.expr) if parameter.expr else ""
 
-            params.append(Parameter(name=name, hdl_value=val))
+            temp_line = sm.getLineNumber(parameter.sourceRange.start)
+            if temp_line != 0:
+                param_line = temp_line
+
+            params.append(Parameter(name=name, hdl_value=val, line=param_line))
 
     # Build the Module
     return Module(

@@ -202,9 +202,8 @@ class Module(Element):
         - vendor :          The name of the vendor of this module, if applicable.
         - isConditionnal:   Is this module member of a conditionnal generate loop ?
         - isRepeated :      Is this module repeated in a for generate structure ?
-        - condParameters :  The parameters that affect the conditions.
-        - loopParameters :  The parameters that affect the loop generations.
         - count :           If fixed, the number of repetitions.
+        - condition :       The condition for this instance to be instantiated.
     """
 
     entity: str = ""
@@ -214,9 +213,8 @@ class Module(Element):
     vendor: str = ""
     isConditionnal: bool = False
     isRepeated: bool = False
-    condParameters: list[Parameter] = field(default_factory=list)
-    loopParameters: list[Parameter] = field(default_factory=list)
-    count: str = "1"
+    count: str = "None"
+    condition: str = "None"
 
 
 @dataclass

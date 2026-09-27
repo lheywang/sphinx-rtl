@@ -236,11 +236,13 @@ class xVerilogParser(xParser):
 
                 # INSTANCE MODULE
                 case ast.SymbolKind.UninstantiatedDef:
-                    comp.modules.append(build_module(m, self.get_line(m.location)))
+                    comp.modules.append(
+                        build_module(m, self.get_line(m.location), self.sm)
+                    )
 
                 # GENERATE
                 case ast.SymbolKind.GenerateBlock | ast.SymbolKind.GenerateBlockArray:
-                    build_generate(m, self.get_line(m.location))  # type: ignore
+                    build_generate(m, self.get_line(m.location), self.sm)  # type: ignore
 
                 # We don't care about these, they're proxies to enums and other stuff like that
                 case (
