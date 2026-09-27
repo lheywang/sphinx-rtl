@@ -55,4 +55,6 @@ def build_interface(
                 modports.append(build_modport(elem, current_line, sm))
 
     # Build the object and return it
-    return Interface(name=name, line=line, parameters=parameters, ports=ports)
+    return Interface(
+        name=name, line=line, parameters=parameters, ports=ports, modports=modports
+    )

@@ -45,7 +45,7 @@ def build_module(node: ast.SymbolKind.UninstantiatedDef, line: int, sm: SourceMa
         connections.append((name.strip(), str(conn.expr).strip()))
 
     # Extract the parameters
-    params = []
+    params: list[Parameter] = []
     if mod.syntax.parent.parameters is not None:
         parameters: list[
             syntax.NamedParamAssignmentSyntax | syntax.OrderedParamAssignmentSyntax

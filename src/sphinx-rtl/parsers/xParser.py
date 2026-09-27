@@ -11,13 +11,17 @@ import logging
 import git
 import subprocess
 
+from typing import TypeVar
 from pathlib import Path
 
 # Local imports
-from ..models import FileInfo
+from ..models import FileInfo, Component, Element
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+# Get our own custom type
+T = TypeVar("T", bound=Element)
 
 
 # class
@@ -142,3 +146,80 @@ class xParser:
                 else str(last_commit.message)
             ).strip(),
         )
+
+    def findLines(self, line: int) -> tuple[int, int]:
+        """
+        Return the feasible lines for the passed line
+        """
+        return (line, line - 1)
+
+    def linkElementComment(
+        self, targets: list[T], comments: dict, available: set[int]
+    ) -> tuple[tuple[int, int], set[int]]:
+        """
+        Link the comments for a specific type of nodes in the IR
+        """
+        count = 0
+        missing = 0
+        for target in targets:
+
+            current_line, previous_line = self.findLines(target.line)
+            if current_line in available:
+                target.description = comments[current_line]
+                available.remove(current_line)
+                count += 1
+            elif previous_line in available:
+                target.description = comments[previous_line]
+                available.remove(previous_line)
+                count += 1
+            else:
+                missing += 1
+
+        return (count, missing), available
+
+    def linkComments(
+        self, component: Component, comments: dict
+    ) -> tuple[int, int, int, Component]:
+        """
+        Link the comments as parsed to the component
+        """
+        # Comment count linker
+        count: int = 0
+        misses: int = 0
+
+        # Fetch the available comments
+        available_comments = set(comments.keys())
+
+        # Link them.
+        # The order is designed to go from the most important (ports, parameters) to the least (signals ...)
+        link_targets = [
+            component.ports,
+            component.parameters,
+            component.enums,
+            component.process,
+            component.modules,
+            [param for mod in component.modules for param in mod.params],
+            component.imports,
+            component.interfaces,
+            [param for mod in component.interfaces for param in mod.parameters],
+            [signal for mod in component.interfaces for signal in mod.signals],
+            [port for mod in component.interfaces for port in mod.ports],
+            [modport for mod in component.interfaces for modport in mod.modports],
+            component.signals,
+            component.functions,
+            [arg for mod in component.functions for arg in mod.func_inputs],
+            [arg for mod in component.functions for arg in mod.func_outputs],
+            component.structures,
+            [signal for mod in component.structures for signal in mod.signals],
+        ]
+
+        for target in link_targets:
+            stats, available_comments = self.linkElementComment(
+                target, comments, available_comments
+            )
+            count += stats[0]
+            misses += stats[1]
+
+        remaining = len(available_comments)
+        # Remaining comments
+        return count, misses, remaining, component

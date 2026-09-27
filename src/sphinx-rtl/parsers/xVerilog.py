@@ -74,7 +74,7 @@ class xVerilogParser(xParser):
     # COMMENTS PARSERS
     # ----------------------------------------------------------------------------
 
-    def fetch_comments(self, file: Path) -> list[tuple[int, str]]:
+    def fetch_comments(self, file: Path) -> dict:
         """
         Fetch all the comments of the file, sorted by their lines.
         """
@@ -85,7 +85,7 @@ class xVerilogParser(xParser):
 
         # Doing this with a simple FSM
         state = "CODE"
-        comments = []
+        comments = dict()
         current_comment = []
         i = 0
         n = len(data)
@@ -114,9 +114,7 @@ class xVerilogParser(xParser):
 
             elif state == "SINGLE_LINE_COMMENT":
                 if char == "\n":
-                    comments.append(
-                        (line, " ".join("".join(current_comment).split()).strip())
-                    )
+                    comments[line] = " ".join("".join(current_comment).split()).strip()
                     current_comment = []
                     state = "CODE"
                 else:
@@ -124,9 +122,7 @@ class xVerilogParser(xParser):
 
             elif state == "MULTI_LINE_COMMENT":
                 if char == "*" and next_char == "/":
-                    comments.append(
-                        (line, " ".join("".join(current_comment).split()).strip())
-                    )
+                    comments[line] = " ".join("".join(current_comment).split()).strip()
                     current_comment = []
                     state = "CODE"
                     i += 1
@@ -139,7 +135,7 @@ class xVerilogParser(xParser):
                 line += 1
 
         if current_comment:
-            comments.append("".join(current_comment))
+            comments[line] = "".join(current_comment)
 
         return comments
 
@@ -153,20 +149,6 @@ class xVerilogParser(xParser):
             return source
         else:
             return -1
-
-    # ----------------------------------------------------------------------------
-    # COMMENT LINKER
-    # ----------------------------------------------------------------------------
-    def link_comments(
-        self,
-        elements: list[Element],
-        comments: tuple[int, str],
-    ) -> list[Element]:
-        """
-        Insert the comments that match the declaration line or the previous one into the element structure.
-        Return the modified list.
-        """
-        return [Element()]
 
     # ----------------------------------------------------------------------------
     # GLOBAL PARSER
@@ -242,7 +224,7 @@ class xVerilogParser(xParser):
 
                 # GENERATE
                 case ast.SymbolKind.GenerateBlock | ast.SymbolKind.GenerateBlockArray:
-                    build_generate(m, self.get_line(m.location), self.sm)  # type: ignore
+                    comp.modules.extend(build_generate(m, self.get_line(m.location), self.sm))  # type: ignore
 
                 # We don't care about these, they're proxies to enums and other stuff like that
                 case (
@@ -272,7 +254,9 @@ class xVerilogParser(xParser):
         comments = self.fetch_comments(file)
 
         # Extract the brief and detailed description
-        brief, details = comments[0][1].split(".", 1)
+        # Then delete it to ensure it won't be reused.
+        brief, details = comments[list(comments.keys())[0]].split(".", 1)
+        del comments[list(comments.keys())[0]]
         if not brief.endswith("."):
             brief += "."
         if not details.endswith("."):
@@ -323,14 +307,26 @@ class xVerilogParser(xParser):
         # Extract the imports
         comp.imports = extract_imports(tree, self.sm)
 
-        # Finally, add the comments to the different elements.
-        # As designed, this function is agnostic from the design type, and is already done within the IR reduction pass.
-
-        # Return the final component
-
         # Add some logs in the console :
         if self.ignored > 0:
             logger.debug(f"[INFO] Ignored {self.ignored} nodes from the source file.")
+
+        # Finally, add the comments to the different elements.
+        # As designed, this function is agnostic from the design type, and is already done within the IR reduction pass.
+        comment_counts = len(comments.keys())
+        count, miss, remaining, comp = self.linkComments(comp, comments)
+
+        logger.info(
+            f"[INFO] Attached {count} / {comment_counts} comments to the component."
+        )
+        if miss > 0:
+            logger.warning(
+                f"Found {miss} {"entity" if miss == 1 else "entities"} that are not commented (Still {remaining} {"comment" if remaining == 1 else "comments"} to be attached.). file ({file.name})"
+            )
+
+        # Finally, call the IR to perform the matches
+
+        # Return the final component
 
         # print(comp)
         return comp
