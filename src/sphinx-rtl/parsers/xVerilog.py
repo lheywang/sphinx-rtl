@@ -317,14 +317,15 @@ class xVerilogParser(xParser):
         count, miss, remaining, comp = self.linkComments(comp, comments)
 
         logger.info(
-            f"[INFO] Attached {count} / {comment_counts} comments to the component."
+            f"[INFO] Attached {count} / {comment_counts} comment{"s" if count > 1 else ""} to the component."
         )
         if miss > 0:
             logger.warning(
-                f"Found {miss} {"entity" if miss == 1 else "entities"} that are not commented (Still {remaining} {"comment" if remaining == 1 else "comments"} to be attached.). file ({file.name})"
+                f"Found {miss} entit{"ies" if miss > 1 else "y"} that are not commented (Still {remaining} comment{"s" if remaining > 1 else ""} to be attached.). [file {file.name}]"
             )
 
         # Finally, call the IR to perform the matches
+        comp = self.inferElements(comp)
 
         # Return the final component
 

@@ -7,15 +7,26 @@
 
 # Imports
 import shutil
-import logging
 import git
 import subprocess
 
+from sphinx.util import logging
 from typing import TypeVar
 from pathlib import Path
 
 # Local imports
 from ..models import FileInfo, Component, Element
+from ..config import RenderConfig
+
+# Import the IR subfunctions
+from .ir import (
+    infer_vendors,
+    infer_polarity,
+    infer_resets,
+    infer_process,
+    infer_clocks,
+    infer_type,
+)
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -73,6 +84,9 @@ class xParser:
         try:
             repo = git.Repo(file, search_parent_directories=True)
         except (git.exc.InvalidGitRepositoryError, git.exc.NoSuchPathError):  # type: ignore
+            logger.warning(
+                "Could not find a valid git repo. Using the filesystem fallback."
+            )
             return FileInfo(
                 file.name,
                 str(file),
@@ -147,13 +161,13 @@ class xParser:
             ).strip(),
         )
 
-    def findLines(self, line: int) -> tuple[int, int]:
+    def _findLines(self, line: int) -> tuple[int, int]:
         """
         Return the feasible lines for the passed line
         """
         return (line, line - 1)
 
-    def linkElementComment(
+    def _linkElementComment(
         self, targets: list[T], comments: dict, available: set[int]
     ) -> tuple[tuple[int, int], set[int]]:
         """
@@ -163,7 +177,7 @@ class xParser:
         missing = 0
         for target in targets:
 
-            current_line, previous_line = self.findLines(target.line)
+            current_line, previous_line = self._findLines(target.line)
             if current_line in available:
                 target.description = comments[current_line]
                 available.remove(current_line)
@@ -214,7 +228,7 @@ class xParser:
         ]
 
         for target in link_targets:
-            stats, available_comments = self.linkElementComment(
+            stats, available_comments = self._linkElementComment(
                 target, comments, available_comments
             )
             count += stats[0]
@@ -223,3 +237,65 @@ class xParser:
         remaining = len(available_comments)
         # Remaining comments
         return count, misses, remaining, component
+
+    def inferElements(self, component: Component) -> Component:
+        """
+        Infer, as selected by the config file the different elements on the IR.
+        """
+
+        cfg: RenderConfig = component.render
+
+        # ------------------------------
+        # INFER IOs
+        # ------------------------------
+        if cfg.inferIOs:
+            component = infer_process(component)
+
+            # ------------------------------
+            # INFER CLOCKS
+            # ------------------------------
+            if cfg.inferClocks:
+                component = infer_clocks(component)
+
+            # ------------------------------
+            # INFER RESETS
+            # ------------------------------
+            if cfg.inferResets:
+                component = infer_resets(component)
+
+        else:
+            if cfg.inferClocks:
+                logger.warning(
+                    "Could not infer clocks. IO inferring is required for this feature to be available."
+                )
+            if cfg.inferResets:
+                logger.warning(
+                    "Could not infer resets. IO inferring is required for this feature to be available."
+                )
+
+        # ------------------------------
+        # INFER POLARITY
+        # ------------------------------
+        if cfg.inferPolarity:
+            component = infer_polarity(component)
+
+        # ------------------------------
+        # INFER COMPONENT TYPE
+        # ------------------------------
+        if cfg.inferType:
+            component = infer_type(component)
+
+        # ------------------------------
+        # INFER MODULE RESOLUTION
+        # ------------------------------
+        if cfg.resolution:
+            pass
+
+        # ------------------------------
+        # INFER VENDORS
+        # ------------------------------
+        if cfg.inferVendor:
+            component = infer_vendors(component)
+
+        # Return
+        return component

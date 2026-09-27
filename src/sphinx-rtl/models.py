@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from dataclasses import dataclass, field
+from .config import RenderConfig
 
 
 @dataclass
@@ -336,7 +337,14 @@ class Component:
         - structures :      The list of structures the element may define.
 
         - flags :           The list of unresolved flags, to be passed to the render stage(s).
+
+        - isVendor :        Define the current component as a dependant of some vendors.
+        - vendors :         Store the different vendors involved.
     """
+
+    # ----------------------------------------------------------------------
+    # FIELDS
+    # ----------------------------------------------------------------------
 
     # File infos
     file: FileInfo
@@ -349,6 +357,7 @@ class Component:
 
     # Render config
     config: ComponentConfig = field(default_factory=ComponentConfig)
+    render: RenderConfig = field(default_factory=RenderConfig)
 
     # HDL elements
     parameters: list[Parameter] = field(default_factory=list)
@@ -365,3 +374,12 @@ class Component:
 
     # Unknown flags
     flags: list[str] = field(default_factory=list)
+
+    # ----------------------------------------------------------------------
+    # PROPERTIES
+    # ----------------------------------------------------------------------
+
+    @property
+    def vendors(self) -> set[str]:
+        """Fetch the vendors known for the entity"""
+        return {mod.vendor for mod in self.modules if mod.isVendor and mod.vendor}

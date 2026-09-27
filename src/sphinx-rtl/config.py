@@ -19,6 +19,7 @@ class RenderConfig:
         - inferResets :         Do we need to infer resets for the output ports ?
         - inferIOs :            Do we need to infer IO for the different processes ?
         - inferType:            Do we need to infer the component type (testbench, package, interface...) ?
+        - inferPolarity :       Do we need to infer the polarity of the signals ?
         - resolution :          Do we need to resolve the different modules ?
         - mermaid :             Do we need to load the mermaid render from a CDN ?
         - wavedrom :            Do we need to load wavefrom render from a CDN ?
@@ -40,6 +41,9 @@ class RenderConfig:
 
     # @notype
     inferType: bool = True
+
+    # @nopolarity
+    inferPolarity: bool = True
 
     # nosourceresolution
     resolution: bool = True
@@ -63,4 +67,4 @@ class RenderConfig:
     inferVendor: bool = True
 
     # @vendor Altera
-    vendor: str = ""
+    vendor: list[str] = field(default_factory=list)
