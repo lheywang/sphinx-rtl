@@ -75,6 +75,17 @@ module assembly_csr (
                 .outL  (LSBs[i]),
                 .outH  (MSBs[i])
             );
+
+            counter #(
+                .DATA_WIDTH(DATA_WIDTH)
+            ) cnt (
+                clk,
+                clk_en,
+                rst_n,
+                counter_enable[i],
+                LSBs[i],
+                MSBs[i]
+            );
         end
     endgenerate
 

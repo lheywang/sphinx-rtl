@@ -237,20 +237,38 @@ module assembly_alu #(
     );
 
     occupancy occup (
-        .clk(clk),
-        .rst_n(rst_n),
-        .target(occupancy_rd),
-        .source1(occupancy_rs1),
-        .source2(occupancy_rs2),
-        .exec_ok(occupancy_exec),
-        .lock(occupancy_lock),
-        .address(reg_addr),
-        .write(reg_we)
+        clk,
+        rst_n,
+        occupancy_rd,
+        occupancy_rs1,
+        occupancy_rs2,
+        occupancy_exec,
+        occupancy_lock,
+        reg_addr,
+        reg_we
     );
 
     generate
         if (ENABLE_CSR) begin : gen_optional_pipe
             assembly_csr csrs (
+                .clk(clk),
+                .clk_en(clk_en),
+                .rst_n(rst_n),
+                .csr_wa(csr_wa),
+                .csr_ra(csr_ra),
+                .csr_we(csr_we),
+                .csr_wd(csr_wd),
+                .csr_rd(csr_rd),
+                .csr_err(csr_err),
+                .count_waited(1'b1),
+                .count_decoded(count_decoded),
+                .count_flushed(1'b1),
+                .count_commited(1'b1),
+                .halt_pending(halt_pend),
+                .interrupt_vect(interrupt_vect)
+            );
+
+            assembly_csr csrs2 (
                 .clk(clk),
                 .clk_en(clk_en),
                 .rst_n(rst_n),
