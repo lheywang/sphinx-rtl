@@ -5,3 +5,10 @@
 # Brief :   Handle the properties management of the different modules,
 #           under the name of the main parser.
 # ----------------------------------------------------------------------------
+
+from .clocks import infer_clocks
+from .module_type import infer_type
+from .polarity import infer_polarity
+from .process import infer_process
+from .resets import infer_resets
+from .vendors import infer_vendors
