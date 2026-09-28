@@ -288,6 +288,8 @@ class ComponentConfig:
         - sim :             Did this module runned correctly on a simulator ?
         - tool :            The tool used to synth this module.
         - compliance:       Is this module compliant to any standard (PCIe, AXI ... ?)
+        - burst :           Is there any forms of burst to be supported ?
+        - security :        Does this module support any form of security options ?
         - status :          The status of the component. Could be any string, but standard (beta, release, stable ...) shall be preferred.
         - deprecrated:      Is the current module deprecated ? If yes, an alternative could be proposed.
         - version :         The version of the module.
@@ -343,6 +345,12 @@ class ComponentConfig:
 
     # @compliance
     complicante: str = ""
+
+    # @burst <size>
+    burst: int = 0
+
+    # @security <name>
+    security: str = ""
     
     # @status released
     status: str = "release"
