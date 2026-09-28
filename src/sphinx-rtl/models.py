@@ -274,9 +274,11 @@ class ComponentConfig:
         - testbenchTarget : The name of the component to be tested. Only evaluated if this module is a testbench.
         - isPackage :       Define the current component as a package. This does change some behaviors when the rendering pass is done*.
         - isInterface:      Define the current component as an interface. This does change some behaviors when the rendering pass is done*.
+        - constraints :     The different constraints to be applied to this module.
         - clock :           Define the clock and the associated frequency.
         - latency :         How many cycles will be needed for a result to be computed ?
         - throughput :      What's the throughput of the module ?
+        - registers :       What's the register map of the module, if applicable ?
         - target:           Define the target to be used (Intel FPGA, Zynq ... ). Free string.
         - compliance:       Is this module compliant to any standard (PCIe, AXI ... ?)
         - status :          The status of the component. Could be any string, but standard (beta, release, stable ...) shall be preferred.
@@ -305,6 +307,9 @@ class ComponentConfig:
     # @interface
     isInterface: bool = False
 
+    # @constraint
+    constraints: list[str] = field(default_factory=list)
+
     # @clock <name> <frequency>
     clock: list[tuple[str, int]] = field(default_factory=list)
 
@@ -313,6 +318,9 @@ class ComponentConfig:
 
     # @throughput <str>
     throughput: str = ""
+
+    # @register <name> <offset> <size> <description> 
+    register: list[tuple[str, int, int, str]] = field(default_factory=list)
 
     # @target <name>
     target: str = ""
