@@ -20,6 +20,7 @@ class RenderConfig:
         - inferIOs :            Do we need to infer IO for the different processes ?
         - inferType:            Do we need to infer the component type (testbench, package, interface...) ?
         - inferPolarity :       Do we need to infer the polarity of the signals ?
+        - showSource :          Do we need to show the source file ?
         - resolution :          Do we need to resolve the different modules ?
         - mermaid :             Do we need to load the mermaid render from a CDN ?
         - wavedrom :            Do we need to load wavefrom render from a CDN ?
@@ -44,6 +45,9 @@ class RenderConfig:
 
     # @nopolarity
     inferPolarity: bool = True
+
+    # @nosource
+    showSource: bool = True
 
     # nosourceresolution
     resolution: bool = True
