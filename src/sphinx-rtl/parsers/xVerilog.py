@@ -113,21 +113,20 @@ class xVerilogParser(xParser):
                     state = "CODE"
 
             elif state == "SINGLE_LINE_COMMENT":
-                if char == "\n":
-                    comments[line] = " ".join("".join(current_comment).split()).strip()
+                current_comment.append(char)
+                if char == "\n" and not next_char == "/":
+                    current_comment.append(char)
+                    comments[line] = "".join("".join(current_comment))
                     current_comment = []
                     state = "CODE"
-                else:
-                    current_comment.append(char)
 
             elif state == "MULTI_LINE_COMMENT":
+                current_comment.append(char)
                 if char == "*" and next_char == "/":
-                    comments[line] = " ".join("".join(current_comment).split()).strip()
+                    comments[line] = "".join("".join(current_comment))
                     current_comment = []
                     state = "CODE"
                     i += 1
-                elif char != "*":
-                    current_comment.append(char)
 
             i += 1
 
@@ -162,6 +161,8 @@ class xVerilogParser(xParser):
         """
 
         for m in scope:
+
+            comp.name = m.name
 
             match m.kind:
 
@@ -257,13 +258,7 @@ class xVerilogParser(xParser):
         # Extract the brief and detailed description
         # Then delete it to ensure it won't be reused.
         if len(comments.keys()) > 0:
-            brief, details = comments[list(comments.keys())[0]].split(".", 1)
             comp = self.fetchFlags(comp, comments[list(comments.keys())[0]])
-            del comments[list(comments.keys())[0]]
-            if not brief.endswith("."):
-                brief += "."
-            if not details.endswith("."):
-                details += "."
 
         # Run the tool to parse the file
         tree = syntax.SyntaxTree.fromFile(str(file))
@@ -330,6 +325,4 @@ class xVerilogParser(xParser):
         comp = self.inferElements(comp)
 
         # Return the final component
-
-        # print(comp)
         return comp

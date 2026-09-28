@@ -13,6 +13,9 @@ import getpass
 import datetime
 import re
 
+from dataclasses import dataclass, fields
+from typing import Any, get_args, get_origin
+from collections import defaultdict
 from git import Commit, GitCommandError
 from sphinx.util import logging
 from typing import TypeVar
@@ -30,6 +33,7 @@ from .ir import (
     infer_process,
     infer_clocks,
     infer_type,
+    infer_groups,
 )
 
 # Configure logger
@@ -55,7 +59,7 @@ class xParser:
         if tool is not None:
             self.tool = shutil.which(tool)
             if self.tool is not None:
-                logger.info(f"Found {tool} at {self.tool}")
+                logger.info(f"[INFO] Found {tool} at {self.tool}")
                 self.isToolAvailable = True
             else:
                 logger.error(f"Cannot found a valid {tool} install.")
@@ -179,6 +183,12 @@ class xParser:
         """
         return (line, line - 1)
 
+    def cleanComment(self, src: str) -> str:
+        """
+        Clean the comment string, regardless of the language.
+        """
+        return re.sub(r"^\s*(?:\/\*+|\*+|\/\/|--)\s?", "", src)
+
     def _linkElementComment(
         self, targets: list[T], comments: dict, available: set[int]
     ) -> tuple[tuple[int, int], set[int]]:
@@ -191,11 +201,11 @@ class xParser:
 
             current_line, previous_line = self._findLines(target.line)
             if current_line in available:
-                target.description = comments[current_line]
+                target.description = comments[current_line].strip()
                 available.remove(current_line)
                 count += 1
             elif previous_line in available:
-                target.description = comments[previous_line]
+                target.description = comments[previous_line].strip()
                 available.remove(previous_line)
                 count += 1
             else:
@@ -254,7 +264,115 @@ class xParser:
         """
         Fetch the different flags that are available, and parse the comments.
         """
-        print(src)
+
+        RE_TAG_LINE = re.compile(r"^.*@([a-zA-Z_]\w*)(?:\s+(.*))?$")
+
+        # Allocate variables for later
+        desc_lines: list[str] = []
+        raw_tags: dict[str, list[str]] = defaultdict(list)
+        current_tag: str | None = None
+
+        # Fetch all the things that could look like a flag
+        for line in src.splitlines():
+            cleaned = re.sub(r"^\s*(?:\/\*+|\*+|\/\/|--)\s?", "", line).rstrip()
+
+            matched = RE_TAG_LINE.match(cleaned)
+            if matched:
+                name = matched.group(1)
+                val = matched.group(2).strip() if matched.group(2) else ""
+                raw_tags[name].append(val)
+                current_tag = name
+            elif current_tag is not None and cleaned.startswith(" "):
+                raw_tags[current_tag][-1] += " " + cleaned.strip()
+            else:
+                current_tag = None
+                if cleaned or desc_lines:
+                    desc_lines.append(cleaned)
+
+        # Dispatch the names of the config classes into a dict.
+        field_dispatch: dict[str, tuple[Any, Any]] = {}
+        for obj in (component.config, component.render):
+            for field in fields(obj):
+                field_dispatch[field.name.lower().replace("_", "")] = (obj, field)
+
+        # Injection du type dans la classe de config:
+        count = 0
+        missed = 0
+        for raw_name, values in raw_tags.items():
+            name = raw_name.lower().replace("_", "")
+            negated = None
+
+            # Support mistyped elements that may start with no
+            if (
+                name.startswith("no")
+                and name[2:] in field_dispatch
+                and field_dispatch[name[2:]][1].type is bool
+            ):
+                name = name[2:]
+                negated = True
+
+            if name in field_dispatch:
+                obj, field = field_dispatch[name]
+                f_type = field.type
+                val = values[-1]
+
+                # Is this a boolean ?
+                if f_type is bool:
+                    if negated:
+                        bit = False
+                    elif val:
+                        bit = val.lower() not in ("false", "0", "no", "off")
+                    else:
+                        bit = True
+
+                    setattr(obj, field.name, bit)
+
+                # Is that a list (or depends from a list)
+                elif get_origin(f_type) is list or f_type is list:
+                    current_list = getattr(obj, field.name)
+                    current_list.extend(v for v in values if v)
+
+                # Is that a dict ?
+                elif get_origin(f_type) is dict or f_type is dict:
+                    target_dict = getattr(obj, field.name)
+                    for entry in values:
+                        parts = entry.split(maxsplit=1)
+                        if len(parts) == 2:
+                            target_dict[parts[0]] = parts[1]
+                        elif len(parts) == 1:
+                            target_dict["default"] = parts[0]
+
+                # Is that a string ?
+                else:
+                    setattr(obj, field.name, val)
+
+                count += 1
+
+            else:
+                for v in values:
+                    tag_repr = f"@{name} {v}".strip()
+                    component.config.tags.append(tag_repr)
+
+                missed += 1
+
+            while desc_lines and not desc_lines[-1].strip():
+                desc_lines.pop()
+
+        if count > 0:
+            logger.info(f"[INFO] Found {count} flags and configured them.")
+        elif missed > 0:
+            logger.warning(
+                f"Found {missed} flags that are unknown, and placed into the flags config."
+            )
+
+        # Update the component elements
+        RE_SENTENCE_SPLIT = re.compile(r"\.(?:\s+|$)")
+
+        comment = "\n".join(desc_lines)
+        raw = RE_SENTENCE_SPLIT.split(comment, maxsplit=1)
+
+        component.brief = raw[0].strip()
+        component.details = raw[1].strip() if len(raw) > 1 else ""
 
         return component
 
@@ -310,6 +428,12 @@ class xParser:
         # ------------------------------
         if cfg.inferVendor:
             component = infer_vendors(component)
+
+        # ------------------------------
+        # INFER POLARITY
+        # ------------------------------
+        if cfg.inferGroups:
+            component = infer_groups(component)
 
         # Return
         return component

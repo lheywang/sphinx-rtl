@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from .clocks import infer_clocks
+from .groups import infer_groups
 from .module_type import infer_type
 from .polarity import infer_polarity
 from .process import infer_process
