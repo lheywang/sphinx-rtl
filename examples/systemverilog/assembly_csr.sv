@@ -1,14 +1,9 @@
 /*
- *  File :      rtl/core/assembly/assembly_csr.sv
+ * This file assemble all of the CSR with it's associated
+ * counters. This make the global core assembly much
+ * more readable.
  *
- *  Author :    l.heywang <leonard.heywang@proton.me>
- *  Date :      25/10.2025
- *  
- *  Brief :     This file assemble all of the CSR with it's associated
- *              counters. This make the global core assembly much
- *              more readable.
- *
- *  Note :      There's not associated testbench for this module.
+ * @note There's not associated testbench for this module.
  */
 
 import core_config_pkg::XLEN;

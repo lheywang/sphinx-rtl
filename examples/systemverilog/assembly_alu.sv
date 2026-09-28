@@ -1,14 +1,8 @@
 /*
- *  File :      rtl/core/assembly/assembly_alu.sv
+ * This file assemble all of the ALU with the issuer
+ * and commiter units. This is done to make the global
+ * core.sv file much more readable.
  *
- *  Author :    l.heywang <leonard.heywang@proton.me>
- *  Date :      25/10.2025
- *  
- *  Brief :     This file assemble all of the ALU with the issuer
- *              and commiter units. This is done to make the global
- *              core.sv file much more readable.
- *
- *  Note :      There's not associated testbench for this module.
  */
 
 import core_config_pkg::XLEN;

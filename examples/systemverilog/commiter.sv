@@ -1,8 +1,10 @@
 /*
- * This file define the commit module, the one who's
+ * This file define the commit module. The one who's
  * charged to handle the ALU outputs and the registers write-back.
  * It also expose an address load bus, in case a branch instruction
  * was mispredicted, and we need to flush the pipeline.
+ *
+ * @status released
  */
 `timescale 1ns / 1ps
 

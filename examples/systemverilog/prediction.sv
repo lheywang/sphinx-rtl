@@ -1,9 +1,11 @@
 /*
- *  This file define the BPU, Branch Prediction Unit, which
- *  will try to help to reduce the pipeline stalls, by trying to predict
+ *  This file define the BPU, Branch Prediction Unit.
+ *  Try to help to reduce the pipeline stalls, by trying to predict
  *  the next program counter address.
  *
  *  Use a 3 bits prediction value counter to saturate on each.
+ *
+ * @deprecated Use the prediction_v2 module instead. Will lead to better performances.
  */
 
 `timescale 1ns / 1ps
