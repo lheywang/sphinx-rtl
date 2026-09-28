@@ -254,6 +254,8 @@ class xParser:
         """
         Fetch the different flags that are available, and parse the comments.
         """
+        print(src)
+
         return component
 
     def inferElements(self, component: Component) -> Component:
@@ -302,12 +304,6 @@ class xParser:
         # ------------------------------
         if cfg.inferType:
             component = infer_type(component)
-
-        # ------------------------------
-        # INFER MODULE RESOLUTION
-        # ------------------------------
-        if cfg.resolution:
-            pass
 
         # ------------------------------
         # INFER VENDORS

@@ -22,7 +22,6 @@ class RenderConfig:
         - inferPolarity :       Do we need to infer the polarity of the signals ?
         - inferGroups :         Do we need to groups the ports and signals following that start similar ?
         - showSource :          Do we need to show the source file ?
-        - resolution :          Do we need to resolve the different modules ?
         - mermaid :             Do we need to load the mermaid render from a CDN ?
         - wavedrom :            Do we need to load wavefrom render from a CDN ?
         - template :            Do we need to add a template instantiation at the end of the doc ?
@@ -52,9 +51,6 @@ class RenderConfig:
 
     # @nosource
     showSource: bool = True
-
-    # nosourceresolution
-    resolution: bool = True
 
     # @nomermaid
     mermaid: bool = True

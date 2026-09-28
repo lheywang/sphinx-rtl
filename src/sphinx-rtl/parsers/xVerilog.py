@@ -249,18 +249,21 @@ class xVerilogParser(xParser):
 
         # First get the file Infos
         infos = self.getFileInfo(file)
+        comp = Component(file=infos)
 
         # Extract the file comments
         comments = self.fetch_comments(file)
 
         # Extract the brief and detailed description
         # Then delete it to ensure it won't be reused.
-        brief, details = comments[list(comments.keys())[0]].split(".", 1)
-        del comments[list(comments.keys())[0]]
-        if not brief.endswith("."):
-            brief += "."
-        if not details.endswith("."):
-            details += "."
+        if len(comments.keys()) > 0:
+            brief, details = comments[list(comments.keys())[0]].split(".", 1)
+            comp = self.fetchFlags(comp, comments[list(comments.keys())[0]])
+            del comments[list(comments.keys())[0]]
+            if not brief.endswith("."):
+                brief += "."
+            if not details.endswith("."):
+                details += "."
 
         # Run the tool to parse the file
         tree = syntax.SyntaxTree.fromFile(str(file))
@@ -297,7 +300,6 @@ class xVerilogParser(xParser):
 
         # Iterate over the nodes available.
         # Doing in this way enable us to reuse the same logic, and therefore reduce the bug surface...
-        comp = Component(file=infos)
 
         for instance in root.topInstances:
             self.populate_component(comp, instance.body, False)

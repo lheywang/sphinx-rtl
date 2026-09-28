@@ -303,12 +303,13 @@ class ComponentConfig:
     * : Different elements may or may not be useful for the different kind of objects. Therefore, these flags are checking them
         to configure the optimal render method for the current component.
     """
+
     # @warning
     warning: str = ""
 
     # @notes
     notes: str = ""
-    
+
     # @testbench
     isTestbench: bool = False
 
@@ -325,7 +326,7 @@ class ComponentConfig:
     constraints: list[str] = field(default_factory=list)
 
     # @clock <name> <frequency>
-    clock: list[tuple[str, int]] = field(default_factory=list)
+    clock: list[tuple[str, int, str]] = field(default_factory=list)
 
     # @latency <cycles>
     latency: int = 0
@@ -333,7 +334,7 @@ class ComponentConfig:
     # @throughput <str>
     throughput: str = ""
 
-    # @register <name> <offset> <size> <description> 
+    # @register <name> <offset> <size> <description>
     register: list[tuple[str, int, int, str]] = field(default_factory=list)
 
     # @target <name>
@@ -353,7 +354,7 @@ class ComponentConfig:
 
     # @security <name>
     security: str = ""
-    
+
     # @status released
     status: str = "release"
 
