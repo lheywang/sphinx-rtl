@@ -269,20 +269,30 @@ class ComponentConfig:
     linked to the user config rather than pure HDL elements.
 
     Fields :
+        - warning :         Is there anything we need to add on the top of the page ?
         - isTestbench :     Define the current component as a testbench. This change some behaviors when the rendering pass is done*.
         - testbenchTarget : The name of the component to be tested. Only evaluated if this module is a testbench.
         - isPackage :       Define the current component as a package. This does change some behaviors when the rendering pass is done*.
         - isInterface:      Define the current component as an interface. This does change some behaviors when the rendering pass is done*.
+        - clock :           Define the clock and the associated frequency.
+        - latency :         How many cycles will be needed for a result to be computed ?
+        - throughput :      What's the throughput of the module ?
+        - target:           Define the target to be used (Intel FPGA, Zynq ... ). Free string.
+        - compliance:       Is this module compliant to any standard (PCIe, AXI ... ?)
         - status :          The status of the component. Could be any string, but standard (beta, release, stable ...) shall be preferred.
+        - deprecrated:      Is the current module deprecated ? If yes, an alternative could be proposed.
         - version :         The version of the module.
         - task :            Insert here the current task this module is relevant to. Could be @task Project XX or @task Client YY
+        - license:          Specify the license to be used.
         - copyright :       Is this module copyrighted to anything ?
         - tags :            A list of free tags to be used anywhere.
 
     * : Different elements may or may not be useful for the different kind of objects. Therefore, these flags are checking them
         to configure the optimal render method for the current component.
     """
-
+    # @warning
+    warning: str = ""
+    
     # @testbench
     isTestbench: bool = False
 
@@ -295,14 +305,35 @@ class ComponentConfig:
     # @interface
     isInterface: bool = False
 
+    # @clock <name> <frequency>
+    clock: list[tuple[str, int]] = field(default_factory=list)
+
+    # @latency <cycles>
+    latency: int = 0
+
+    # @throughput <str>
+    throughput: str = ""
+
+    # @target <name>
+    target: str = ""
+
+    # @compliance
+    complicante: str = ""
+    
     # @status released
     status: str = "release"
+
+    # @deprecated <alternative>
+    deprecated: str = ""
 
     # @version 1.0.0
     version: str = "1.0.0"
 
     # @task JIRA-928
     task: str = ""
+
+    # @license
+    license: str = ""
 
     # @copyright Altera Corp.
     copyright: str = ""
