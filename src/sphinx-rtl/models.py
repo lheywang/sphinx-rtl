@@ -243,9 +243,11 @@ class FileInfo:
         - creation_author : The name of the author which created the file, ie the name of the first committer for this file. This field remain unresolved when the FS fallback is used.
         - creation_hash :   The hash of the first commit which affected this file. This field remain unresolved when the FS fallback is used.
         - creation_date :   The date of the first commit which was affected by this file. This field remain unresolved when the FS fallback is used.
+        - creation_tag :    The first tag that was applied to this file. This field remain unresolved when the FS fallback is used.
         - edit_author :     The name of the latest author which committed this file. This field is resolved to the current user logged when building the doc. Therefore may be wrong for CICD based systems.
         - edit_hash :       The hash of the latest commit which included this file. This field remain unresolved when the FS fallback is used.
         - edit_date :       The date of the latest commit which included this file. This field is resolved to the latest date known to the OS.
+        - edit_tag :        The latest tag of this file. This field remain unresolved when the FS fallback is used.
         - is_dirty :        Does this file contain changes that are not committed when building the doc ?
         - message :         The latest commit message.
     """
@@ -255,9 +257,11 @@ class FileInfo:
     creation_author: str = ""
     creation_hash: str = ""
     creation_date: str = ""
+    creation_tag: str = ""
     edit_date: str = ""
     edit_hash: str = ""
     edit_author: str = ""
+    edit_tag: str = ""
     is_dirty: bool = False
     message: str = ""
 
@@ -270,6 +274,7 @@ class ComponentConfig:
 
     Fields :
         - warning :         Is there anything we need to add on the top of the page ?
+        - notes :           Any notes to be added ?
         - isTestbench :     Define the current component as a testbench. This change some behaviors when the rendering pass is done*.
         - testbenchTarget : The name of the component to be tested. Only evaluated if this module is a testbench.
         - isPackage :       Define the current component as a package. This does change some behaviors when the rendering pass is done*.
@@ -280,6 +285,8 @@ class ComponentConfig:
         - throughput :      What's the throughput of the module ?
         - registers :       What's the register map of the module, if applicable ?
         - target:           Define the target to be used (Intel FPGA, Zynq ... ). Free string.
+        - sim :             Did this module runned correctly on a simulator ?
+        - tool :            The tool used to synth this module.
         - compliance:       Is this module compliant to any standard (PCIe, AXI ... ?)
         - status :          The status of the component. Could be any string, but standard (beta, release, stable ...) shall be preferred.
         - deprecrated:      Is the current module deprecated ? If yes, an alternative could be proposed.
@@ -294,6 +301,9 @@ class ComponentConfig:
     """
     # @warning
     warning: str = ""
+
+    # @notes
+    notes: str = ""
     
     # @testbench
     isTestbench: bool = False
@@ -324,6 +334,12 @@ class ComponentConfig:
 
     # @target <name>
     target: str = ""
+
+    # @tool <name>
+    tool: str = ""
+
+    # @sim <name>
+    sim: str = ""
 
     # @compliance
     complicante: str = ""
