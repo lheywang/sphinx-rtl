@@ -54,6 +54,7 @@ class Port(Element):
         - hdl_sync :        The clock to which this port is linked, in both reading and writing. This is inferred by the IR reduction pass.
         - hdl_reset :       The reset port to which this port is linked, in writing only.
         - hdl_polarity :    The level to which this port is sensible. Only inferred by the "name" on it...
+        - group :           Inferred by the group selection.
     """
 
     direction: str = ""
@@ -63,6 +64,7 @@ class Port(Element):
     hdl_sync: str = ""
     hdl_reset: str = ""
     hdl_polarity: str = ""
+    group: str = ""
 
 
 @dataclass
