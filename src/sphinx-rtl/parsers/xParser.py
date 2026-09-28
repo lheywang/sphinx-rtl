@@ -9,7 +9,11 @@
 import shutil
 import git
 import subprocess
+import getpass
+import datetime
+import re
 
+from git import Commit, GitCommandError
 from sphinx.util import logging
 from typing import TypeVar
 from pathlib import Path
@@ -80,6 +84,22 @@ class xParser:
         Use the git history to look for the file history
         """
 
+        # Get a fallback with the minimal set.
+        fallback = FileInfo(
+            name=file.name,
+            path=str(file),
+            creation_author="",
+            edit_author=f"{getpass.getuser()}",
+            creation_date="",  # Would match the date where you cloned the repo...
+            edit_date=datetime.datetime.now().strftime("%m/%d/%Y %H:%M"),
+            creation_hash="",
+            edit_hash="",
+            creation_tag="",
+            edit_tag="",
+            is_dirty=False,
+            message="",
+        )
+
         # First, open the repo. Ensure a fallback to ensure a working doc...
         try:
             repo = git.Repo(file, search_parent_directories=True)
@@ -87,18 +107,7 @@ class xParser:
             logger.warning(
                 "Could not find a valid git repo. Using the filesystem fallback."
             )
-            return FileInfo(
-                file.name,
-                str(file),
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                False,
-                "none",
-            )
+            return fallback
 
         obj = file.resolve()
 
@@ -106,37 +115,38 @@ class xParser:
         try:
             rel_obj = obj.relative_to(str(repo.working_tree_dir))
         except ValueError:
-            return FileInfo(
-                file.name,
-                str(file),
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                False,
-                "none",
-            )
+            return fallback
 
-        commits = list(repo.iter_commits(paths=str(rel_obj)))
+        commits: list[Commit] = list(repo.iter_commits(paths=str(rel_obj)))
         if not commits:
-            return FileInfo(
-                file.name,
-                str(file),
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                "unknown",
-                False,
-                "none",
-            )
+            return fallback
 
         # Fetch the last commits
         last_commit = commits[0]
         first_commit = commits[-1]
+
+        # Fetch the tags
+        def find_first_tag_containing(commit_sha: str) -> str | None:
+            """Find the first tag (to the future) that contain the target commit."""
+            try:
+                raw = repo.git.describe("--tags", "--contains", commit_sha)
+                return re.split(r"[\^~]", raw)[0]
+            except GitCommandError:
+                return None
+
+        # Fetch them
+        last_tag = find_first_tag_containing(last_commit.hexsha)
+        first_tag = find_first_tag_containing(first_commit.hexsha)
+
+        # Safety to ensure at least a tag is present
+        if last_tag is None:
+            for c in commits[1:]:
+                t = find_first_tag_containing(c.hexsha)
+                if t:
+                    last_tag = f"{t} (+ unreleased)"
+                    break
+            else:
+                last_tag = "unreleased"
 
         # Check if the file has been modified since
         is_dirty = bool(repo.index.diff(None, paths=[str(rel_obj)])) or bool(
@@ -153,6 +163,8 @@ class xParser:
             edit_date=last_commit.committed_datetime.strftime("%m/%d/%Y %H:%M"),
             creation_hash=first_commit.hexsha[:12],
             edit_hash=last_commit.hexsha[:12],
+            creation_tag=str(first_tag),
+            edit_tag=str(last_tag),
             is_dirty=is_dirty,
             message=(
                 last_commit.message.decode("utf8")
@@ -237,6 +249,12 @@ class xParser:
         remaining = len(available_comments)
         # Remaining comments
         return count, misses, remaining, component
+
+    def fetchFlags(self, component: Component, src: str) -> Component:
+        """
+        Fetch the different flags that are available, and parse the comments.
+        """
+        return component
 
     def inferElements(self, component: Component) -> Component:
         """
