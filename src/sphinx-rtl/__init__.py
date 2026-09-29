@@ -15,6 +15,7 @@ def setup(app):
 
     # Load the extensions
     app.setup_extension("myst_parser")
+    app.setup_extension("sphinx_design")
 
     # Add the name and aliases
     app.add_directive("rtl-autodoc", RTLAutodocDirective)

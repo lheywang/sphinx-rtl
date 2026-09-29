@@ -78,72 +78,72 @@ module commiter (
 
         end else begin
 
-            if (alu1_valid) begin
+            if (alu_valid) begin
 
                 active_alu   = ALU1;
 
-                reg_data     = (alu1_req) ? '0 : alu1_res;
-                reg_addr     = (alu1_req) ? '0 : alu1_rd;
-                reg_we       = (alu1_req) ? 1'b0 : 1'b1;
+                reg_data     = (alu_req[1]) ? '0 : alu_res[1];
+                reg_addr     = (alu_req[1]) ? '0 : alu_rd[1];
+                reg_we       = (alu_req[1]) ? 1'b0 : 1'b1;
 
-                pc_value     = (alu1_req) ? alu1_jmp : '0;
-                pc_we        = (alu1_req) ? 1'b1 : 1'b0;
-                issuer_flush = (alu1_req) ? 1'b1 : 1'b0;
+                pc_value     = (alu_req[1]) ? alu_jmp[1] : '0;
+                pc_we        = (alu_req[1]) ? 1'b1 : 1'b0;
+                issuer_flush = (alu_req[1]) ? 1'b1 : 1'b0;
 
-            end else if (alu2_valid) begin
+            end else if (alu_valid) begin
 
                 active_alu   = ALU2;
 
-                reg_data     = alu2_res;
-                reg_addr     = alu2_rd;
+                reg_data     = alu_res[2];
+                reg_addr     = alu_rd[2];
                 reg_we       = 1'b1;
 
                 pc_value     = '0;
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu3_valid) begin
+            end else if (alu_valid) begin
 
                 active_alu   = ALU3;
 
-                reg_data     = alu3_res;
-                reg_addr     = alu3_rd;
+                reg_data     = alu_res[3];
+                reg_addr     = alu_rd[3];
                 reg_we       = 1'b1;
 
                 pc_value     = '0;
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu5_valid) begin
+            end else if (alu_valid) begin
 
                 active_alu   = ALU5;
 
-                reg_data     = alu5_res;
-                reg_addr     = alu5_rd;
+                reg_data     = alu_res[5];
+                reg_addr     = alu_rd[5];
                 reg_we       = 1'b1;
 
                 pc_value     = '0;
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu4_valid) begin
+            end else if (alu_valid) begin
 
                 active_alu   = ALU4;
 
-                reg_data     = alu4_res;
-                reg_addr     = alu4_rd;
+                reg_data     = alu_res[4];
+                reg_addr     = alu_rd[4];
                 reg_we       = 1'b1;
 
                 pc_value     = '0;
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu0_valid) begin
+            end else if (alu_valid) begin
 
                 active_alu   = ALU0;
 
-                reg_data     = alu0_res;
-                reg_addr     = alu0_rd;
+                reg_data     = alu_res[0];
+                reg_addr     = alu_rd[0];
                 reg_we       = 1'b1;
 
                 pc_value     = '0;
@@ -192,29 +192,29 @@ module commiter (
      */
     always_comb begin
 
-        alu0_clear = 1'b0;
-        alu1_clear = 1'b0;
-        alu2_clear = 1'b0;
-        alu3_clear = 1'b0;
-        alu4_clear = 1'b0;
-        alu5_clear = 1'b0;
+        alu_clear[0] = 1'b0;
+        alu_clear[1] = 1'b0;
+        alu_clear[2] = 1'b0;
+        alu_clear[3] = 1'b0;
+        alu_clear[4] = 1'b0;
+        alu_clear[5] = 1'b0;
 
         unique case (last_active_alu)
 
-            ALU0: alu0_clear = 1'b1;
-            ALU1: alu1_clear = 1'b1;
-            ALU2: alu2_clear = 1'b1;
-            ALU3: alu3_clear = 1'b1;
-            ALU4: alu4_clear = 1'b1;
-            ALU5: alu5_clear = 1'b1;
+            ALU0: alu_clear[0] = 1'b1;
+            ALU1: alu_clear[1] = 1'b1;
+            ALU2: alu_clear[2] = 1'b1;
+            ALU3: alu_clear[3] = 1'b1;
+            ALU4: alu_clear[4] = 1'b1;
+            ALU5: alu_clear[5] = 1'b1;
             ALL: begin
 
-                alu0_clear = 1'b1;
-                alu1_clear = 1'b1;
-                alu2_clear = 1'b1;
-                alu3_clear = 1'b1;
-                alu4_clear = 1'b1;
-                alu5_clear = 1'b1;
+                alu_clear[0] = 1'b1;
+                alu_clear[1] = 1'b1;
+                alu_clear[2] = 1'b1;
+                alu_clear[3] = 1'b1;
+                alu_clear[4] = 1'b1;
+                alu_clear[5] = 1'b1;
 
             end
             default: ;

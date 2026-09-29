@@ -51,7 +51,11 @@ module assembly_alu #(
     output logic bpu_branch_not_taken,                              // Didn't we take the branch ?
 
     // Interrupts vector
-    input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect    // Interrupt vector input
+    input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect,   // Interrupt vector input
+
+    // Diff memory clock
+    output logic                        mem_clk_p,                  // Positive output clock
+    output logic                        mem_clk_n                   // Negative memory clock
 
 );
 

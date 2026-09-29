@@ -61,7 +61,7 @@ def infer_groups(component: Component) -> Component:
     groups_count = len(groups.keys())
     if groups_count > 1:
         logger.info(
-            f"[INFO] Found {groups_count} port group{"s" if groups_count > 1 else ""}"
+            f"[INFO] Found {groups_count} ports group{"s" if groups_count > 1 else ""}"
         )
 
     return component

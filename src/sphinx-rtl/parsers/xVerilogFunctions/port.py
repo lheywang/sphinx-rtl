@@ -117,4 +117,6 @@ def build_interfacePort(
     port.hdl_type = interface
     port.hdl_size = ["0", "0"]
     port.line = line
+    port.group = ""
+    port.pair = ""
     return port

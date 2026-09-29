@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sphinx-rtl"
-version = "0.1.0"
+version = "0.3.0"
 description = "Automated RTL (VHDL, Verilog, SystemVerilog) documentation generator."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,6 +17,7 @@ dependencies = [
     "gitpython>=3.1.62",
     "pyslang>=11.0.0",
     "pyghdl>=1.0.dev0",
+    "sphinx-design>=0.7.0",
 ]
 
 [project.optional-dependencies]

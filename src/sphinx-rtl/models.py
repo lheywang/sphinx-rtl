@@ -16,6 +16,8 @@ class Element:
     Basic config for an element to be defined. Shall not be used as it.
     This ensure that Python will always find these elements in all class, regardless of the type.
 
+    Inherit from : None
+
     Fields :
         - name :            Store the name of the element.
         - description :     Store the description of the element, typically the comment that is known to be attached for.
@@ -32,6 +34,8 @@ class Parameter(Element):
     """
     Store the different values for a single parameter (or generic in VHDL) entry.
 
+    Inherit from : Element
+
     Fields :
         - hdl_type :        The type of the Parameter.
         - hdl_value :       The default value of the parameter (may also be the assigned value if called from a Module class)
@@ -46,6 +50,8 @@ class Port(Element):
     """
     Store the different values for a single port entry.
 
+    Inherit from : Element
+
     Fields :
         - direction :       The direction of the port (input, output, inout...)
         - hdl_type :        The type of the port, as passed on the file. May be standard or custom ports.
@@ -55,6 +61,7 @@ class Port(Element):
         - hdl_reset :       The reset port to which this port is linked, in writing only.
         - hdl_polarity :    The level to which this port is sensible. Only inferred by the "name" on it...
         - group :           Inferred by the group selection.
+        - pair :            Did we found some ports that can be matched in differential pairs ?
     """
 
     direction: str = ""
@@ -65,12 +72,15 @@ class Port(Element):
     hdl_reset: str = ""
     hdl_polarity: str = ""
     group: str = ""
+    pair: str = ""
 
 
 @dataclass
 class Enum(Element):
     """
     Store the different values for single enumeration (or type in VHDL) entry.
+
+    Inherit from : Element
 
     Fields :
         - values :          The different elaboration resolved values for the enum.
@@ -86,6 +96,8 @@ class Structure(Element):
     """
     Store the element contained within a structure.
 
+    Inherit from : Element
+
     Fields :
         - signals:          A list of signals to be stored within the struct.
         - isPacked :        Is the struct packed ?
@@ -100,6 +112,8 @@ class Import(Element):
     """
     Store the different values for a single import (Verilog Only) entry.
 
+    Inherit from : Element
+
     Fields :
         - library :         The name of the element to be imported.
         - element :         The name of the element to be imported within the provided library.
@@ -110,20 +124,16 @@ class Import(Element):
 
 
 @dataclass
-class Signal(Element):
+class Signal(Port):
     """
     Store the different values for a single single reg / wire (or signal in VHDL) entry.
 
+    Inherit from : Port
+
     Fields :
-        hdl_type :          The type of the signal as wrote on the source file.
-        hdl_size :          The size of the signal, passed as N pairs of strings, typically under the form MSB,LSB. Single bit signals are expressed "x", "x" (or any value, they just must be equal)
-        hdl_value :         The value hold by this signal when declared.
         isImplicit :        Was this signal declared by the user or by some superior entity ?
     """
 
-    hdl_type: str = ""
-    hdl_size: list[str] = field(default_factory=list)
-    hdl_value: str = ""
     isImplicit: bool = False
 
 
@@ -131,6 +141,8 @@ class Signal(Element):
 class Assignment(Element):
     """
     Store a constant assignment for a variable.
+
+    Inherit from : Element
 
     Fields :
         - target :          The target signal name to be assigned.
@@ -147,6 +159,8 @@ class Assignment(Element):
 class Process(Element):
     """
     Store the different values for a single process / alway entry.
+
+    Inherit from : Element
 
     Fields :
         - hdl_type :        The type of process, could be "comb" or "flipflop". This indicate the structure of the process for the IR.
@@ -169,6 +183,8 @@ class Modport(Element):
     Store a modport informations.
     This class could only be used in xVerilog parser.
 
+    Inherit from : Element
+
     Fields :
         signals :           The list of ports objects to be defined within the selected modport.
     """
@@ -180,6 +196,8 @@ class Modport(Element):
 class Interface(Element):
     """
     Store the config for an interface entry.
+
+    Inherit from : Element
 
     Fields :
         - parameters :      The list of passed parameters to the interface.
@@ -198,6 +216,8 @@ class Interface(Element):
 class Module(Element):
     """
     Store the config for a known module, instantiated within the passed design.
+
+    Inherit from : Element
 
     Fields :
         - entity :          The entity name of the included module.
@@ -226,6 +246,12 @@ class Module(Element):
 class Function(Element):
     """
     Store the config for a known function, instantiated within the passed design.
+
+    Inherit from : Element
+
+    Fields :
+        - func_inputs :     List of ports that are used as function inputs.
+        - func_outputs :    List of ports that are used as function outputs.
     """
 
     func_inputs: list[Port] = field(default_factory=list)
@@ -238,6 +264,8 @@ class FileInfo:
     Store the different values for a single file info entry.
     Most of these fields are targeted by a git repo to be fetched, therefore it is the most complete within a repo.
     A fallback from the OS filesystem may be used.
+
+    Inherit from : None
 
     Fields :
         - name :            The name of the file
@@ -273,6 +301,8 @@ class ComponentConfig:
     """
     Store additional elements for the Component object, that are more
     linked to the user config rather than pure HDL elements.
+
+    Inherit from : None
 
     Fields :
         - warning :         Is there anything we need to add on the top of the page ?
@@ -381,6 +411,8 @@ class ComponentConfig:
 class Component:
     """
     Store all the infos for a component. Include all infos to be shared.
+
+    Inherit from : None
 
     Fields :
         - file :            The FileInfo class that store all elements.
