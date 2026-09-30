@@ -250,7 +250,7 @@ class xVerilogParser(xParser):
 
         # First get the file Infos
         infos = self.getFileInfo(file)
-        comp = Component(file=infos)
+        comp = Component(infos)
 
         # Extract the file comments
         comments = self.fetch_comments(file)

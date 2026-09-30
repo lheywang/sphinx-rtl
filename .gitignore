@@ -219,3 +219,6 @@ __marimo__/
 
 # Altera files
 *altera*
+
+# Sphinx build
+*_build/*

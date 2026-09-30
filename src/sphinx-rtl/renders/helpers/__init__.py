@@ -1,9 +1,10 @@
 # ----------------------------------------------------------------------------
 # Author :  l.heywang <leonard.heywang@proton.me>
-# Date :    25/09/2026
+# Date :    30/09/2026
 #
-# Brief :   Define the render module, to transform Components into
-#           Sphinx docutils node syntax.
+# Brief :   Define some helpers to make the rendering a bit cleaner.
 # ----------------------------------------------------------------------------
 
-from .renderer import RTLRender
+from .badges import render_badge, BadgeColor
+from .snippets import render_snippet
+from .table import render_table

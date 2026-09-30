@@ -14,6 +14,7 @@ from docutils.parsers.rst import Directive
 
 from .parsers import xVerilogParser, VHDLParser
 from .models import Component
+from .renders import RTLRender
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -70,7 +71,10 @@ class RTLAutodocDirective(Directive):
             ]
 
         # Process all files
-        rendered_nodes: list[nodes.Node] = []
+        rendered_nodes: list[nodes.container] = []
+
+        # Default values
+        component = None
 
         for match in matches:
             env.note_dependency(str(match))
@@ -81,10 +85,8 @@ class RTLAutodocDirective(Directive):
             suffix = match.suffix.lower()
             if suffix in [".sv", ".v"]:
                 component = xVerilogTool.parse(match)
-                rendered_nodes.extend(self._render(component))
             elif suffix in [".vhd", ".vhdl"]:
                 # component = VHDLTool.parse(match)
-                # rendered_nodes.extend(self._render(component))
                 pass
             else:
                 return self.state.reporter.error(
@@ -92,22 +94,10 @@ class RTLAutodocDirective(Directive):
                     line=self.lineno,
                 )
 
-        # Build the nodes from our RTL component:
+            # Build the nodes from our RTL component:
+            render = RTLRender()
+            nodes, refs = render.render(component=component)
+
+            rendered_nodes.extend(nodes)
+
         return rendered_nodes
-
-    def _render(self, component: Component) -> list[nodes.Node]:
-        sec_id = nodes.make_id(f"rtl-{component.name}")
-        sec = nodes.section(ids=[sec_id])
-
-        sec += nodes.title(text=f"Module : {component.name}")
-
-        # Brief
-        if component.brief:
-            p_brief = nodes.paragraph()
-            p_brief += nodes.strong(text="Brief : ")
-            p_brief += nodes.Text(component.brief)
-            sec += p_brief
-
-        # TODO : Inject all the remaining details
-
-        return [sec]

@@ -1,9 +1,7 @@
 # ----------------------------------------------------------------------------
 # Author :  l.heywang <leonard.heywang@proton.me>
-# Date :    25/09/2026
+# Date :    30/09/2026
 #
-# Brief :   Define the render module, to transform Components into
-#           Sphinx docutils node syntax.
+# Brief :   A CLI entry to use the tool as a standalone executable,
+#           for example to dump the structure as a JSON format ...
 # ----------------------------------------------------------------------------
-
-from .renderer import RTLRender

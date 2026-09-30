@@ -34,6 +34,10 @@ def infer_vendors(component: Component) -> Component:
             module.vendor = vendor.value
             module.isVendor = True
 
+            # Add the name into the main list
+            if vendor.value not in component.render.vendor:
+                component.render.vendor.append(vendor.value)
+
             # For logging
             count += 1
     # Add some logging
