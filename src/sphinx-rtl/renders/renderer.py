@@ -197,6 +197,118 @@ class RTLRender:
 
         card += card_description
 
+        # Now, add the different elements about the file status
+        # This may be dependant on the git status, so :
+
+        footer = nodes.container(
+            is_div=True,
+            classes=[
+                "sd-card-footer",
+                "sd-py-2",
+                "sd-px-3",
+                "sd-fs-7",
+                "sd-text-muted",
+            ],
+        )
+
+        last_block = nodes.container(is_div=True, classes=["sd-m-2"])
+
+        row_author = nodes.container(
+            is_div=True,
+            classes=[
+                "sd-d-flex-row",
+                "sd-align-major-justify",
+                "sd-align-minor-center",
+            ],
+        )
+
+        author = nodes.paragraph(classes=["sd-m-0", "sd-fw-semibold"])
+        author += nodes.Text(comp.file.edit_author)
+        row_author += author
+
+        date = nodes.paragraph(classes=["sd-m-0"])
+        date += nodes.Text(comp.file.edit_date)
+        row_author += date
+
+        # Add that to the current row
+        last_block += row_author
+
+        # If the fileInfo class does know some things about git, let's add tem
+        if comp.file.edit_hash != "":
+
+            badges = nodes.paragraph(classes=["sd-m-0", "sd-my-1"])
+            badges += render_badge(
+                f"Tag : {comp.file.edit_tag}", color=BadgeColor.ORANGE, outline=True
+            )
+            badges += nodes.inline(" ", " ")
+            hash_badge = render_badge(
+                f"Hash : {comp.file.edit_hash}", color=BadgeColor.CYAN, outline=True
+            )
+            hash_badge["classes"].append("code")
+            badges += hash_badge
+            badges += nodes.inline(" ", " ")
+
+            dirty_color = BadgeColor.RED if comp.file.is_dirty else BadgeColor.GREEN
+            dirty_msg = "Dirty build" if comp.file.is_dirty else "Clean build"
+            badges += render_badge(dirty_msg, dirty_color, outline=True)
+
+            last_block += badges
+
+            # Add the commit message
+            commit = nodes.paragraph(classes=["sd-m-0", "sd-fst-italic"])
+            commit += nodes.Text(f"Commit message : <{comp.file.message}>")
+            last_block += commit
+
+        # Add the block to the root
+        footer += last_block
+
+        # Add the creation block (only available with git integration)
+        if comp.file.creation_hash != "":
+
+            initial_block = nodes.container(
+                is_div=True,
+                classes=["sd-m-2"],
+            )
+
+            row_in_author = nodes.container(
+                is_div=True,
+                classes=[
+                    "sd-d-flex-row",
+                    "sd-align-major-justify",
+                    "sd-align-minor-center",
+                ],
+            )
+
+            in_author = nodes.paragraph(classes=["sd-m-0", "sd-fw-semibold"])
+            in_author += nodes.Text(f"Initial Author : {comp.file.creation_author}")
+            row_in_author += in_author
+
+            in_date = nodes.paragraph(classes=["sd-m-0"])
+            in_date += nodes.Text(comp.file.creation_date)
+            row_in_author += in_date
+
+            # Add that to the current row
+            initial_block += row_in_author
+
+            badges = nodes.paragraph(classes=["sd-m-0", "sd-my-1"])
+            badges += render_badge(
+                f"Tag : {comp.file.creation_tag}", color=BadgeColor.ORANGE, outline=True
+            )
+            badges += nodes.inline(" ", " ")
+            hash_badge = render_badge(
+                f"Hash : {comp.file.creation_hash}", color=BadgeColor.CYAN, outline=True
+            )
+            hash_badge["classes"].append("code")
+            badges += hash_badge
+
+            initial_block += badges
+
+            # Add the block to the root
+            footer += initial_block
+
+        # Add the footer to the card
+        card += footer
+
         # Finally add ourselves to the root
         root += card
         return
