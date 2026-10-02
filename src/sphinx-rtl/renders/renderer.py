@@ -10,6 +10,8 @@
 from collections import defaultdict
 from docutils import nodes
 from sphinx.util import logging
+from pathlib import Path
+from docutils.nodes import make_id
 
 from .helpers import render_table, render_snippet, render_badge, BadgeColor
 from ..models import Component, FileInfo
@@ -42,6 +44,15 @@ class RTLRender:
     ) -> tuple[list[nodes.container], list[str]]:
         """
         Render a component into an AST of nodes.
+
+        This function is the generic entry, and will call the correct function as well as creating the root component.
+        For a more specific render, you can call :
+            - render_as_package
+            - render_as_module
+            - render_as_testbench
+            - render_as_module.
+
+        This is, however not really recommended as this could lead with missing elements for a module.
         """
 
         # First, fetch our root node :
@@ -87,7 +98,29 @@ class RTLRender:
         """
         Render the provided component as a package.
         """
-        self._render_file_info(root, component)
+        # We may be called within the same file for different modules, so first, create our section
+        try:
+            context_name = str(
+                Path(component.file.path).relative_to(Path(component.file.repo_path))
+            )
+        except ValueError:
+            context_name = component.file.name
+        context = self._create_section(root, context_name)
+
+        # Common module header
+        self._render_file_info(context, component)
+
+        # Add the elements we need here.
+        self._render_component_imports(context, component)
+        self._render_component_parameters(context, component)
+        self._render_component_enums(context, component)
+        self._render_component_functions(context, component)
+        self._render_component_structures(context, component)
+
+        # Add a separator last
+        self._add_separator(context)
+
+        # Return the global node
         return ([root], [""])
 
     def render_as_module(
@@ -96,7 +129,32 @@ class RTLRender:
         """
         Render the provided component as a module.
         """
-        self._render_file_info(root, component)
+        # We may be called within the same file for different modules, so first, create our section
+        try:
+            context_name = str(
+                Path(component.file.path).relative_to(Path(component.file.repo_path))
+            )
+        except ValueError:
+            context_name = component.file.name
+        context = self._create_section(root, context_name)
+
+        # Common module header
+        self._render_file_info(context, component)
+
+        # Add the elements we need here.
+        self._render_component_imports(context, component)
+        self._render_component_parameters(context, component)
+        self._render_component_ports(context, component)
+        self._render_component_enums(context, component)
+        self._render_component_modules(context, component)
+        self._render_component_processes(context, component)
+        self._render_component_signals(context, component)
+        self._render_component_assigns(context, component)
+
+        # Add a separator last
+        self._add_separator(context)
+
+        # Return the global node
         return ([root], [""])
 
     def render_as_testbench(
@@ -105,7 +163,29 @@ class RTLRender:
         """
         Render the provided component as a testbench.
         """
-        self._render_file_info(root, component)
+        # We may be called within the same file for different modules, so first, create our section
+        try:
+            context_name = str(
+                Path(component.file.path).relative_to(Path(component.file.repo_path))
+            )
+        except ValueError:
+            context_name = component.file.name
+        context = self._create_section(root, context_name)
+
+        # Common module header
+        self._render_file_info(context, component)
+
+        # Add a separator last
+        self._add_separator(context)
+
+        # Add the elements we need here.
+        self._render_component_imports(context, component)
+        self._render_component_parameters(context, component)
+        self._render_component_signals(context, component)
+        self._render_component_modules(context, component)
+        self._render_component_processes(context, component)
+
+        # Return the global node
         return ([root], [""])
 
     def render_as_interface(
@@ -114,16 +194,43 @@ class RTLRender:
         """
         Render the provided component as an interface.
         """
-        self._render_file_info(root, component)
+        # We may be called within the same file for different modules, so first, create our section
+        try:
+            context_name = str(
+                Path(component.file.path).relative_to(Path(component.file.repo_path))
+            )
+        except ValueError:
+            context_name = component.file.name
+
+        context = self._create_section(root, context_name)
+
+        # Common module header
+        self._render_file_info(context, component)
+
+        # Add the elements we need here.
+        self._render_component_imports(context, component)
+        self._render_component_parameters(context, component)
+        self._render_component_ports(context, component)
+        self._render_component_interfaces(context, component)
+
+        # Add a separator last
+        self._add_separator(context)
+
+        # Return the global node
         return ([root], [""])
 
     # --------------------------------------------------------------------------------
     # PRIVATE FUNCTIONS
     # --------------------------------------------------------------------------------
 
-    def _render_file_info(self, root: nodes.container, comp: Component) -> None:
+    def _render_file_info(self, root: nodes.section, comp: Component) -> None:
         """
         Render the file info blob as a clean area on top of the page.
+
+        Add the module name, and a flag depending on it's type.
+        If available, git information will also be added for both the latest edit and the initial creation.
+
+        Must be called first, as it will add a section title and a separator
         """
 
         # Build the card first
@@ -312,3 +419,128 @@ class RTLRender:
         # Finally add ourselves to the root
         root += card
         return
+
+    def _render_component_imports(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component imports
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Imports", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_parameters(
+        self, root: nodes.section, comp: Component
+    ) -> None:
+        """
+        Render a component parameters.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Parameters", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_ports(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component ports as grouped by the system
+        """
+        # First, build the section we need
+        section = self._create_section(root, "Ports", comp.file.name.rsplit(".", 1)[0])
+
+    def _render_component_modules(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component modules.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Modules", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_processes(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component processes.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Processes", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_enums(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component enums
+        """
+        # First, build the section we need
+        section = self._create_section(root, "Enums", comp.file.name.rsplit(".", 1)[0])
+
+    def _render_component_structures(
+        self, root: nodes.section, comp: Component
+    ) -> None:
+        """
+        Render the component structures.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Structures", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_functions(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component internal functions.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Functions", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_signals(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component signals
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Signals", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_assigns(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component static assignment.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Assignments", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _render_component_interfaces(
+        self, root: nodes.section, comp: Component
+    ) -> None:
+        """
+        Render the component interfaces.
+        """
+        # First, build the section we need
+        section = self._create_section(
+            root, "Interfaces", comp.file.name.rsplit(".", 1)[0]
+        )
+
+    def _add_separator(self, root: nodes.section) -> None:
+        """
+        Add the final separator to the component.
+        """
+
+        divider = nodes.transition()
+        root += divider
+
+    def _create_section(
+        self, root: nodes.container | nodes.section, name: str, id: str = ""
+    ) -> nodes.section:
+        """
+        Create a section within the current context, and return it.
+        """
+
+        if id:
+            section = nodes.section(ids=[make_id(f"{id}-{name}")])
+        else:
+            section = nodes.section(ids=[make_id(name)])
+        section += nodes.title(text=name)
+        root += section
+
+        return section

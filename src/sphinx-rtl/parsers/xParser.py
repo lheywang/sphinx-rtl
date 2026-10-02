@@ -92,6 +92,7 @@ class xParser:
         fallback = FileInfo(
             name=file.name,
             path=str(file),
+            repo_path="",
             creation_author="",
             edit_author=f"{getpass.getuser()}",
             creation_date="",  # Would match the date where you cloned the repo...
@@ -161,6 +162,7 @@ class xParser:
         return FileInfo(
             name=file.name,
             path=str(file),
+            repo_path=str(Path(repo.git_dir).parent),
             creation_author=f"{first_commit.author.name} <{first_commit.author.email}>",
             edit_author=f"{last_commit.author.name} <{last_commit.author.email}>",
             creation_date=first_commit.committed_datetime.strftime("%m/%d/%Y %H:%M"),

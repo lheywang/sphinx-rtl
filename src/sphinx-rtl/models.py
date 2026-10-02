@@ -270,6 +270,7 @@ class FileInfo:
     Fields :
         - name :            The name of the file
         - path :            The path of the file
+        - repo_path :       The path of the first parent of the git file. Used as title on the sections.
         - creation_author : The name of the author which created the file, ie the name of the first committer for this file. This field remain unresolved when the FS fallback is used.
         - creation_hash :   The hash of the first commit which affected this file. This field remain unresolved when the FS fallback is used.
         - creation_date :   The date of the first commit which was affected by this file. This field remain unresolved when the FS fallback is used.
@@ -284,6 +285,7 @@ class FileInfo:
 
     name: str = ""
     path: str = ""
+    repo_path: str = ""
     creation_author: str = ""
     creation_hash: str = ""
     creation_date: str = ""
