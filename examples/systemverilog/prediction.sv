@@ -22,7 +22,7 @@ module prediction (
     predict_ok,
     mispredict,
     addr_in,
-    addr_out,
+    addr_out_n,
     rom_flush,
     PC_value,
     PC_write,
@@ -38,7 +38,7 @@ module prediction (
     input  logic                                       predict_ok;          // Prediction was okay
     input  logic                                       mispredict;          // Prediction was wrong
     input  logic     [(core_config_pkg::XLEN - 1) : 0] addr_in;             // Current address
-    output logic     [(core_config_pkg::XLEN - 1) : 0] addr_out;            // Predicted address
+    output logic     [(core_config_pkg::XLEN - 1) : 0] addr_out_n;            // Predicted address
     output logic                                       rom_flush [2];       // Flush the rom reading
     output logic     [(core_config_pkg::XLEN - 1) : 0] PC_value;            // Current PC value
     output logic                                       PC_write;            // Overwrite the PC
@@ -139,6 +139,7 @@ module prediction (
      *  Finally, some logic to handle the signals timings, with a small FSM
      */
     logic active;
+    logic     [(core_config_pkg::XLEN - 1) : 0] addr_out; 
 
     always_ff @(posedge clk or negedge rst_n) begin
 
@@ -170,5 +171,8 @@ module prediction (
             end
         end
     end
+
+    // Constant assign here to test the clocking detection engine
+    assign addr_out_n = addr_out;
 
 endmodule

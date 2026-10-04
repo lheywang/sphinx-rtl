@@ -6,6 +6,7 @@
 #           under the name of the main parser.
 # ----------------------------------------------------------------------------
 
+from .assigns import infer_assigns
 from .clocks import infer_clocks
 from .groups import infer_groups
 from .module_type import infer_type

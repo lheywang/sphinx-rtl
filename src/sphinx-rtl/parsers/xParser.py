@@ -34,6 +34,7 @@ from .ir import (
     infer_clocks,
     infer_type,
     infer_groups,
+    infer_assigns,
 )
 
 # Configure logger
@@ -403,6 +404,12 @@ class xParser:
             if cfg.inferResets:
                 component = infer_resets(component)
 
+            # ------------------------------
+            # INFER RESETS
+            # ------------------------------
+            if cfg.inferClocks and cfg.inferResets:
+                component = infer_assigns(component)
+
         else:
             if cfg.inferClocks:
                 logger.warning(
@@ -411,6 +418,10 @@ class xParser:
             if cfg.inferResets:
                 logger.warning(
                     "Could not infer resets. IO inferring is required for this feature to be available."
+                )
+            if cfg.inferClocks and cfg.inferResets:
+                logger.warning(
+                    "Could not infer assignment consequences. IO inferring is required for this feature to be available."
                 )
 
         # ------------------------------
