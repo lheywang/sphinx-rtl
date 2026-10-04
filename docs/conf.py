@@ -22,3 +22,9 @@ extensions = ["sphinx-rtl"]
 
 # Configure sphinx
 html_theme = "alabaster"
+
+html_theme_options = {
+    "page_width": "1800px",
+    "body_max_width": "auto",
+    "sidebar_width": "280px",
+}
