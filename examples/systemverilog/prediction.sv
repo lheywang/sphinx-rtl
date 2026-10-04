@@ -33,8 +33,8 @@ module prediction (
 
 );
 
-    input  logic                                       clk;                 // Master clock
-    input  logic                                       rst_n;               // Master reset
+    input  logic                                       clk;                 // **Master clock**
+    input  logic                                       rst_n;               // **Master reset**
     input  logic                                       predict_ok;          // Prediction was okay
     input  logic                                       mispredict;          // Prediction was wrong
     input  logic     [(core_config_pkg::XLEN - 1) : 0] addr_in;             // Current address

@@ -12,8 +12,8 @@ interface avalon_st #(
     parameter int                   ERROR_WIDTH = 4,    // Error width
     parameter int                   SYMBOL_WIDTH = 8    // Symbol size
 ) (
-    input logic clk, // master clock
-    input logic rst_n // master reset
+    input logic clk, // **Master clock**
+    input logic rst_n // **Master reset**
 );
 
     localparam EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH);

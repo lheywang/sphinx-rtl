@@ -1,8 +1,8 @@
 /*
  *  Define the ALU0 module. Able to operate on the most basic operands.
  *
- *  Know ADD, SUB, AND, OR, XOR bit operations. Can't do anything more.
- *  Use the others ALUs for a full coverage of the operations.
+ *  **Know ADD, SUB, AND, OR, XOR bit operations**. Can't do anything more.
+ *  *Use the others ALUs for a full coverage of the operations.*
  *
  *  @clock master 100MHz clk
  *  @target Altera MAX10

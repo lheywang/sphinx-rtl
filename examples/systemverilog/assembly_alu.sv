@@ -14,9 +14,9 @@ module assembly_alu #(
         parameter int ENABLE_CSR = 1 // Enable the CSR on this ALU.
     ) (
 
-    input logic clk, // Master clock input.
-    input logic clk_en, // Clock enable bit.
-    input logic rst_n, // Master reset
+    input logic clk, // **Master clock** input.
+    input logic clk_en, // **Clock enable** bit.
+    input logic rst_n, // **Master reset**
 
     // From decoder
     input  logic     [(REG_ADDR_W - 1) : 0] rs1,                    // Operand A
@@ -47,8 +47,8 @@ module assembly_alu #(
     input  logic                        mem_err,                    // Memory error
 
     // Branch prediction feedback
-    output logic bpu_branch_taken,                                  // Did we take the branch ?        
-    output logic bpu_branch_not_taken,                              // Didn't we take the branch ?
+    output logic bpu_taken,                                  // Did we take the branch ?        
+    output logic bpu_not_taken,                              // Didn't we take the branch ?
 
     // Interrupts vector
     input logic [(core_config_pkg::XLEN - 1) : 0] interrupt_vect,   // Interrupt vector input

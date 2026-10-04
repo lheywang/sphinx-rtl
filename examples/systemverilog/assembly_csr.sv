@@ -1,5 +1,5 @@
 /*
- * This file assemble all of the CSR with it's associated
+ * This file **assemble all of the CSR** with it's associated
  * counters. This make the global core assembly much
  * more readable.
  *
@@ -10,9 +10,9 @@ import core_config_pkg::XLEN;
 
 module assembly_csr (
 
-    input logic clk,        // Master clock
-    input logic clk_en,     // Clock enable
-    input logic rst_n,      // Master reset
+    input logic clk,        // **Master clock**
+    input logic clk_en,     // **Clock enable**
+    input logic rst_n,      // **Master reset**
 
     // ALU (4) interface
     input  logic [(core_config_pkg::CSR_ADDR_W - 1) : 0] csr_wa,    // CSR Write address

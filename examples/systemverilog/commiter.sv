@@ -13,8 +13,8 @@ import core_config_pkg::IF_TRAP_UCODE;
 
 module commiter (
 
-    input   logic                                           clk,                // Master clock
-    input   logic                                           rst_n,              // Master reset
+    input   logic                                           clk,                // **Master clock**
+    input   logic                                           rst_n,              // **Master reset**
     input   logic                                           alu_error  [4:0],   // ALUs error status
     input   logic                                           alu_valid  [4:0],   // ALUs valid
     input   logic                                           alu_req    [4:0],   // ALUs request

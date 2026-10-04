@@ -13,9 +13,9 @@ import core_config_pkg::opcodes_t;
 import core_config_pkg::decoders_t;
 
 module decoder (
-    input  logic                                    clk,                                                    // Master clock          
-    input  logic                                    clk_en,                                                 // Clock enable
-    input  logic                                    rst_n,                                                  // Master reset
+    input  logic                                    clk,                                                    // **Master clock**         
+    input  logic                                    clk_en,                                                 // **Clock enable**
+    input  logic                                    rst_n,                                                  // **Master reset**
     input  logic     [    (IF_LEN - 1) : 0][1:0]    instruction,                                            // Incoming 32 bits instruction
     input  logic     [      (XLEN - 1) : 0]         i_address       [1:0],                                  // Currently decoded addresses
     input  logic                                    i_busy          [2],                                    // Busy inputs
