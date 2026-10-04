@@ -66,7 +66,14 @@ def render_table_header(
 
 def render_table_line(
     table: nodes.table,
-    cells: list[nodes.Text | nodes.inline | list[nodes.Node] | str],
+    cells: list[
+        nodes.Text
+        | nodes.inline
+        | list[nodes.Node]
+        | str
+        | nodes.paragraph
+        | nodes.literal
+    ],
     row_classes: list[str] | None = None,
 ) -> nodes.row:
     """
