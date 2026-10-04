@@ -37,6 +37,18 @@ Add this line in the conf.py file you used for your sphinx documentation.
 extensions = ["sphinx-rtl"]
 ```
 
+Even if the extension does support any width of prints via the support of lateral scrollbar, It's recommended to add these lines to your conf.py file
+
+```py
+html_theme_options = {
+    "page_width": "1800px",
+    "body_max_width": "auto",
+    "sidebar_width": "280px",
+}
+```
+
+This will make the reading wider, fitting the tables used with a cleaner aspect.
+
 3. **Configure the used files :**
 
 Add this line, configured as you need in the main rst file.
@@ -46,12 +58,22 @@ Add this line, configured as you need in the main rst file.
 .. rtl-autodoc:: ../examples/vhdl/*.vhd
 ```
 
-> [!NOTE]
-> The extension also enable some aliases :
->
-> - vhdl-autodoc
-> - sv-autodoc
->   They all do the same, without any differences.
+```
+The extension support to modes of adding files :
+- glob (*, **/*) and any valid syntax to the python glob module
+- specific files.
+
+To be noted : When the glob mode is used, all the modules found will be added to a single page, with all the elements.
+This can be especially useful for different but similar modules, but shall not be used as a primary documentation method.
+```
+
+```
+The extension also enable some aliases :
+
+- vhdl-autodoc
+- sv-autodoc
+They all do the same, without any differences.*
+```
 
 4. **Run sphinx as you always did**
 
