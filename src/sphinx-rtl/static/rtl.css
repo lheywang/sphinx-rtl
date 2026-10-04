@@ -1,0 +1,37 @@
+.rtl-table-wrapper {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.rtl-table-wrapper table.sd-table {
+  width: 100%;
+  min-width: max-content;
+}
+
+.rtl-table-wrapper table.sd-table td:not(:last-child),
+.rtl-table-wrapper table.sd-table th:not(:last-child) {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.rtl-table-wrapper table.sd-table td:last-child {
+  white-space: normal;
+  min-width: 250px;
+  vertical-align: middle;
+}
+
+.rtl-table-wrapper table.sd-table td,
+.rtl-table-wrapper table.sd-table th {
+  vertical-align: middle !important;
+}
+
+.rtl-table-wrapper table.sd-table td p {
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+.rtl-table-wrapper table.sd-table tbody tr:nth-of-type(even) {
+  background-color: rgba(127, 127, 127, 0.04);
+}

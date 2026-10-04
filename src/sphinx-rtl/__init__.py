@@ -8,6 +8,8 @@
 # Imports
 
 from .directive import RTLAutodocDirective
+from sphinx.application import Sphinx
+from pathlib import Path
 
 
 # Setup
@@ -16,6 +18,17 @@ def setup(app):
     # Load the extensions
     app.setup_extension("myst_parser")
     app.setup_extension("sphinx_design")
+
+    # Add the custom CSS we need to inject
+    static_dir = Path(__file__).parent / "static"
+
+    # Custom hook to add the file when the user does build
+    def add_static_path(app: Sphinx) -> None:
+        app.config.html_static_path.append(str(static_dir))
+
+    # Register it
+    app.connect("builder-inited", add_static_path)
+    app.add_css_file("rtl.css")
 
     # Add the name and aliases
     app.add_directive("rtl-autodoc", RTLAutodocDirective)
