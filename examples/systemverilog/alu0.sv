@@ -20,8 +20,17 @@ import core_config_pkg::alu_commands_t;
 import core_config_pkg::REG_i_addr_W;
 
 module alu0 #(
-    parameter ENABLE_SINGLE_CYCLE = 0,
-    parameter ENABLE_OUTPUT_REGISTERS = 1
+    parameter ENABLE_SINGLE_CYCLE = 0, // Make the ALU in a single cycle configuration. **Faster, but trickier to close the timings**
+
+    /*
+     * Enable the output register. **This parameter will cost you one more clock cycle of pure latency**.
+     * Two values are supported : 
+     *   - 0 : The registers are disabled.
+     *   - 1 : The registers are enabled.
+     *
+     * *Any value greater will be used as '1', this is not possible to artificially increase the output latency.*
+     */
+    parameter ENABLE_OUTPUT_REGISTERS = 1 
 ) (
     input  logic                                                    clk,        // **Master clock** input
     input  logic                                                    rst_n,      // **Master o_reset** input

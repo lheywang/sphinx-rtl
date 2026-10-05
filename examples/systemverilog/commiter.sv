@@ -33,9 +33,11 @@ module commiter (
     output  logic                                           commit_err          // Error when committing the result.
 );
 
-    /*
-     *  Defining the active_ALU type
-     */
+    /* 
+    * Define the ALU type, to control which ALU will be used for the incoming operation. 
+    * 
+    * This does **NOT** define the opcode nor internal identifier. This enum is reserved to the committer module.
+    */
     typedef enum logic [2:0] {
         ALU0,
         ALU1,
@@ -45,7 +47,7 @@ module commiter (
         ALU5,
         NONE,
         ALL
-    } alu_t;
+    } alu_t; 
 
     /*
      *  Storages

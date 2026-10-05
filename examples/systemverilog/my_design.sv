@@ -12,6 +12,16 @@ package my_design_pkg;
     parameter BUSY = 2'b01;
     parameter DONE = 2'b10;
 
+    typedef enum logic [2:0] {
+        A, 
+        B, 
+        C, 
+        D, 
+        E, 
+        F, 
+        G
+    } alu_t; 
+
     // Shared utility function
     function logic [WIDTH-1:0] reverse_bits (input logic [WIDTH-1:0] data);
         integer i;
