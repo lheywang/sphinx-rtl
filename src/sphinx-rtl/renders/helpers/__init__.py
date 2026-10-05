@@ -7,6 +7,7 @@
 
 from .badges import render_badge, BadgeColor
 from .dropdown import render_dropdown
+from .lists import render_bullet_list, render_def_list
 from .markdown import render_markdown
 from .reference import render_ref
 from .snippets import render_snippet

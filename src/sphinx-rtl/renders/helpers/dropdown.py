@@ -24,6 +24,7 @@ def render_dropdown(
         "sd-dropdown",
         "sd-card",
         "sd-mb-3",
+        "sd-mt-2",
     ]
 
     # Dropdown

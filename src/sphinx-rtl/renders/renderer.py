@@ -21,6 +21,8 @@ from .helpers import (
     render_dropdown,
     render_markdown,
     render_ref,
+    render_bullet_list,
+    render_def_list,
 )
 from ..models import Component
 
@@ -439,10 +441,57 @@ class RTLRender:
         """
         Render the component imports
         """
+        # Do we have anything to render ?
+        if len(comp.imports) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Imports", comp.file.name.rsplit(".", 1)[0]
         )
+
+        # For each import, render it under the form of the source library and a list of nodes.
+        elements = []
+        count = 0
+        for imported in comp.imports:
+
+            line = nodes.paragraph()
+            line += render_ref(imported.library, comp.name, "import")
+            name = nodes.strong()
+            name += nodes.Text(imported.library)
+            line += name
+            line += nodes.inline(" ", " ")
+
+            for element in imported.element:
+                if element == "*":
+                    line += render_badge(element, BadgeColor.ORANGE)
+                else:
+                    line += render_badge(element, BadgeColor.GREEN)
+                line += nodes.inline(" ", " ")
+                count += 1
+
+            elements.append(line)
+
+        # Render the dropdown menu
+        # We do that after to ensure we can count the different imports.
+        title = nodes.paragraph()
+        title += nodes.Text("Imports")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{count} element{"s" if count > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        dd, body = render_dropdown(title, is_open=True)
+
+        # Render the list
+        body += render_bullet_list(elements)
+
+        # Add the list to the section
+        section += dd
 
     def _render_component_parameters(
         self, root: nodes.section, comp: Component
@@ -450,15 +499,80 @@ class RTLRender:
         """
         Render a component parameters.
         """
+
+        # Do we have anything to render ?
+        if len(comp.parameters) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Parameters", comp.file.name.rsplit(".", 1)[0]
         )
 
+        # Build a dropdown menu for ourselves
+        title = nodes.paragraph()
+        title += nodes.Text("Parameters")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.parameters)} element{"s" if len(comp.parameters) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        dd, body = render_dropdown(title, is_open=True)
+
+        # Allocate the lists
+        elements = []
+        definitions = []
+        for parameter in comp.parameters:
+
+            # Build the logical element
+            element = nodes.term()
+            element += nodes.inline(text="• ", classes=["sd-text-muted"])
+            name = nodes.strong()
+            name += nodes.Text(parameter.name)
+            element += name
+            element += nodes.inline(" ", " ")
+            element += render_badge(
+                f"Type : {parameter.hdl_type}", BadgeColor.CYAN, outline=True
+            )
+
+            if parameter.hdl_value:
+                element += nodes.inline(" ", " ")
+                element += render_badge(
+                    f"Default : {parameter.hdl_value}", BadgeColor.GREEN, outline=True
+                )
+
+            # Add the definition
+            definition = nodes.paragraph()
+            if parameter.description:
+                definition += render_markdown(
+                    parameter.description, comp.file.path, self.base_doc
+                )
+            else:
+                definition += nodes.Text("-")
+
+            # Append the elements to the lists
+            elements.append(element)
+            definitions.append(definition)
+
+        # Render the list
+        body += render_def_list(elements, definitions)
+
+        # Add the dropdown to the section
+        section += dd
+
     def _render_component_ports(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component ports as grouped by the system
         """
+
+        # Do we have anything to render ?
+        if len(comp.ports) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(root, "Ports", comp.file.name.rsplit(".", 1)[0])
 
@@ -684,8 +798,66 @@ class RTLRender:
         """
         Render the component enums
         """
+
+        # Do we have anything to render ?
+        if len(comp.enums) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(root, "Enums", comp.file.name.rsplit(".", 1)[0])
+
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Enum list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.enums)} element{"s" if len(comp.enums) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # For each enums, let's add another dropdown in here
+        for enum in comp.enums:
+
+            print(enum)
+
+            # Build the dropdown
+            enum_title = nodes.paragraph()
+            enum_title += nodes.Text(enum.name)
+            enum_title += nodes.inline(" ", " ")
+            enum_title += render_badge(
+                f"{len(enum.values)} values", BadgeColor.CYAN, outline=True
+            )
+
+            enum_dd, enum_body = render_dropdown(enum_title, is_open=True)
+            body += enum_dd
+
+            # Add the elements to it
+            enum_description = nodes.paragraph()
+            if enum.description:
+                enum_description += render_markdown(
+                    enum.description, comp.file.path, self.base_doc
+                )
+
+            enum_body += enum_description
+
+            # Add the elements into it, as a list
+            elements = []
+            for member, value in zip(enum.members, enum.values):
+                line = nodes.paragraph()
+                line += nodes.Text(member)
+                line += nodes.inline(" ", " ")
+                line += render_badge(f"Value : {value}", BadgeColor.GREEN, outline=True)
+                elements.append(line)
+
+            # Render the lsit
+            enum_body += render_bullet_list(elements)
 
     def _render_component_structures(
         self, root: nodes.section, comp: Component
@@ -693,6 +865,11 @@ class RTLRender:
         """
         Render the component structures.
         """
+
+        # Do we have anything to render ?
+        if len(comp.structures) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Structures", comp.file.name.rsplit(".", 1)[0]
@@ -702,6 +879,11 @@ class RTLRender:
         """
         Render the component internal functions.
         """
+
+        # Do we have anything to render ?
+        if len(comp.functions) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Functions", comp.file.name.rsplit(".", 1)[0]
@@ -711,6 +893,11 @@ class RTLRender:
         """
         Render the component signals
         """
+
+        # Do we have anything to render ?
+        if len(comp.signals) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Signals", comp.file.name.rsplit(".", 1)[0]
@@ -720,6 +907,11 @@ class RTLRender:
         """
         Render the component static assignment.
         """
+
+        # Do we have anything to render ?
+        if len(comp.assigns) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Assignments", comp.file.name.rsplit(".", 1)[0]
