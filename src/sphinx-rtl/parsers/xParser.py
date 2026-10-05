@@ -362,10 +362,12 @@ class xParser:
                 desc_lines.pop()
 
         if count > 0:
-            logger.info(f"[INFO] Found {count} flags and configured them.")
+            logger.info(
+                f"[INFO] Found {count} flag{"s" if count > 1 else ""} and configured them."
+            )
         elif missed > 0:
             logger.warning(
-                f"Found {missed} flags that are unknown, and placed into the flags config."
+                f"Found {missed} flag{"s" if missed > 1 else ""} that are unknown, and placed into the flags config."
             )
 
         # Update the component elements

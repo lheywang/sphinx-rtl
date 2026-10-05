@@ -96,7 +96,8 @@ class RTLAutodocDirective(Directive):
 
             # Build the nodes from our RTL component:
             render = RTLRender()
-            nodes, refs = render.render(component=component)
+            doc_dir = Path(self.state.document["source"]).parent
+            nodes, refs = render.render(component=component, base_doc=doc_dir)
 
             rendered_nodes.extend(nodes)
 

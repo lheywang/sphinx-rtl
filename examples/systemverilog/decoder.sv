@@ -2,6 +2,9 @@
  * This file define the instruction decoder, that parse an
  * incoming 32 bit instruction into multiple outputs, which 
  * correspond to all of the fields contained into.
+ *
+ * This module can be used with a multicycle constraint. Registering
+ * is done when [clk_en](#decoder-port-clk-en) is high.
  */
 
 `timescale 1ns / 1ps

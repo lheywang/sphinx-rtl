@@ -8,5 +8,6 @@
 from .badges import render_badge, BadgeColor
 from .dropdown import render_dropdown
 from .markdown import render_markdown
+from .reference import render_ref
 from .snippets import render_snippet
 from .table import render_table_header, render_table_line

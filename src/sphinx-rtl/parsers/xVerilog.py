@@ -162,8 +162,6 @@ class xVerilogParser(xParser):
 
         for m in scope:
 
-            comp.name = m.name
-
             match m.kind:
 
                 # PARAMETER
@@ -250,7 +248,8 @@ class xVerilogParser(xParser):
 
         # First get the file Infos
         infos = self.getFileInfo(file)
-        comp = Component(infos)
+        comp = Component(file=infos)
+        comp.name = file.name.rsplit(".", 1)[0]
 
         # Extract the file comments
         comments = self.fetch_comments(file)

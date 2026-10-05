@@ -4,6 +4,9 @@
  *  **Know ADD, SUB, AND, OR, XOR bit operations**. Can't do anything more.
  *  *Use the others ALUs for a full coverage of the operations.*
  *
+ *  ![pineapple](img/pineapple.png)
+ *  *"For my own pleasure, here a picture of a pineapple."*
+ *
  *  @clock master 100MHz clk
  *  @target Altera MAX10
  *  @target Quartus 24.1

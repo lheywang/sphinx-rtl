@@ -20,6 +20,7 @@ from .helpers import (
     BadgeColor,
     render_dropdown,
     render_markdown,
+    render_ref,
 )
 from ..models import Component
 
@@ -40,6 +41,10 @@ class RTLRender:
         """
         Init the render class
         """
+
+        # Set the base doc to use
+        self.base_doc = Path(__file__)
+
         return
 
     # --------------------------------------------------------------------------------
@@ -47,7 +52,7 @@ class RTLRender:
     # --------------------------------------------------------------------------------
 
     def render(
-        self, component: Component | None
+        self, component: Component | None, base_doc: Path
     ) -> tuple[list[nodes.container], list[str]]:
         """
         Render a component into an AST of nodes.
@@ -68,6 +73,9 @@ class RTLRender:
         if component is None:
             logger.error("Provided component is None. Could not render anything.")
             return ([root], [""])
+
+        # Update the base doc
+        self.base_doc = base_doc
 
         # Now, we can safely render the component.
         # Any option will be valid, regardless of it's composition.
@@ -303,10 +311,10 @@ class RTLRender:
         )
 
         desc_box = nodes.paragraph(classes=["sd-m-0", "sd-fw-semibold"])
-        desc_box += render_markdown(comp.brief)
+        desc_box += render_markdown(comp.brief, comp.file.path, self.base_doc)
         card_description += desc_box
         detail_box = nodes.paragraph(classes=["sd-mt-1", "sd-text-muted", "sd-small"])
-        detail_box += render_markdown(comp.details)
+        detail_box += render_markdown(comp.details, comp.file.path, self.base_doc)
         card_description += detail_box
 
         card += card_description
@@ -573,8 +581,10 @@ class RTLRender:
             group = port.group.split("/")[-1]
 
             # Prepare the render elements
-            port_name = nodes.Text(port.name.strip())
-            port_desc = render_markdown(port.description)
+            port_name = nodes.paragraph()
+            port_name += render_ref(port.name, comp.name, "port")
+            port_name += nodes.Text(port.name.strip())
+            port_desc = render_markdown(port.description, comp.file.path, self.base_doc)
             port_type = nodes.literal(text=port.hdl_type.strip())
 
             # Extract the description as a docutils nodes
