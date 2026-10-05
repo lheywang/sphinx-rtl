@@ -7,17 +7,21 @@
 
 # Imports
 import pyslang.ast as ast
+from pyslang import SourceManager
 
 from ...models import Enum
 
 
-def build_enum(node: ast.TypeAliasType, line: int) -> Enum:
+def build_enum(node: ast.TypeAliasType, line: int, sm: SourceManager) -> Enum:
     """
     Build the enum definition from a TypeAlias node.
     """
     # Fetch the resolved type
     node_type: str = str(node.targetType.type)
     width = node.bitstreamWidth
+
+    # Override the line to match the start of the enum, and not the raw now location.
+    int_line = sm.getLineNumber(node.targetType.typeSyntax.sourceRange.start)
 
     # Extract the elements
     enum, name = node_type.split("}", 1) if "}" in node_type else ("", "")
@@ -39,4 +43,4 @@ def build_enum(node: ast.TypeAliasType, line: int) -> Enum:
                 values.append(int(temp[1].replace(f"{width}'d", "")))
 
     # Build the output
-    return Enum(name=name.split(".")[-1], values=values, members=ids, line=line)
+    return Enum(name=name.split(".")[-1], values=values, members=ids, line=int_line)

@@ -11,17 +11,16 @@ from collections import Counter, defaultdict
 
 # Configure logger
 from sphinx.util import logging
+from typing import TypeVar
+
+# Get a free type variable
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
 
-def infer_groups(component: Component) -> Component:
-    """
-    Infer the port groups based on their names.
-    """
-    # First, explode the net names
-    port_names = [p.name for p in component.ports]
-    parsed = [(p.split("_"), p) for p in sorted(port_names)]
+def _infer(names: list[str], elements: list[T]):
+    parsed = [(p.split("_"), p) for p in sorted(names)]
 
     # Count the different elements for the different paths.
     counts: Counter[str] = Counter()
@@ -54,14 +53,27 @@ def infer_groups(component: Component) -> Component:
             port_groups[port] = group
 
     # Match the ports
-    for port in component.ports:
-        port.group = port_groups[port.name]
+    for element in elements:
+        element.group = port_groups[element.name]  # type: ignore
 
     # Add some logs here
     groups_count = len(groups.keys())
     if groups_count > 1:
         logger.info(
-            f"[INFO] Found {groups_count} ports group{"s" if groups_count > 1 else ""}"
+            f"[INFO] Found {groups_count} group{"s" if groups_count > 1 else ""}"
         )
+
+
+def infer_groups(component: Component) -> Component:
+    """
+    Infer the port and signals groups based on their names.
+    """
+    # First, infer the ports groups
+    port_names = [p.name for p in component.ports]
+    _infer(port_names, component.ports)
+
+    # Then, infer the signals groups
+    signals_names = [p.name for p in component.signals]
+    _infer(signals_names, component.signals)
 
     return component

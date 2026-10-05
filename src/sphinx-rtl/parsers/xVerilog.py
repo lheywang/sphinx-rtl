@@ -11,6 +11,8 @@ import pyslang.syntax as syntax
 from sphinx.util import logging
 from pyslang import SourceManager
 from pathlib import Path
+import re
+import inspect
 
 from ..models import (
     Component,
@@ -136,6 +138,35 @@ class xVerilogParser(xParser):
         if current_comment:
             comments[line] = "".join(current_comment)
 
+        for comment_line, comment in list(comments.items())[1:]:
+
+            text = comment.strip()
+
+            # First, remove blocs markers
+            if text.startswith("/*"):
+                text = re.sub(r"^/\*+\s*", "", text)
+            if text.endswith("*/"):
+                text = re.sub(r"\s*\*+/$", "", text)
+
+            # Get lines
+            lines = text.splitlines()
+            if not lines:
+                continue
+
+            not_empty = [line.strip() for line in lines if line.strip()]
+            if not not_empty:
+                continue
+
+            has_star_prefix = len(not_empty) > 1 and all(
+                re.match(r"^\s*\*(\s|$)", line) for line in lines if line.strip()
+            )
+
+            if has_star_prefix:
+                cleaned_lines = []
+                for line in lines:
+                    cleaned_lines.append(re.sub(r"^\s*\* ?", "", line))
+                comments[comment_line] = "\n".join(cleaned_lines).strip()
+
         return comments
 
     def get_line(self, node) -> int:
@@ -173,7 +204,7 @@ class xVerilogParser(xParser):
                 # TYPE ALIAS
                 case ast.SymbolKind.TypeAlias:
                     if m.isEnum:  # type: ignore
-                        comp.enums.append(build_enum(m, self.get_line(m.location)))  # type: ignore
+                        comp.enums.append(build_enum(m, self.get_line(m.location), self.sm))  # type: ignore
                     elif m.isStruct:  # type: ignore
                         comp.structures.append(build_struct(m, self.get_line(m.location), self.sm))  # type: ignore
 
