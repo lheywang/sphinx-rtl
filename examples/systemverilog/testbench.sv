@@ -13,9 +13,11 @@ module tb_top;
 	wire wr;
 	wire data;
 
-	// Instantiate the design module and connect the variables declared above
-	// with the ports in the design
-	design myDsn ( .clk (clk),
+	/* 
+     * Instantiate the design module and connect the variables declared above
+	 * with the ports in the design
+     */
+	dut myDsn ( .clk (clk),
 	               .en  (en),
 	               .wr  (wr),
 	               .data (data)
