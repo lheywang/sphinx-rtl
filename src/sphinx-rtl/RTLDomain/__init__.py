@@ -4,3 +4,5 @@
 #
 # Brief :   Import the RTL Domain to be used for all the RTL components.
 # ----------------------------------------------------------------------------
+
+from .RTLDomain import RTLDomain
