@@ -37,6 +37,8 @@ class RTLAutodocDirective(Directive):
 
         # Fetch the settings
         env = self.state.document.settings.env
+        docname = env.docname
+        rtl_domain = env.get_domain("rtl")
 
         # Fetch the absolute path
         search = Path(env.srcdir) / Path(self.arguments[0])
@@ -99,6 +101,11 @@ class RTLAutodocDirective(Directive):
             doc_dir = Path(self.state.document["source"]).parent
             nodes, refs = render.render(component=component, base_doc=doc_dir)
 
+            # Add the references into the RTLDomain
+            rtl_domain.add_symbol_batch(refs, docname=docname)
+
+            # Add the nodes into the list
             rendered_nodes.extend(nodes)
 
+        # Return the rendered nodes
         return rendered_nodes

@@ -35,3 +35,18 @@
 .rtl-table-wrapper table.sd-table tbody tr:nth-of-type(even) {
   background-color: rgba(127, 127, 127, 0.04);
 }
+
+a.reference:has(.sd-badge),
+a.sd-text-decoration-none,
+.sd-badge a {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+a.reference:has(.sd-badge):hover,
+a.sd-text-decoration-none:hover {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}

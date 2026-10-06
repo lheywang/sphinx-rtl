@@ -11,6 +11,7 @@ from docutils import nodes
 from sphinx.util import logging
 from pathlib import Path
 from docutils.nodes import make_id
+import itertools
 
 from .helpers import (
     render_table_header,
@@ -21,10 +22,12 @@ from .helpers import (
     render_dropdown,
     render_markdown,
     render_ref,
+    use_ref,
     render_bullet_list,
     render_def_list,
+    render_flex_array,
 )
-from ..models import Component
+from ..models import Component, Signal
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -47,6 +50,9 @@ class RTLRender:
         # Set the base doc to use
         self.base_doc = Path(__file__)
 
+        # Build the reference base list
+        self.refs: list[dict] = []
+
         return
 
     # --------------------------------------------------------------------------------
@@ -55,7 +61,7 @@ class RTLRender:
 
     def render(
         self, component: Component | None, base_doc: Path
-    ) -> tuple[list[nodes.container], list[str]]:
+    ) -> tuple[list[nodes.container], list[dict]]:
         """
         Render a component into an AST of nodes.
 
@@ -74,7 +80,7 @@ class RTLRender:
 
         if component is None:
             logger.error("Provided component is None. Could not render anything.")
-            return ([root], [""])
+            return ([root], self.refs)
 
         # Update the base doc
         self.base_doc = base_doc
@@ -107,11 +113,11 @@ class RTLRender:
                 return self.render_as_interface(component=component, root=root)
 
         # Return the default value is nothing was found.
-        return ([root], [""])
+        return ([root], self.refs)
 
     def render_as_package(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[str]]:
+    ) -> tuple[list[nodes.container], list[dict]]:
         """
         Render the provided component as a package.
         """
@@ -138,11 +144,11 @@ class RTLRender:
         self._add_separator(context)
 
         # Return the global node
-        return ([root], [""])
+        return ([root], self.refs)
 
     def render_as_module(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[str]]:
+    ) -> tuple[list[nodes.container], list[dict]]:
         """
         Render the provided component as a module.
         """
@@ -172,11 +178,11 @@ class RTLRender:
         self._add_separator(context)
 
         # Return the global node
-        return ([root], [""])
+        return ([root], self.refs)
 
     def render_as_testbench(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[str]]:
+    ) -> tuple[list[nodes.container], list[dict]]:
         """
         Render the provided component as a testbench.
         """
@@ -203,11 +209,11 @@ class RTLRender:
         self._render_component_processes(context, component)
 
         # Return the global node
-        return ([root], [""])
+        return ([root], self.refs)
 
     def render_as_interface(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[str]]:
+    ) -> tuple[list[nodes.container], list[dict]]:
         """
         Render the provided component as an interface.
         """
@@ -234,7 +240,7 @@ class RTLRender:
         self._add_separator(context)
 
         # Return the global node
-        return ([root], [""])
+        return ([root], self.refs)
 
     # --------------------------------------------------------------------------------
     # PRIVATE FUNCTIONS
@@ -456,7 +462,7 @@ class RTLRender:
         for imported in comp.imports:
 
             line = nodes.paragraph()
-            line += render_ref(imported.library, comp.name, "import")
+            line += render_ref(imported.library, comp.name, "import", self.refs)
             name = nodes.strong()
             name += nodes.Text(imported.library)
             line += name
@@ -530,6 +536,7 @@ class RTLRender:
 
             # Build the logical element
             element = nodes.term()
+            element += render_ref(parameter.name, comp.name, "parameter", self.refs)
             element += nodes.inline(text="• ", classes=["sd-text-muted"])
             name = nodes.strong()
             name += nodes.Text(parameter.name)
@@ -696,7 +703,7 @@ class RTLRender:
 
             # Prepare the render elements
             port_name = nodes.paragraph()
-            port_name += render_ref(port.name, comp.name, "port")
+            port_name += render_ref(port.name, comp.name, "port", self.refs)
             port_name += nodes.Text(port.name.strip())
             port_desc = render_markdown(port.description, comp.file.path, self.base_doc)
             port_type = nodes.literal(text=port.hdl_type.strip())
@@ -780,15 +787,157 @@ class RTLRender:
         """
         Render the component modules.
         """
+
+        # Do we have anything to render ?
+        if len(comp.modules) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Modules", comp.file.name.rsplit(".", 1)[0]
         )
 
+        # Build the dropdown menu
+        title = nodes.paragraph()
+        title += nodes.Text("Modules")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.modules)} element{"s" if len(comp.modules) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # Fetch the connections names
+        connections = dict()
+        for x in itertools.chain(comp.signals, comp.ports):
+            connections[x.name] = x
+
+        # Render the modules
+        for module in comp.modules:
+
+            # Build another dropdown inside of it
+            module_title = nodes.paragraph()
+
+            module_title += nodes.Text(f"{module.entity} :")
+            module_title += nodes.inline(" ", " ")
+
+            if module.name:
+                module_title += nodes.Text(module.name)
+            else:
+                module_title += nodes.Text("-")
+            module_title += nodes.inline(" ", " ")
+
+            # Render the badges if needed
+            # Render the module repetition.
+            if module.isRepeated:
+
+                # May arrive that a loop is repeated a single time.
+                plural = "s"
+                if module.count.isdigit():
+                    count = int(module.count)
+                    if count == 1:
+                        plural = ""
+
+                module_title += render_badge(
+                    f"Repeated {module.count} time{plural}", BadgeColor.GREEN
+                )
+                module_title += nodes.inline(" ", " ")
+
+            # Maybe the module is under a condition
+            if module.isConditionnal:
+                module_title += render_badge(
+                    f"Conditioned by {module.condition}",
+                    BadgeColor.ORANGE,
+                    outline=True,
+                )
+                module_title += nodes.inline(" ", " ")
+
+            # Maybe the module is a vendor primitive ?
+            if module.isVendor:
+                module_title += render_badge(
+                    module.vendor, BadgeColor.RED, outline=True
+                )
+                module_title += nodes.inline(" ", " ")
+
+            # Render the dropdown
+            module_dd, module_body = render_dropdown(module_title, is_open=False)
+            body += module_dd
+
+            # Now render the module advanced elements
+            module_description = nodes.paragraph()
+            if module.description:
+                module_description += render_markdown(
+                    module.description, comp.file.path, self.base_doc
+                )
+            module_body += module_description
+
+            # Finally, render the connections
+            connection_msg = nodes.paragraph()
+            connection_msg += nodes.strong(text="Connections : ")
+            module_body += connection_msg
+
+            connections_list = []
+            for source, target in module.connections:
+
+                row = []
+
+                # Fetch the type of the target:
+                target_obj = connections.get(target)
+                target_type = "port"
+                if target_obj is not None and type(target_obj) is Signal:
+                    target_type = "signal"
+
+                # Add it to the list
+                # Errors could be done here, to check later
+                if source:
+
+                    source_node = nodes.paragraph()
+                    source_node += use_ref(
+                        source,
+                        module.entity,
+                        "port",
+                        render_badge(source, BadgeColor.GREEN, outline=True),
+                        False,
+                    )
+
+                    row.append(source_node)
+
+                if source and target:
+                    row.append(nodes.strong(text=" <-> "))
+
+                if target:
+
+                    target_node = nodes.paragraph()
+                    target_node += use_ref(
+                        target,
+                        comp.name,
+                        target_type,
+                        render_badge(target, BadgeColor.BLUE, outline=True),
+                        False,
+                    )
+
+                    row.append(target_node)
+
+                # Add the connection to the list
+                connections_list.append(row)
+
+            # Render the list
+            module_body += render_flex_array(connections_list)
+
     def _render_component_processes(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component processes.
         """
+
+        # Do we have anything to render ?
+        if len(comp.process) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Processes", comp.file.name.rsplit(".", 1)[0]
@@ -825,10 +974,9 @@ class RTLRender:
         # For each enums, let's add another dropdown in here
         for enum in comp.enums:
 
-            print(enum)
-
             # Build the dropdown
             enum_title = nodes.paragraph()
+            enum_title += render_ref(enum.name, comp.name, "enum", self.refs)
             enum_title += nodes.Text(enum.name)
             enum_title += nodes.inline(" ", " ")
             enum_title += render_badge(
@@ -850,14 +998,23 @@ class RTLRender:
             # Add the elements into it, as a list
             elements = []
             for member, value in zip(enum.members, enum.values):
-                line = nodes.paragraph()
-                line += nodes.Text(member)
-                line += nodes.inline(" ", " ")
-                line += render_badge(f"Value : {value}", BadgeColor.GREEN, outline=True)
-                elements.append(line)
 
-            # Render the lsit
-            enum_body += render_bullet_list(elements)
+                row = []
+                value_name = nodes.paragraph()
+                value_name += render_ref(member, comp.name, "enum-value", self.refs)
+                value_name += nodes.strong(text=member)
+                row.append(value_name)
+
+                value_def = nodes.paragraph()
+                value_def += render_badge(
+                    f"Value : {value}", BadgeColor.GREEN, outline=True
+                )
+                row.append(value_def)
+
+                elements.append(row)
+
+            # Render the list
+            enum_body += render_flex_array(elements)
 
     def _render_component_structures(
         self, root: nodes.section, comp: Component
@@ -923,6 +1080,11 @@ class RTLRender:
         """
         Render the component interfaces.
         """
+
+        # Do we have anything to render ?
+        if len(comp.interfaces) == 0:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Interfaces", comp.file.name.rsplit(".", 1)[0]
@@ -948,6 +1110,7 @@ class RTLRender:
         else:
             section = nodes.section(ids=[make_id(name)])
         section += nodes.title(text=name)
+        section += render_ref(name, id, "", self.refs)
         root += section
 
         return section

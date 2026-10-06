@@ -6,10 +6,11 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-
-from .directive import RTLAutodocDirective
 from sphinx.application import Sphinx
 from pathlib import Path
+
+from .directive import RTLAutodocDirective
+from .RTLDomain import RTLDomain
 
 
 # Setup
@@ -18,6 +19,9 @@ def setup(app):
     # Load the extensions
     app.setup_extension("myst_parser")
     app.setup_extension("sphinx_design")
+
+    # Add the domain
+    app.add_domain(RTLDomain)
 
     # Add the custom CSS we need to inject
     static_dir = Path(__file__).parent / "static"
