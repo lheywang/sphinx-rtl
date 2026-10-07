@@ -373,8 +373,13 @@ module decoder (
         endcase
     end
 
+    // If any of the decoder emitted an error, set the illegal flag.
     assign illegal = r_decoder_illegal | dec_illegal2;
+
+    // Passthrough for the busy flag.
     assign o_busy = i_busy;
+
+    // If none of the system is busy nor illegal, assert this flag.
     assign decoded_cnt = ~(illegal & o_busy);
 
 endmodule

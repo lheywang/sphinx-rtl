@@ -2,6 +2,22 @@
  * This file assemble all of the ALU with the issuer
  * and commiter units. This is done to make the global
  * core.sv file much more readable.
+ * 
+ * # Components
+ * - issuer : Issue the orders to the different ALUs.
+ * - register : The register file.
+ * - occupancy : Keep track of the usage of the registers. Ensure an issued instruction won't affect / be affected by any previous instructions.
+ * - assembly_csr : The CSR peripherals, conditioned by a parameter.
+ * - aluX : The different ALUs.
+ *
+ * # Notes 
+ * **This is a note**
+ *
+ * ## Hardware
+ * This module is sensible to the FPGA PnR steps.
+ * 
+ * ## Software
+ * This module is invisible to the software.
  *
  */
 

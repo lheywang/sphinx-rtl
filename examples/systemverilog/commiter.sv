@@ -4,6 +4,17 @@
  * It also expose an address load bus, in case a branch instruction
  * was mispredicted, and we need to flush the pipeline.
  *
+ * The ALU are prioritized under the following table : 
+ *
+ * | Order | ALU ID | Reason                                                              |
+ * | :---: | :----: | :------------------------------------------------------------------ |
+ * | `1`   | `1`    | **Could branch** --> Change pipeline and invalidate other results.  |
+ * | `2`   | `2`    | **Could branch** --> Change pipeline and invalidate other results.  |
+ * | `3`   | `3`    | **Could branch** --> Change pipeline and invalidate other results.  |
+ * | `4`   | `5`    | **Long operation** --> MUL = 32 cycles, DIV = 80 cycles.            |
+ * | `5`   | `4`    | **Long operation** --> MUL = 32 cycles, DIV = 80 cycles.            |
+ * | `5`   | `0`    | **Standard ALU**. No priority.                                      |
+ *
  * @status released
  */
 `timescale 1ns / 1ps
@@ -80,7 +91,7 @@ module commiter (
 
         end else begin
 
-            if (alu_valid) begin
+            if (alu_valid[1]) begin
 
                 active_alu   = ALU1;
 
@@ -92,7 +103,7 @@ module commiter (
                 pc_we        = (alu_req[1]) ? 1'b1 : 1'b0;
                 issuer_flush = (alu_req[1]) ? 1'b1 : 1'b0;
 
-            end else if (alu_valid) begin
+            end else if (alu_valid[2]) begin
 
                 active_alu   = ALU2;
 
@@ -104,7 +115,7 @@ module commiter (
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu_valid) begin
+            end else if (alu_valid[3]) begin
 
                 active_alu   = ALU3;
 
@@ -116,7 +127,7 @@ module commiter (
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu_valid) begin
+            end else if (alu_valid[5]) begin
 
                 active_alu   = ALU5;
 
@@ -128,7 +139,7 @@ module commiter (
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu_valid) begin
+            end else if (alu_valid[4]) begin
 
                 active_alu   = ALU4;
 
@@ -140,7 +151,7 @@ module commiter (
                 pc_we        = 1'b0;
                 issuer_flush = 1'b0;
 
-            end else if (alu_valid) begin
+            end else if (alu_valid[0]) begin
 
                 active_alu   = ALU0;
 
