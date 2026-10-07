@@ -822,6 +822,7 @@ class RTLRender:
 
             # Build another dropdown inside of it
             module_title = nodes.paragraph()
+            module_title += nodes.inline(text="• ")
 
             module_title += nodes.Text(f"{module.entity} :")
             module_title += nodes.inline(" ", " ")
@@ -943,6 +944,77 @@ class RTLRender:
             root, "Processes", comp.file.name.rsplit(".", 1)[0]
         )
 
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Process list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.process)} element{"s" if len(comp.process) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # Render the processes. Each of them is under it's on a definition list.
+        # A dropdown would be overkill here, as we don't really care about all signals ...
+        process_id = 1
+        process_elements = []
+        process_definitions = []
+        for process in comp.process:
+
+            process_name = nodes.paragraph()
+            process_name += nodes.inline(text="• ")
+
+            # Give a name to the process if not done.
+            # The generated name is a simple number, starting from 1.
+            if process.name:
+                process_name += nodes.strong(text=process.name)
+            else:
+                process_name += nodes.strong(text=f"Process {process_id}")
+            process_name += nodes.inline(" ", " ")
+            process_id += 1
+
+            # Add nice badges for the process elements
+            if process.hdl_type == "flipflop":
+                process_name += render_badge("Clocked", BadgeColor.GREEN, outline=True)
+                process_name += nodes.inline(" ", " ")
+                process_name += render_badge(
+                    f"Clocked by {process.hdl_clock[0]}", BadgeColor.BLUE
+                )
+                process_name += nodes.inline(" ", " ")
+            else:
+                process_name += render_badge(
+                    "Combinatorial", BadgeColor.ORANGE, outline=True
+                )
+                process_name += nodes.inline(" ", " ")
+
+            # Add the reset flag
+            if process.hdl_reset:
+                process_name += render_badge(
+                    f"Reset by {process.hdl_reset[0]}", BadgeColor.BLUE
+                )
+
+            # Handle the description
+            process_desc = nodes.description()
+            if process.description:
+                process_desc += render_markdown(
+                    process.description, comp.file.path, self.base_doc
+                )
+            else:
+                process_desc += nodes.Text("-")
+
+            # Add the elements to the list
+            process_elements.append(process_name)
+            process_definitions.append(process_desc)
+
+        # Render the whole process as a list
+        body += render_def_list(process_elements, process_definitions)
+
     def _render_component_enums(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component enums
@@ -1001,6 +1073,7 @@ class RTLRender:
 
                 row = []
                 value_name = nodes.paragraph()
+                value_name += nodes.inline(text="• ")
                 value_name += render_ref(member, comp.name, "enum-value", self.refs)
                 value_name += nodes.strong(text=member)
                 row.append(value_name)
@@ -1032,6 +1105,84 @@ class RTLRender:
             root, "Structures", comp.file.name.rsplit(".", 1)[0]
         )
 
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Structure list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.structures)} element{"s" if len(comp.structures) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # For each structure, let's render a dropdown :
+        for structure in comp.structures:
+
+            structure_title = nodes.paragraph()
+            structure_title += nodes.Text(structure.name)
+            structure_title += nodes.inline(" ", " ")
+            structure_title += render_badge(
+                f"{len(structure.signals)} element{"s" if len(structure.signals) > 1 else ""}",
+                BadgeColor.CYAN,
+            )
+
+            structure_dd, structure_body = render_dropdown(
+                structure_title, is_open=False
+            )
+            body += structure_dd
+
+            # Now, let's add the description :
+            structure_desc = nodes.paragraph()
+            structure_desc += render_markdown(
+                structure.description, comp.file.path, self.base_doc
+            )
+
+            # Add the elements to the structure
+            structure_elements = []
+            structure_descriptions = []
+            for signal in structure.signals:
+
+                signal_name = nodes.term()
+                signal_name += nodes.inline(text="• ")
+                signal_name += nodes.strong(text=signal.name)
+                signal_name += nodes.inline(" ", " ")
+
+                # Handle signal type
+                signal_name += render_badge(signal.hdl_type, BadgeColor.CYAN)
+                signal_name += nodes.inline(" ", " ")
+
+                # Handle signal size
+                signal_size = ""
+                for begin, end in zip(signal.hdl_size[::2], signal.hdl_size[1::2]):
+                    if not begin == end:
+                        signal_size = signal_size + f"[{begin} : {end}]"
+                if len(signal_size) == 0:
+                    signal_size = "-"
+                signal_name += render_badge(signal_size, BadgeColor.GREEN, outline=True)
+
+                signal_description = nodes.paragraph()
+                signal_description += render_markdown(
+                    signal.description, comp.file.path, self.base_doc
+                )
+
+                # Add the elements to the list
+                structure_elements.append(signal_name)
+                structure_descriptions.append(signal_description)
+
+            # Add the main part to the dropdown
+            structure_body += structure_desc
+
+            # Render the signal list
+            structure_body += render_def_list(
+                structure_elements, structure_descriptions
+            )
+
     def _render_component_functions(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component internal functions.
@@ -1045,6 +1196,69 @@ class RTLRender:
         section = self._create_section(
             root, "Functions", comp.file.name.rsplit(".", 1)[0]
         )
+
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Functions list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.functions)} element{"s" if len(comp.functions) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # The function is rendered as a "natural" notation.
+        # For largest functions / specific usage, perhaps add a flag somewhere ?
+        functions_elements = []
+        functions_descriptions = []
+        for function in comp.functions:
+
+            # Function name
+            function_name = nodes.term()
+            function_name += nodes.inline(text="• ")
+            function_name += nodes.strong(text=function.name)
+
+            # Function parameters
+            function_name += nodes.inline(text=" (")
+            for i, argument in enumerate(function.func_inputs):
+                if i > 0:
+                    function_name += nodes.inline(text=", ")
+                function_name += render_badge(
+                    argument.name, BadgeColor.BLUE, outline=True
+                )
+            function_name += nodes.inline(text=") ")
+
+            # Add the function returns
+            function_name += nodes.inline(
+                text="→ ", classes=["sd-text-muted", "sd-fw-bold"]
+            )
+            function_name += render_badge(
+                f"Type: {function.func_outputs[0].hdl_type}",
+                BadgeColor.CYAN,
+                outline=True,
+            )
+
+            # Render the function description
+            functions_desc = nodes.paragraph()
+            if function.description:
+                functions_desc += render_markdown(
+                    function.description, comp.file.path, self.base_doc
+                )
+            else:
+                functions_desc += nodes.Text("-")
+
+            # Append the elements to the list
+            functions_elements.append(function_name)
+            functions_descriptions.append(functions_desc)
+
+        # Render the final list
+        body += render_def_list(functions_elements, functions_descriptions)
 
     def _render_component_signals(self, root: nodes.section, comp: Component) -> None:
         """
@@ -1060,6 +1274,130 @@ class RTLRender:
             root, "Signals", comp.file.name.rsplit(".", 1)[0]
         )
 
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Signals list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.signals)} element{"s" if len(comp.signals) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # Then, build the master dict. For each port, we'll seek for it's name later and render the port
+        groups = dict()
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # Into the body, let's add a table
+        headers = [
+            "Name",
+            "Description",
+            "Type",
+            "Size",
+        ]
+        widths = [1, 3, 2, 1]
+
+        table_body, table = render_table_header(headers, widths=widths)
+        body += table_body
+
+        # Add the current table into the element.
+        groups[""] = dict()
+        groups[""]["body"] = body
+        groups[""]["table"] = table
+
+        # Build a raw group array to count element
+        raw_groups = []
+        for x in comp.ports:
+            raw_groups.extend(x.group.split("/"))
+
+        # First, create the list of groups.
+        for signal in comp.signals:
+            signal_groups = signal.group.split("/")
+            for group in signal_groups:
+
+                # Is the group known to us ?
+                if not group in groups.keys():
+
+                    # Fetch the index
+                    group_index = signal_groups.index(group)
+
+                    # Let's add another dropdown element to it !
+                    group_title = nodes.paragraph()
+                    group_title += nodes.Text(group)
+                    group_title += nodes.inline(" ", " ")
+
+                    # Count how many element do we have in the group
+                    count = raw_groups.count(group)
+                    if count > 0:
+                        group_title += render_badge(
+                            f"{count} element{"s" if count > 1 else ""}",
+                            BadgeColor.CYAN,
+                        )
+
+                    # Add a dropdown
+                    group_dd, group_body = render_dropdown(group_title)
+
+                    # Add a table inside ourselves
+                    group_table_body, group_table = render_table_header(headers)
+                    group_body += group_table_body
+
+                    # Add the current table into the element.
+                    # Are we the single port, or shall we append us to the previous element ?
+                    if group_index > 0:
+
+                        # Add ourselves to the our group name
+                        groups[group] = dict()
+                        groups[group]["body"] = group_body
+                        groups[group]["table"] = group_table
+
+                        # Add ourselves to our parent
+                        groups[signal_groups[group_index - 1]]["body"] += group_dd
+
+                    # Else add to the root port
+                    else:
+                        groups[group] = dict()
+                        groups[group]["body"] = group_body
+                        groups[group]["table"] = group_table
+                        groups[""]["body"] += group_dd
+
+        for signal in comp.signals:
+            # Group does now match the latest element of it
+            group = signal.group.split("/")[-1]
+
+            # Prepare the render elements
+            signal_name = nodes.paragraph()
+            signal_name += render_ref(signal.name, comp.name, "signal", self.refs)
+            signal_name += nodes.Text(signal.name.strip())
+            signal_desc = render_markdown(
+                signal.description, comp.file.path, self.base_doc
+            )
+            signal_type = nodes.literal(text=signal.hdl_type.strip())
+
+            # Handle signal size
+            signal_size = nodes.paragraph()
+            for begin, end in zip(signal.hdl_size[::2], signal.hdl_size[1::2]):
+                if not begin == end:
+                    signal_size += nodes.literal(text=f"[{begin} : {end}]")
+                    signal_size += nodes.inline(" ", " ")
+            if len(signal_size) == 0:
+                signal_size += nodes.Text("-")
+
+            # Add ourselves to the line
+            render_table_line(
+                groups[group]["table"],
+                [
+                    signal_name,
+                    signal_desc,
+                    signal_type,
+                    signal_size,
+                ],
+            )
+
     def _render_component_assigns(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component static assignment.
@@ -1073,6 +1411,88 @@ class RTLRender:
         section = self._create_section(
             root, "Assignments", comp.file.name.rsplit(".", 1)[0]
         )
+
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Assignment list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.assigns)} element{"s" if len(comp.assigns) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # Fetch the connections names
+        connections = dict()
+        for x in itertools.chain(comp.signals, comp.ports):
+            connections[x.name] = x
+
+        # Allocate memory and render the assignments.
+        element_list = []
+        description_list = []
+        for assign in comp.assigns:
+
+            # Add the constant elements.
+            target_obj = connections.get(assign.target)
+            target_type = "port"
+            if target_obj is not None and type(target_obj) is Signal:
+                target_type = "signal"
+
+            target = nodes.term()
+            target += nodes.inline(text="• ")
+            target += use_ref(
+                assign.target,
+                comp.name,
+                target_type,
+                render_badge(assign.target, BadgeColor.CYAN, outline=True),
+                False,
+            )
+            target += nodes.inline(" ", " ")
+            target += render_badge(
+                "Combinatorial" if assign.isComb else "Constant",
+                BadgeColor.ORANGE if assign.isComb else BadgeColor.GREEN,
+                outline=True,
+            )
+
+            # Add the description
+            description = nodes.paragraph()
+
+            if assign.description:
+                description += render_markdown(
+                    assign.description, comp.file.path, self.base_doc
+                )
+                description += nodes.inline("<br>", "<br>")
+
+            description += nodes.strong(
+                text=f"Source{"s" if len(assign.source) > 1 else ""} : "
+            )
+
+            for source in assign.source:
+                source_obj = connections.get(source)
+                source_type = "port"
+                if source_obj is not None and type(source_obj) is Signal:
+                    source_type = "signal"
+
+                description += use_ref(
+                    source,
+                    comp.name,
+                    source_type,
+                    render_badge(source, BadgeColor.BLUE, outline=True),
+                    False,
+                )
+                description += nodes.inline(" ", " ")
+
+            element_list.append(target)
+            description_list.append(description)
+
+        # render the list
+        body += render_def_list(element_list, description_list)
 
     def _render_component_interfaces(
         self, root: nodes.section, comp: Component
@@ -1089,6 +1509,10 @@ class RTLRender:
         section = self._create_section(
             root, "Interfaces", comp.file.name.rsplit(".", 1)[0]
         )
+
+        # Nothing to be tried for now ...
+        for interface in comp.interfaces:
+            print(interface)
 
     def _add_separator(self, root: nodes.section) -> None:
         """
