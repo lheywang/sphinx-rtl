@@ -26,8 +26,11 @@ from .helpers import (
     render_bullet_list,
     render_def_list,
     render_flex_array,
+    TreeRenderer,
 )
-from ..models import Component, Signal
+from .classifier import GroupNode, ElementClassifier
+
+from ..models import Component, Signal, Port
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -37,6 +40,16 @@ class RTLRender:
     """
     Render a passed component into docutils nodes.
     """
+
+    # Colors for the different variants elements (clocks and resets ...)
+    DOMAIN_COLORS = [
+        BadgeColor.RED,
+        BadgeColor.CYAN,
+        BadgeColor.GREEN,
+        BadgeColor.BLUE,
+        BadgeColor.GRAY,
+        BadgeColor.ORANGE,
+    ]
 
     # --------------------------------------------------------------------------------
     # BUILTINS
@@ -595,14 +608,11 @@ class RTLRender:
             outline=True,
         )
 
-        # Then, build the master dict. For each port, we'll seek for it's name later and render the port
-        groups = dict()
-
         # At first, we'll need the default dropdown
         dd, body = render_dropdown(title, is_open=True)
         section += dd
 
-        # Into the body, let's add a table
+        # Configure the table
         headers = [
             "Name",
             "Direction",
@@ -614,174 +624,23 @@ class RTLRender:
         ]
         widths = [1, 3, 3, 1, 2, 2, 1]
 
-        table_body, table = render_table_header(headers, widths=widths)
-        body += table_body
+        # Initialize some cache for the badges
+        clocks: dict[str, nodes.Element] = {}
+        resets: dict[str, nodes.Element] = {}
 
-        # Add the current table into the element.
-        groups[""] = dict()
-        groups[""]["body"] = body
-        groups[""]["table"] = table
+        # Classify the elements
+        classifier = ElementClassifier[Port]()
+        tree = classifier.build_tree(comp.ports)
 
-        # Init clocks elements
-        clocks_colors = [
-            BadgeColor.RED,
-            BadgeColor.CYAN,
-            BadgeColor.GREEN,
-            BadgeColor.BLUE,
-        ]
-        current_clock_color = -1
-        resets_colors = [
-            BadgeColor.RED,
-            BadgeColor.CYAN,
-            BadgeColor.GREEN,
-            BadgeColor.BLUE,
-        ]
-        current_reset_color = -1
-
-        # Init clocks and resets dict
-        clocks = dict()
-        resets = dict()
-
-        # Build a raw group array to count element
-        raw_groups = []
-        for x in comp.ports:
-            raw_groups.extend(x.group.split("/"))
-
-        # First, create the list of groups.
-        for port in comp.ports:
-            port_groups = port.group.split("/")
-            for group in port_groups:
-
-                # Is the group known to us ?
-                if not group in groups.keys():
-
-                    # Fetch the index
-                    group_index = port_groups.index(group)
-
-                    # Let's add another dropdown element to it !
-                    group_title = nodes.paragraph()
-                    group_title += nodes.Text(group)
-                    group_title += nodes.inline(" ", " ")
-
-                    # Count how many element do we have in the group
-                    count = raw_groups.count(group)
-                    if count > 0:
-                        group_title += render_badge(
-                            f"{count} element{"s" if count > 1 else ""}",
-                            BadgeColor.CYAN,
-                        )
-
-                    # Add a dropdown
-                    group_dd, group_body = render_dropdown(group_title)
-
-                    # Add a table inside ourselves
-                    group_table_body, group_table = render_table_header(headers)
-                    group_body += group_table_body
-
-                    # Add the current table into the element.
-                    # Are we the single port, or shall we append us to the previous element ?
-                    if group_index > 0:
-
-                        # Add ourselves to the our group name
-                        groups[group] = dict()
-                        groups[group]["body"] = group_body
-                        groups[group]["table"] = group_table
-
-                        # Add ourselves to our parent
-                        groups[port_groups[group_index - 1]]["body"] += group_dd
-
-                    # Else add to the root port
-                    else:
-                        groups[group] = dict()
-                        groups[group]["body"] = group_body
-                        groups[group]["table"] = group_table
-                        groups[""]["body"] += group_dd
-
-        for port in comp.ports:
-            # Group does now match the latest element of it
-            group = port.group.split("/")[-1]
-
-            # Prepare the render elements
-            port_name = nodes.paragraph()
-            port_name += render_ref(port.name, comp.name, "port", self.refs)
-            port_name += nodes.Text(port.name.strip())
-            port_desc = render_markdown(port.description, comp.file.path, self.base_doc)
-            port_type = nodes.literal(text=port.hdl_type.strip())
-
-            # Extract the description as a docutils nodes
-
-            # Handle port direction
-            match port.direction:
-                case "input":
-                    port_dir = render_badge("Input", BadgeColor.GREEN, outline=True)
-                case "output":
-                    port_dir = render_badge("Output", BadgeColor.BLUE, outline=True)
-                case _:
-                    port_dir = render_badge("Input", BadgeColor.ORANGE, outline=True)
-
-            # Handle port polarity
-            match port.hdl_polarity:
-                case "negative":
-                    port_pol = render_badge("Negative", BadgeColor.RED, outline=True)
-                case _:
-                    port_pol = nodes.Text("-")
-
-            # Handle port size
-            port_size = nodes.paragraph()
-            for begin, end in zip(port.hdl_size[::2], port.hdl_size[1::2]):
-                if not begin == end:
-                    port_size += nodes.literal(text=f"[{begin} : {end}]")
-                    port_size += nodes.inline(" ", " ")
-            if len(port_size) == 0:
-                port_size += nodes.Text("-")
-
-            # Handle port direction and clocking
-            if len(port.hdl_sync) == 0:
-                port_out_type = render_badge("Combinatorial", BadgeColor.GREEN)
-            else:
-                port_out_type = render_badge("Register", BadgeColor.ORANGE)
-
-                # Add the matching clock name here
-                port_clock = clocks.get(port.hdl_sync[0])
-                if port_clock is None:
-                    clocks[port.hdl_sync[0]] = render_badge(
-                        port.hdl_sync[0], clocks_colors[current_clock_color]
-                    )
-                    current_clock_color -= 1
-                    port_clock = clocks.get(port.hdl_sync[0])
-
-                # Add the clock
-                if port_clock is not None:
-                    port_out_type += nodes.inline(" ", " ")
-                    port_out_type += port_clock
-
-            # Do we have a reset to add ?
-            if len(port.hdl_reset) > 0:
-                port_reset = resets.get(port.hdl_reset[0])
-                if port_reset is None:
-                    resets[port.hdl_reset[0]] = render_badge(
-                        port.hdl_reset[0], resets_colors[current_reset_color]
-                    )
-                    current_reset_color -= 1
-                    port_reset = resets.get(port.hdl_reset[0])
-
-                if port_reset is not None:
-                    port_out_type += nodes.inline(" ", " ")
-                    port_out_type += port_reset
-
-            # Add ourselves to the line
-            render_table_line(
-                groups[group]["table"],
-                [
-                    port_name,
-                    port_dir,
-                    port_desc,
-                    port_type,
-                    port_size,
-                    port_out_type,
-                    port_pol,
-                ],
-            )
+        # Render the element
+        renderer = TreeRenderer[Port](
+            headers=headers,
+            width=widths,
+            row_renderer=lambda tbl, p: self._draw_port_signal_row(
+                tbl, p, comp, clocks, resets
+            ),
+        )
+        renderer.render(tree, body)
 
     def _render_component_modules(self, root: nodes.section, comp: Component) -> None:
         """
@@ -1286,117 +1145,38 @@ class RTLRender:
             outline=True,
         )
 
-        # Then, build the master dict. For each port, we'll seek for it's name later and render the port
-        groups = dict()
-
         # At first, we'll need the default dropdown
         dd, body = render_dropdown(title, is_open=True)
         section += dd
 
         # Into the body, let's add a table
+        # Configure the table
         headers = [
             "Name",
             "Description",
             "Type",
             "Size",
+            "Kind",
         ]
-        widths = [1, 3, 2, 1]
+        widths = [1, 3, 1, 2, 2]
 
-        table_body, table = render_table_header(headers, widths=widths)
-        body += table_body
+        # Build the caches
+        clocks: dict[str, nodes.Element] = {}
+        resets: dict[str, nodes.Element] = {}
 
-        # Add the current table into the element.
-        groups[""] = dict()
-        groups[""]["body"] = body
-        groups[""]["table"] = table
+        # Classify the elements
+        classifier = ElementClassifier[Signal]()
+        tree = classifier.build_tree(comp.signals)
 
-        # Build a raw group array to count element
-        raw_groups = []
-        for x in comp.ports:
-            raw_groups.extend(x.group.split("/"))
-
-        # First, create the list of groups.
-        for signal in comp.signals:
-            signal_groups = signal.group.split("/")
-            for group in signal_groups:
-
-                # Is the group known to us ?
-                if not group in groups.keys():
-
-                    # Fetch the index
-                    group_index = signal_groups.index(group)
-
-                    # Let's add another dropdown element to it !
-                    group_title = nodes.paragraph()
-                    group_title += nodes.Text(group)
-                    group_title += nodes.inline(" ", " ")
-
-                    # Count how many element do we have in the group
-                    count = raw_groups.count(group)
-                    if count > 0:
-                        group_title += render_badge(
-                            f"{count} element{"s" if count > 1 else ""}",
-                            BadgeColor.CYAN,
-                        )
-
-                    # Add a dropdown
-                    group_dd, group_body = render_dropdown(group_title)
-
-                    # Add a table inside ourselves
-                    group_table_body, group_table = render_table_header(headers)
-                    group_body += group_table_body
-
-                    # Add the current table into the element.
-                    # Are we the single port, or shall we append us to the previous element ?
-                    if group_index > 0:
-
-                        # Add ourselves to the our group name
-                        groups[group] = dict()
-                        groups[group]["body"] = group_body
-                        groups[group]["table"] = group_table
-
-                        # Add ourselves to our parent
-                        groups[signal_groups[group_index - 1]]["body"] += group_dd
-
-                    # Else add to the root port
-                    else:
-                        groups[group] = dict()
-                        groups[group]["body"] = group_body
-                        groups[group]["table"] = group_table
-                        groups[""]["body"] += group_dd
-
-        for signal in comp.signals:
-            # Group does now match the latest element of it
-            group = signal.group.split("/")[-1]
-
-            # Prepare the render elements
-            signal_name = nodes.paragraph()
-            signal_name += render_ref(signal.name, comp.name, "signal", self.refs)
-            signal_name += nodes.Text(signal.name.strip())
-            signal_desc = render_markdown(
-                signal.description, comp.file.path, self.base_doc
-            )
-            signal_type = nodes.literal(text=signal.hdl_type.strip())
-
-            # Handle signal size
-            signal_size = nodes.paragraph()
-            for begin, end in zip(signal.hdl_size[::2], signal.hdl_size[1::2]):
-                if not begin == end:
-                    signal_size += nodes.literal(text=f"[{begin} : {end}]")
-                    signal_size += nodes.inline(" ", " ")
-            if len(signal_size) == 0:
-                signal_size += nodes.Text("-")
-
-            # Add ourselves to the line
-            render_table_line(
-                groups[group]["table"],
-                [
-                    signal_name,
-                    signal_desc,
-                    signal_type,
-                    signal_size,
-                ],
-            )
+        # Render the elements
+        renderer = TreeRenderer[Signal](
+            headers=headers,
+            width=widths,
+            row_renderer=lambda tbl, p: self._draw_port_signal_row(
+                tbl, p, comp, clocks, resets
+            ),
+        )
+        renderer.render(tree, body)
 
     def _render_component_assigns(self, root: nodes.section, comp: Component) -> None:
         """
@@ -1514,6 +1294,10 @@ class RTLRender:
         for interface in comp.interfaces:
             print(interface)
 
+    # --------------------------------------------------------------------------------
+    # PRIVATE NODES MANAGEMENT
+    # --------------------------------------------------------------------------------
+
     def _add_separator(self, root: nodes.section) -> None:
         """
         Add the final separator to the component.
@@ -1538,3 +1322,116 @@ class RTLRender:
         root += section
 
         return section
+
+    # --------------------------------------------------------------------------------
+    # CALLBACKS
+    # --------------------------------------------------------------------------------
+
+    def _get_domain_badge(
+        self, name: str, domain_cache: dict[str, nodes.Element]
+    ) -> nodes.Element:
+        """
+        Return the badge for a specific key. Especially useful for clocks and resets.
+        """
+
+        # Do we need to create an entry ?
+        if name not in domain_cache:
+            color = self.DOMAIN_COLORS[len(domain_cache) % len(self.DOMAIN_COLORS)]
+            domain_cache[name] = render_badge(name, color, outline=True)
+
+        return domain_cache[name]
+
+    def _draw_port_signal_row(
+        self,
+        table: nodes.table,
+        element: Port | Signal,
+        comp: Component,
+        clocks_cache: dict[str, nodes.Element],
+        resets_cache: dict[str, nodes.Element],
+    ) -> None:
+        """
+        Insert a line for a port in the table.
+        """
+
+        # Name
+        element_name = nodes.paragraph()
+        element_name += render_ref(element.name, comp.name, "port", self.refs)
+        element_name += nodes.Text(element.name.strip())
+
+        # Description
+        element_desc = render_markdown(
+            element.description, comp.file.path, self.base_doc
+        )
+
+        # Type
+        element_type = nodes.literal(text=element.hdl_type.strip())
+
+        # Direction
+        match element.direction:
+            case "input":
+                element_dir = render_badge("Input", BadgeColor.GREEN, outline=True)
+            case "output":
+                element_dir = render_badge("Output", BadgeColor.BLUE, outline=True)
+            case _:
+                element_dir = render_badge(
+                    element.direction, BadgeColor.RED, outline=True
+                )
+
+        # Polarity
+        if element.hdl_polarity.lower() == "negative":
+            element_pol = render_badge("Negative", BadgeColor.RED, outline=True)
+        else:
+            element_pol = nodes.Text("-")
+
+        # Size
+        element_size = nodes.paragraph()
+        for begin, end in zip(element.hdl_size[::2], element.hdl_size[1::2]):
+            if begin != end:
+                element_size += nodes.literal(text=f"[{begin} : {end}]")
+                element_size += nodes.inline(" ", " ")
+
+        if len(element_size) == 0:
+            element_size = nodes.Text("-")
+
+        # Combinatorial type ?
+        if not element.hdl_sync:
+            element_kind = render_badge("Combinatorial", BadgeColor.GREEN, outline=True)
+        else:
+            element_kind = render_badge("Register", BadgeColor.ORANGE, outline=True)
+
+            # Clock domain
+            clk_badge = self._get_domain_badge(element.hdl_sync[0], clocks_cache)
+            element_kind += nodes.inline(" ", " ")
+            element_kind += clk_badge
+
+        # Reset domain
+        if element.hdl_reset:
+            rst_badge = self._get_domain_badge(element.hdl_reset[0], resets_cache)
+            element_kind += nodes.inline(" ", " ")
+            element_kind += rst_badge
+
+        # Insert into the table
+        if type(element) is Port:
+            render_table_line(
+                table,
+                [
+                    element_name,
+                    element_dir,
+                    element_desc,
+                    element_type,
+                    element_size,
+                    element_kind,
+                    element_pol,
+                ],
+            )
+        elif type(element) is Signal:
+            render_table_line(
+                table,
+                [
+                    element_name,
+                    element_desc,
+                    element_type,
+                    element_size,
+                    element_kind,
+                ],
+            )
