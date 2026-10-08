@@ -9,29 +9,39 @@ repository.
 
 I essentially work on my side, with little to no interactions with the other. A common TO-DO list will be done, and users may attribute themselves a task.
 
-## To do :
+## To do
 
-### Languages support :
+This is essentially my own list, but this could be extended to anyone ! Grab a free task, and here we go !
 
-[ ] Spinal HDL
-[ ] Chisel HDL
-[ ] Cocotb
-[ ] VHDL -> This is scheduled to be done before the 1.0.0 release.
+### Languages support
 
-### Features :
+- [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] Cocotb (Target < v1.0.0)
+- [ ] VHDL (Target < v1.0.0)
 
-[ ] Make the render a bit cleaner
-[ ] Add links between the elements, outside of the simple container. --> RTLDomain to be added
-[ ] Select the function rendering method (natural or complete).
+### Features
 
-### Tests and debug :
+- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better).
+- [x] Add links between the elements, outside of the simple container. --> RTLDomain to be added
+- [ ] Select the function rendering method (natural or complete).
+- [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
 
-[ ] Test other edge-cases and bad documents.
-[ ] Ensure all elements are properly rendered.
+### Tests and debug
+
+- [ ] Test other edge-cases and bad documents.
+- [ ] Ensure all elements are properly rendered.
+
+### Examples
+
+- [ ] Make the examples cleaner (more files, more text --> Better demonstration)
+- [ ] Add a github workflow to push the rendered documentation to an example site
+- [ ] Add the online site into the readme.md file
 
 ### Bugs to remove
 
-[ ] Incorrect size parsing (VariableSymbolDimension string is present.)
-[ ] Some structures are incorporating comments into the type. To be checked.
-[ ] SystemVerilog interfaces aren't correctly parsed --> Return an empty component.
-[ ] Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.
+- [ ] Incorrect size parsing (VariableSymbolDimension string is present.)
+- [ ] Some structures are incorporating comments into the type. To be checked.
+- [ ] SystemVerilog interfaces aren't correctly parsed --> Return an empty component.
+- [ ] Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.
