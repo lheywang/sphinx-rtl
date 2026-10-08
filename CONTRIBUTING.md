@@ -27,6 +27,10 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [x] Add links between the elements, outside of the simple container. --> RTLDomain to be added
 - [ ] Select the function rendering method (natural or complete).
 - [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
+- [ ] Add the configuration layers models (sphinx-rtl.toml then arguments passed to the config then the flags on the file).
+- [ ] CLI tool with different features
+  - get include files for SystemC / Scala based and so
+  - get output json from IR pass
 
 ### Tests and debug
 
