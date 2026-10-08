@@ -27,3 +27,8 @@ _Note : This version is not available under a git tag_
 - Finished the first render engine.
 - Updated models to be inherited from others to ensure properties are presents in important places. This especially target the signals.
 - Forgot to update the PyPi version. Updated it into v0.4.1. The later one was the only being pushed to the PyPi.
+
+## [v0.4.2]
+
+- Patched different bugs (modport support in ports, comments that where leaking ...)
+- Refactored the grouping system to be more robust, and cleaner when rendered !

@@ -45,7 +45,8 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 
 ### Bugs to remove
 
-- [ ] Incorrect size parsing (VariableSymbolDimension string is present.)
-- [ ] Some structures are incorporating comments into the type. To be checked.
+- [x] Incorrect size parsing (VariableSymbolDimension string is present.)
+- [x] Some structures are incorporating comments into the type. To be checked.
+- [x] Interface based ports are shown as "Input", which is incorrect.
 - [ ] SystemVerilog interfaces aren't correctly parsed --> Return an empty component.
-- [ ] Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.
+- [x] Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.
