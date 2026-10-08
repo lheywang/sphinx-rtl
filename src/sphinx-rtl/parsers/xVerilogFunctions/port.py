@@ -56,9 +56,10 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
         )
 
         # Finally, processing the last elements (a size that may be specific to the declaration)
-        _, size = get_size_and_type(str(node_syntax.declarator.dimensions))
-        if size[0] != size[1]:
-            port.hdl_size.extend(size)
+        for dim in node_syntax.declarator.dimensions:
+            _, size = get_size_and_type(dim)
+            if size[0] != size[1]:
+                port.hdl_size.extend(size)
 
     # -------------------------------------------------------------------
     # PORT IS DECLARED AS NON-ANSI
@@ -80,9 +81,10 @@ def build_port(previous: Port, node: ast.PortSymbol, line: int) -> Port:
         port.hdl_type, port.hdl_size = get_size_and_type(str(data_type))
 
         # Add the declarator part size
-        _, size = get_size_and_type(str(decl_syntax.dimensions))
-        if size[0] != size[1]:
-            port.hdl_size.extend(size)
+        for dim in decl_syntax.dimensions:
+            _, size = get_size_and_type(dim)
+            if size[0] != size[1]:
+                port.hdl_size.extend(size)
 
     # Build the port
     return port
@@ -102,9 +104,8 @@ def build_interfacePort(
     name = node.name.strip()
 
     # Extract some infos
-    raw_syntax = [
-        x.strip() for x in str(node.syntax.parent).strip().split(" ") if len(x) > 0
-    ]
+    raw_line = str(node.syntax.parent).splitlines()[-1]
+    raw_syntax = [x.strip() for x in str(raw_line).strip().split(" ") if len(x) > 0]
 
     interface = "unknown"
     modport = "unknown"

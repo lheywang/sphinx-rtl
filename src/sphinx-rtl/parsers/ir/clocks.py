@@ -21,7 +21,7 @@ def infer_clocks(component: Component) -> Component:
     Infer the clock of the different port and signals based on the process triggers lists.
     """
 
-    # Fetch the ports names :
+    # Fetch the port and signals names :
     names = dict(
         [(x.name, x) for x in itertools.chain(component.signals, component.ports)]
     )

@@ -35,16 +35,13 @@ def build_signal(node: ast.VariableSymbol | ast.NetSymbol, line: int) -> Signal:
         )
 
         # Make the thing cleaner
-        clean_type = re.sub(
-            r"/\*.*?\*/|//.*", "", str(parent.type), flags=re.DOTALL
-        ).strip()
-
-        hdl_type, hdl_size = get_size_and_type(clean_type.strip())
+        hdl_type, hdl_size = get_size_and_type(str(parent.type).strip())
 
         # Add the declarator part size
-        _, size = get_size_and_type(str(unpacked_dims))
-        if size[0] != size[1]:
-            hdl_size.extend(size)
+        for dim in unpacked_dims:
+            _, size = get_size_and_type(dim)
+            if size[0] != size[1]:
+                hdl_size.extend(size)
 
     elif node.kind == ast.SymbolKind.Net:
 
