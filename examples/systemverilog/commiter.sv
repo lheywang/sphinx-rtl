@@ -60,10 +60,8 @@ module commiter (
         ALL
     } alu_t; 
 
-    /*
-     *  Storages
-     */
-    alu_t last_active_alu [2], active_alu [2];
+    alu_t last_active_alu [2],  // Feedback
+          active_alu [2];       // Currently active ALU.
 
     /*
      *  First, some combinational logic to choose the ALU that will get the right
