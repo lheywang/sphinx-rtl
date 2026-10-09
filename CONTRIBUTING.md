@@ -35,6 +35,7 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [ ] Move the infer engine into the RTLAnalyse module, isolated from the parser.
   - add support for inter module resolution pass
 - [ ] Add support for multi-top files
+- [ ] Add support for note_dependency for the globed files at runtime.
 
 ### Changes
 
