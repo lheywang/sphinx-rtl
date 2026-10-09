@@ -31,6 +31,8 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [ ] CLI tool with different features
   - get include files for SystemC / Scala based and so
   - get output json from IR pass
+- [ ] Support for multi-instances top levels
+- [ ] Move the infer engine into the RTLAnalyse module, isolated from the parser.
 
 ### Tests and debug
 
