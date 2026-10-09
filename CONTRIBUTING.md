@@ -33,6 +33,14 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
   - get output json from IR pass
 - [ ] Support for multi-instances top levels
 - [ ] Move the infer engine into the RTLAnalyse module, isolated from the parser.
+  - add support for inter module resolution pass
+- [ ] Add support for multi-top files
+
+### Changes
+
+- [ ] Add RTLConfig (to builder-inited event) --> Load config file and tools paths.
+- [ ] Add RTLAnalyse (to env-updated event) --> Perform the analysis
+- [ ] Add a component database to the RTLDomain element ("components")
 
 ### Tests and debug
 
