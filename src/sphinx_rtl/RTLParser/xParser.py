@@ -23,7 +23,7 @@ from pathlib import Path
 
 # Local imports
 from sphinx_rtl.models import FileInfo, Component, Element
-from sphinx_rtl.config import RenderConfig
+from sphinx_rtl.RTLConfig import RTLConfig
 
 # Configure logger
 logger = logging.getLogger(__name__)

@@ -13,8 +13,7 @@ from docutils import nodes
 from docutils.parsers.rst import Directive
 
 from sphinx_rtl.RTLParser import xVerilogParser, VHDLParser
-from sphinx_rtl.models import Component
-from sphinx_rtl.RTLRender import RTLRender
+from sphinx_rtl.nodes import RTLPlaceholderNode
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -73,7 +72,7 @@ class RTLAutodocDirective(Directive):
             ]
 
         # Process all files
-        rendered_nodes: list[nodes.container] = []
+        rendered_nodes: list[RTLPlaceholderNode] = []
 
         # Default values
         component = None
@@ -96,16 +95,21 @@ class RTLAutodocDirective(Directive):
                     line=self.lineno,
                 )
 
-            # Build the nodes from our RTL component:
-            render = RTLRender()
-            doc_dir = Path(self.state.document["source"]).parent
-            nodes, refs = render.render(component=component, base_doc=doc_dir)
+            # Add the component to the internal db
+            rtl_domain.add_component(component)
 
-            # Add the references into the RTLDomain
-            rtl_domain.add_symbol_batch(refs, docname=docname)
+            # Build the placeholder
+            base_doc = str(Path(self.state.document["source"]).resolve().parent)
 
             # Add the nodes into the list
-            rendered_nodes.extend(nodes)
+            if component is not None:
+                rendered_nodes.append(
+                    RTLPlaceholderNode(name=component.name, base_doc=base_doc)
+                )
+            else:
+                logger.warning(
+                    f"Source file at {match} failed to generate a valid component."
+                )
 
         # Return the rendered nodes
         return rendered_nodes

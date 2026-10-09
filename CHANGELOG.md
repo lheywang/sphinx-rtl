@@ -32,3 +32,8 @@ _Note : This version is not available under a git tag_
 
 - Patched different bugs (modport support in ports, comments that where leaking ...)
 - Refactored the grouping system to be more robust, and cleaner when rendered !
+
+## [v0.5.0]
+
+- Changed the project structure to exploit the sphinx BuildEnvironment feature. This enable higher quality builds (faster due to the cache,
+  more analysis possibles as the elements are analyzed after parsing all of them ...).

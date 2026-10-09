@@ -8,13 +8,18 @@
 # Imports
 from sphinx.application import Sphinx
 from pathlib import Path
-
-from sphinx_rtl.directive import RTLAutodocDirective
+from sphinx_rtl.nodes import RTLPlaceholderNode
 from sphinx_rtl.RTLDomain import RTLDomain
+from sphinx_rtl.RTLRender import RTLRenderTransform
+from sphinx_rtl.directive import RTLAutodocDirective
+from sphinx_rtl.callbacks import on_builder_inited, on_env_get_outdated, on_env_updated
 
 
 # Setup
 def setup(app):
+
+    # Add the custom node
+    app.add_node(RTLPlaceholderNode)
 
     # Load the extensions
     app.setup_extension("myst_parser")
@@ -23,15 +28,15 @@ def setup(app):
     # Add the domain
     app.add_domain(RTLDomain)
 
-    # Add the custom CSS we need to inject
-    static_dir = Path(__file__).parent / "static"
+    # Register the callbacks
+    app.connect("builder-inited", on_builder_inited)
+    app.connect("env-get-outdated", on_env_get_outdated)
+    app.connect("env-updated", on_env_updated)
 
-    # Custom hook to add the file when the user does build
-    def add_static_path(app: Sphinx) -> None:
-        app.config.html_static_path.append(str(static_dir))
+    # Add the post transform
+    app.add_post_transform(RTLRenderTransform)
 
-    # Register it
-    app.connect("builder-inited", add_static_path)
+    # Add the custom CSS file
     app.add_css_file("rtl.css")
 
     # Add the name and aliases

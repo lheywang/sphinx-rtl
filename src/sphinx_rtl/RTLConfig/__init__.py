@@ -4,3 +4,5 @@
 #
 # Brief :   Handle the config for our rendering pass
 # ----------------------------------------------------------------------------
+
+from .config import RTLConfig

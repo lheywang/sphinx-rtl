@@ -7,10 +7,10 @@
 # ----------------------------------------------------------------------------
 
 from dataclasses import dataclass, field
-from .config import RenderConfig
+from .RTLConfig import RTLConfig
 
 
-@dataclass
+@dataclass(slots=True)
 class Element:
     """
     Basic config for an element to be defined. Shall not be used as it.
@@ -29,7 +29,7 @@ class Element:
     line: int = -1
 
 
-@dataclass
+@dataclass(slots=True)
 class Parameter(Element):
     """
     Store the different values for a single parameter (or generic in VHDL) entry.
@@ -45,7 +45,7 @@ class Parameter(Element):
     hdl_value: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class Port(Element):
     """
     Store the different values for a single port entry.
@@ -75,7 +75,7 @@ class Port(Element):
     pair: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class Enum(Element):
     """
     Store the different values for single enumeration (or type in VHDL) entry.
@@ -91,7 +91,7 @@ class Enum(Element):
     members: list[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class Structure(Element):
     """
     Store the element contained within a structure.
@@ -107,7 +107,7 @@ class Structure(Element):
     isPacked: bool = False
 
 
-@dataclass
+@dataclass(slots=True)
 class Import(Element):
     """
     Store the different values for a single import (Verilog Only) entry.
@@ -123,7 +123,7 @@ class Import(Element):
     element: list[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class Signal(Port):
     """
     Store the different values for a single single reg / wire (or signal in VHDL) entry.
@@ -137,7 +137,7 @@ class Signal(Port):
     isImplicit: bool = False
 
 
-@dataclass
+@dataclass(slots=True)
 class Assignment(Element):
     """
     Store a constant assignment for a variable.
@@ -155,7 +155,7 @@ class Assignment(Element):
     isComb: bool = True
 
 
-@dataclass
+@dataclass(slots=True)
 class Process(Element):
     """
     Store the different values for a single process / alway entry.
@@ -177,7 +177,7 @@ class Process(Element):
     hdl_reset: list[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class Modport(Element):
     """
     Store a modport informations.
@@ -192,7 +192,7 @@ class Modport(Element):
     signals: list[Port] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class Interface(Element):
     """
     Store the config for an interface entry.
@@ -212,7 +212,7 @@ class Interface(Element):
     modports: list[Modport] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class Module(Element):
     """
     Store the config for a known module, instantiated within the passed design.
@@ -242,7 +242,7 @@ class Module(Element):
     condition: str = "None"
 
 
-@dataclass
+@dataclass(slots=True)
 class Function(Element):
     """
     Store the config for a known function, instantiated within the passed design.
@@ -258,7 +258,7 @@ class Function(Element):
     func_outputs: list[Port] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class FileInfo:
     """
     Store the different values for a single file info entry.
@@ -298,7 +298,7 @@ class FileInfo:
     message: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class ComponentConfig:
     """
     Store additional elements for the Component object, that are more
@@ -409,7 +409,7 @@ class ComponentConfig:
     tags: list[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class Component:
     """
     Store all the infos for a component. Include all infos to be shared.
@@ -457,7 +457,7 @@ class Component:
 
     # Render config
     config: ComponentConfig = field(default_factory=ComponentConfig)
-    render: RenderConfig = field(default_factory=RenderConfig)
+    render: RTLConfig = field(default_factory=RTLConfig)
 
     # HDL elements
     parameters: list[Parameter] = field(default_factory=list)

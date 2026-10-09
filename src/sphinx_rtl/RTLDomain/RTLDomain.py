@@ -9,7 +9,7 @@
 from collections.abc import Iterable
 
 from docutils import nodes
-from typing import AbstractSet, Any, Iterator
+from typing import AbstractSet, Any
 from sphinx.addnodes import pending_xref
 from sphinx.builders import Builder
 from sphinx.domains import Domain, ObjType
@@ -17,6 +17,7 @@ from sphinx.environment import BuildEnvironment
 from sphinx.roles import XRefRole
 from sphinx.util import logging
 from sphinx.util.nodes import make_refnode
+from sphinx_rtl.models import Component
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -35,7 +36,11 @@ class RTLDomain(Domain):
 
     # Data storage
     initial_data = {
-        "symbols": {}  # -> key: target_id -> dict(docname, comp, type, name)
+        "symbols": {},  # -> dict[target_id, tuple[str, str, str, str]]
+        "components": {},  # -> dict[str, Component]
+        "file_doc": {},  # -> dict[filepath, docname]. Act a lock for unique docnames.
+        "doc_files": {},  # -> dict[docname, list[str]]
+        "doc_globs": {},  # -> dict[docname, set[str]]
     }
 
     # Object config
@@ -70,11 +75,20 @@ class RTLDomain(Domain):
         """
         Clear the cache for a target source file.
         """
+
+        # Clear symbols
         self.data[docname] = {
             target_id: sym
             for target_id, sym in self.data["symbols"].items()
             if sym["docname"] != docname
         }
+
+        # Clear the associated file names.
+        files = self.data["doc_files"].pop(docname, set())
+        for f in files:
+            self.data["file_doc"].pop(f, None)
+        self.data["doc_globs"].pop(docname, None)
+
         logger.info("[INFO] Cleaned up the RTLDomain cache")
 
     def merge_domaindata(
@@ -84,10 +98,26 @@ class RTLDomain(Domain):
         Merge two domains to ensure an operation even on parallel builds.
         """
         count = 0
+
+        # Merge symbols
         for target_id, sym in otherdata.get("symbols", {}).items():
             if sym["docname"] in docnames:
                 self.data["symbols"][target_id] = sym
                 count += 1
+
+        # Merge components
+        for comp in otherdata.get("component", {}).values():
+            self.add_component(comp)
+            count += 1
+
+        # Merge files
+        for doc in docnames:
+            if doc in otherdata.get("doc_files", {}):
+                self.data["doc_files"][doc] = otherdata["doc_files"][doc]
+            if doc in otherdata.get("doc_globs", {}):
+                self.data["doc_globs"][doc] = otherdata["doc_globs"][doc]
+        self.data["file_doc"].update(otherdata.get("file_doc", {}))
+        self.data["components"].update(otherdata.get("components", {}))
 
         if count > 0:
             logger.info(
@@ -131,6 +161,25 @@ class RTLDomain(Domain):
             logger.info(
                 f"[INFO] Imported {count} reference{"s" if count > 1 else ""} into the domain."
             )
+
+    # --------------------------------------------------------------------
+    # COMPONENT MANAGEMENT
+    # --------------------------------------------------------------------
+    def add_component(self, component: Component) -> None:
+        """
+        Add a component to the internal knowledge base.
+        """
+        if component is None:
+            return
+
+        if component.name not in self.data["components"].keys():
+            self.data["components"][component.name] = component
+            return
+
+        logger.warning(
+            f"Duplicate component (name={component.name}) insertion required. Action ignored."
+        )
+        return
 
     # --------------------------------------------------------------------
     # LINK RESOLUTION
