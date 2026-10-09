@@ -39,8 +39,13 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 
 ### Changes
 
-- [ ] Add RTLConfig (to builder-inited event) --> Load config file and tools paths.
+- [ ] Add RTLConfig (to builder-inited event) --> Load config file and tools paths -
+  - Stored into env. ...
+- [ ] Add RTLParser (directive as actual, under a custom built class)
+  - Store results into env["components"]. Do not care about anything else
+  - Store a placeholder to the node as a "render"
 - [ ] Add RTLAnalyse (to env-updated event) --> Perform the analysis
+- [ ] Add RTLRender (to SphinxPostTransform event) --> Perform the rendering pass
 - [ ] Add a component database to the RTLDomain element ("components")
 
 ### Tests and debug
