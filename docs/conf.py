@@ -18,7 +18,7 @@ author = "Leonard HEYWANG"
 release = "0.1.0"
 
 # Ensure extensions
-extensions = ["sphinx-rtl"]
+extensions = ["sphinx_rtl"]
 
 # Configure sphinx
 html_theme = "alabaster"
