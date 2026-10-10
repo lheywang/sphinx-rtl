@@ -51,10 +51,12 @@ def render_markdown(
                 if base_dir is not None:
                     sphinx_path = resolved.relative_to(base_dir, walk_up=True)
                     img["uri"] = str(sphinx_path)
+                    img["candidates"] = {"*": str(sphinx_path)}
 
                 # Else try to use the default. Could fail in any way...
                 else:
                     img["uri"] = str(resolved)
+                    img["candidates"] = {"*": str(resolved)}
 
                 count += 1
 

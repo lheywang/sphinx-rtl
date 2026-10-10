@@ -74,7 +74,7 @@ class RTLRender:
 
     def render(
         self, component: Component | None, base_doc: Path
-    ) -> tuple[list[nodes.container], list[dict]]:
+    ) -> tuple[nodes.container, list[dict]]:
         """
         Render a component into an AST of nodes.
 
@@ -93,7 +93,7 @@ class RTLRender:
 
         if component is None:
             logger.error("Provided component is None. Could not render anything.")
-            return ([root], self.refs)
+            return (root, self.refs)
 
         # Update the base doc
         self.base_doc = base_doc
@@ -101,12 +101,6 @@ class RTLRender:
         # Now, we can safely render the component.
         # Any option will be valid, regardless of it's composition.
         match component.comp_type:
-            case "module":
-                logger.info(
-                    f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as a module."
-                )
-                return self.render_as_module(component=component, root=root)
-
             case "testbench":
                 logger.info(
                     f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as a testbench."
@@ -125,12 +119,20 @@ class RTLRender:
                 )
                 return self.render_as_interface(component=component, root=root)
 
+            # If nothing was found, try as a module.
+            # This is the most complete, exception shall not be fully wrong if nothing is present.
+            case _:
+                logger.info(
+                    f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as a module."
+                )
+                return self.render_as_module(component=component, root=root)
+
         # Return the default value is nothing was found.
-        return ([root], self.refs)
+        return (root, self.refs)
 
     def render_as_package(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[dict]]:
+    ) -> tuple[nodes.container, list[dict]]:
         """
         Render the provided component as a package.
         """
@@ -157,11 +159,11 @@ class RTLRender:
         self._add_separator(context)
 
         # Return the global node
-        return ([root], self.refs)
+        return (root, self.refs)
 
     def render_as_module(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[dict]]:
+    ) -> tuple[nodes.container, list[dict]]:
         """
         Render the provided component as a module.
         """
@@ -191,11 +193,11 @@ class RTLRender:
         self._add_separator(context)
 
         # Return the global node
-        return ([root], self.refs)
+        return (root, self.refs)
 
     def render_as_testbench(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[dict]]:
+    ) -> tuple[nodes.container, list[dict]]:
         """
         Render the provided component as a testbench.
         """
@@ -222,11 +224,11 @@ class RTLRender:
         self._render_component_processes(context, component)
 
         # Return the global node
-        return ([root], self.refs)
+        return (root, self.refs)
 
     def render_as_interface(
         self, root: nodes.container, component: Component
-    ) -> tuple[list[nodes.container], list[dict]]:
+    ) -> tuple[nodes.container, list[dict]]:
         """
         Render the provided component as an interface.
         """
@@ -253,7 +255,7 @@ class RTLRender:
         self._add_separator(context)
 
         # Return the global node
-        return ([root], self.refs)
+        return (root, self.refs)
 
     # --------------------------------------------------------------------------------
     # PRIVATE FUNCTIONS
