@@ -11,7 +11,8 @@ import pyslang.ast as ast
 import pyslang.syntax as syntax
 from pyslang import SourceManager
 
-from sphinx_rtl.models import Module, Parameter
+from sphinx_rtl.models import Module, Parameter, Assignment
+from .assignment import build_assignment
 
 
 def get_module_from_instantiation(
@@ -113,11 +114,33 @@ def get_module_from_instantiation(
     return modules
 
 
+def find_assignments(
+    node: syntax.SyntaxNode,
+) -> list[syntax.BinaryExpressionSyntax]:
+    """
+    Extract all assignment syntax from a parent node.
+    """
+    results: list[syntax.BinaryExpressionSyntax] = []
+
+    if isinstance(node, syntax.ContinuousAssignSyntax):
+        for assign_expr in node.assignments:
+            if isinstance(assign_expr, syntax.BinaryExpressionSyntax):
+                results.append(assign_expr)
+        return results
+
+    if isinstance(node, syntax.SyntaxNode):
+        for child in node:
+            if isinstance(child, syntax.SyntaxNode):
+                results.extend(find_assignments(child))
+
+    return results
+
+
 def build_generate(
     node: ast.GenerateBlockSymbol | ast.GenerateBlockArraySymbol,
     line: int,
     sm: SourceManager,
-) -> list[Module]:
+) -> tuple[list[Module], list[Assignment]]:
     """
     Build the signal object from a passed signal node.
 
@@ -126,6 +149,7 @@ def build_generate(
 
     # Allocate memory
     modules: list[Module] = []
+    assigns: list[Assignment] = []
 
     # -----------------------------------------------------------------------------
     # CONDITIONAL GENERATE BLOCK
@@ -133,18 +157,27 @@ def build_generate(
     if node.kind == ast.SymbolKind.GenerateBlock:
         cond: ast.GenerateBlockSymbol = node  # type: ignore
 
-        # Extract the condition :
-        cond_identifier: str = str(cond.conditionExpression.syntax.identifier)
+        if type(cond.conditionExpression.syntax) is syntax.IdentifierNameSyntax:
 
-        # Extract the members :
-        members: list[syntax.HierarchyInstantiationSyntax] = cond.syntax.members
-        temp_modules = get_module_from_instantiation(members, sm)
+            # Extract the condition :
+            cond_identifier: str = str(cond.conditionExpression.syntax.identifier)
 
-        # Add the global infos :
-        for module in temp_modules:
-            module.condition = cond_identifier
-            module.isConditionnal = True
-            modules.append(module)
+            # Extract the members :
+            members: list[syntax.HierarchyInstantiationSyntax] = cond.syntax.members
+            temp_modules = get_module_from_instantiation(members, sm)
+
+            # Add the global infos :
+            for module in temp_modules:
+                module.condition = cond_identifier
+                module.isConditionnal = True
+                modules.append(module)
+
+        elif type(cond.conditionExpression.syntax) is syntax.BinaryExpressionSyntax:
+
+            # Loop over the assignments and build them using our standard function.
+            assigns_syntax = find_assignments(cond.conditionExpression.syntax.parent)
+            for assign_syntax in assigns_syntax:
+                assigns.append(build_assignment(assign_syntax, 0))
 
     # -----------------------------------------------------------------------------
     # LOOP GENERATE BLOCK
@@ -166,10 +199,6 @@ def build_generate(
             count = f"{len(entries)}"
             repeat = True if len(entries) > 1 else False
 
-        mod_entity = ""
-        mod_name = ""
-        mod_line = -1
-
         # Extract the data
         members: list[syntax.HierarchyInstantiationSyntax] = loop.syntax.block.members
         temp_modules = get_module_from_instantiation(members, sm)
@@ -181,4 +210,4 @@ def build_generate(
             modules.append(module)
 
     # Return the raw list
-    return modules
+    return modules, assigns

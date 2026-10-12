@@ -80,7 +80,7 @@ class RTLAutodocDirective(Directive):
         for match in matches:
             env.note_dependency(str(match))
 
-            logger.info(f"[INFO] Processing file : {str(match)}")
+            logger.info(f"[INFO] --- Processing file : {str(match)}")
 
             # Call the matching parser :
             suffix = match.suffix.lower()

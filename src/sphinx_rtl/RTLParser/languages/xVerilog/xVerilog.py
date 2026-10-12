@@ -254,7 +254,10 @@ class xVerilogParser(xParser):
 
                 # GENERATE
                 case ast.SymbolKind.GenerateBlock | ast.SymbolKind.GenerateBlockArray:
-                    comp.modules.extend(build_generate(m, self.get_line(m.location), self.sm))  # type: ignore
+                    modules, assigns = build_generate(m, self.get_line(m.location), self.sm)  # type: ignore
+
+                    comp.modules.extend(modules)
+                    comp.assigns.extend(assigns)
 
                 # We don't care about these, they're proxies to enums and other stuff like that
                 case (
@@ -348,7 +351,7 @@ class xVerilogParser(xParser):
         )
         if miss > 0:
             logger.warning(
-                f"Found {miss} entit{"ies" if miss > 1 else "y"} that are not commented (Still {remaining} comment{"s" if remaining > 1 else ""} to be attached.). [file {file.name}]"
+                f"Still {remaining} comment{"s" if remaining > 1 else ""} to be attached for {file.name}."
             )
 
         # Return the final component

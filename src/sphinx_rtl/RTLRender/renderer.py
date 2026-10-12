@@ -9,6 +9,8 @@
 # Imports
 from docutils import nodes
 from sphinx.util import logging
+from sphinx.application import Sphinx
+from sphinx.environment import BuildEnvironment
 from pathlib import Path
 from docutils.nodes import make_id
 import itertools
@@ -28,7 +30,7 @@ from sphinx_rtl.RTLRender.helpers import (
     render_flex_array,
     TreeRenderer,
 )
-from sphinx_rtl.RTLRender.classifier import GroupNode, ElementClassifier
+from sphinx_rtl.RTLRender.classifier import ElementClassifier
 
 from sphinx_rtl.models import Component, Signal, Port
 
@@ -55,13 +57,17 @@ class RTLRender:
     # BUILTINS
     # --------------------------------------------------------------------------------
 
-    def __init__(self):
+    def __init__(self, app: Sphinx, env: BuildEnvironment):
         """
         Init the render class
         """
 
-        # Set the base doc to use
+        # Set the base doc to use in any cases. Will be replaced later anyway ...
         self.base_doc = Path(__file__)
+
+        # Fetch the application
+        self.app = app
+        self.env = env
 
         # Build the reference base list
         self.refs: list[dict] = []
@@ -103,19 +109,19 @@ class RTLRender:
         match component.comp_type:
             case "testbench":
                 logger.info(
-                    f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as a testbench."
+                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a testbench."
                 )
                 return self.render_as_testbench(component=component, root=root)
 
             case "package":
                 logger.info(
-                    f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as a package."
+                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a package."
                 )
                 return self.render_as_package(component=component, root=root)
 
             case "interface":
                 logger.info(
-                    f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as an interface."
+                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as an interface."
                 )
                 return self.render_as_interface(component=component, root=root)
 
@@ -123,7 +129,7 @@ class RTLRender:
             # This is the most complete, exception shall not be fully wrong if nothing is present.
             case _:
                 logger.info(
-                    f"[INFO] Rendering {f'{component.name} ' if component.name != "" else ""}as a module."
+                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a module."
                 )
                 return self.render_as_module(component=component, root=root)
 
@@ -148,6 +154,9 @@ class RTLRender:
         # Common module header
         self._render_file_info(context, component)
 
+        # Emit an event before the elements rendering
+        self.app.emit("rtl-post-card-rendering", self.app, self.env, context, component)
+
         # Add the elements we need here.
         self._render_component_imports(context, component)
         self._render_component_parameters(context, component)
@@ -157,6 +166,11 @@ class RTLRender:
 
         # Add a separator last
         self._add_separator(context)
+
+        # Emit an event after the elements rendering
+        self.app.emit(
+            "rtl-post-elements-rendering", self.app, self.env, context, component
+        )
 
         # Return the global node
         return (root, self.refs)
@@ -179,6 +193,9 @@ class RTLRender:
         # Common module header
         self._render_file_info(context, component)
 
+        # Emit an event before the elements rendering
+        self.app.emit("rtl-post-card-rendering", self.app, self.env, context, component)
+
         # Add the elements we need here.
         self._render_component_imports(context, component)
         self._render_component_parameters(context, component)
@@ -191,6 +208,11 @@ class RTLRender:
 
         # Add a separator last
         self._add_separator(context)
+
+        # Emit an event after the elements rendering
+        self.app.emit(
+            "rtl-post-elements-rendering", self.app, self.env, context, component
+        )
 
         # Return the global node
         return (root, self.refs)
@@ -213,6 +235,9 @@ class RTLRender:
         # Common module header
         self._render_file_info(context, component)
 
+        # Emit an event before the elements rendering
+        self.app.emit("rtl-post-card-rendering", self.app, self.env, context, component)
+
         # Add a separator last
         self._add_separator(context)
 
@@ -222,6 +247,11 @@ class RTLRender:
         self._render_component_signals(context, component)
         self._render_component_modules(context, component)
         self._render_component_processes(context, component)
+
+        # Emit an event after the elements rendering
+        self.app.emit(
+            "rtl-post-elements-rendering", self.app, self.env, context, component
+        )
 
         # Return the global node
         return (root, self.refs)
@@ -245,6 +275,11 @@ class RTLRender:
         # Common module header
         self._render_file_info(context, component)
 
+        # Emit an event before the elements rendering
+        self.app.emit(
+            "rtl-pre-elements-rendering", self.app, self.env, context, component
+        )
+
         # Add the elements we need here.
         self._render_component_imports(context, component)
         self._render_component_parameters(context, component)
@@ -253,6 +288,11 @@ class RTLRender:
 
         # Add a separator last
         self._add_separator(context)
+
+        # Emit an event after the elements rendering
+        self.app.emit(
+            "rtl-post-elements-rendering", self.app, self.env, context, component
+        )
 
         # Return the global node
         return (root, self.refs)
@@ -341,6 +381,9 @@ class RTLRender:
         card_description += detail_box
 
         card += card_description
+
+        # Before pursuing, emit an event to enable
+        self.app.emit("rtl-card-rendering", self.app, self.env, card, comp)
 
         # Now, add the different elements about the file status
         # This may be dependant on the git status, so :

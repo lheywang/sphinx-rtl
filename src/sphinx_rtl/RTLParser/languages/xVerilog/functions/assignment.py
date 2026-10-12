@@ -8,18 +8,26 @@
 # Imports
 import re
 import pyslang.ast as ast
+import pyslang.syntax as syntax
 
 from sphinx_rtl.models import Assignment
 
+from .utils import get_size_and_type
 
-def build_assignment(node: ast.ContinuousAssignSymbol, line: int) -> Assignment:
+
+def build_assignment(
+    node: ast.ContinuousAssignSymbol | syntax.BinaryExpressionSyntax, line: int
+) -> Assignment:
     """
     Build the assignement object from a passed assign node.
     """
 
     # Extract the LHS and RHS
-    syntax = str(node.syntax)
-    assigns = syntax.split("=", 1)
+    raw = str(getattr(node, "syntax", node))
+    raw = re.sub(r"^\s*assign\b\s*", "", raw)
+
+    # Clean up the assign, this is a bit hacky but the function is well tested.
+    assigns = [get_size_and_type(x)[0] for x in raw.split("=")]
 
     # Alloc output
     rhs = ""
@@ -27,9 +35,12 @@ def build_assignment(node: ast.ContinuousAssignSymbol, line: int) -> Assignment:
 
     if len(assigns) > 1:
         rhs = assigns[0].strip()
-        lhs = list(re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_$]*\b", assigns[1]))
+        lhs = list(re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_$]*\b", ",".join(assigns[1:])))
+
+    if len(lhs) == 0:
+        lhs.append("'0")
 
     # Build the output object
     return Assignment(
-        target=rhs, source=lhs, isComb=False if len(lhs) == 1 else True, line=line
+        target=rhs, source=lhs, isComb=False if len(lhs) <= 1 else True, line=line
     )

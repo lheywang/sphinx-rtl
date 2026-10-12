@@ -21,6 +21,13 @@ def setup(app):
     # Add the custom node
     app.add_node(RTLPlaceholderNode)
 
+    # Declare our events
+    app.add_event("rtl-pre-analysis")
+    app.add_event("rtl-post-analysis")
+    app.add_event("rtl-card-rendered")
+    app.add_event("rtl-pre-elements-rendered")
+    app.add_event("rtl-post-elements-rendered")
+
     # Load the extensions
     app.setup_extension("myst_parser")
     app.setup_extension("sphinx_design")

@@ -28,6 +28,8 @@ class RTLConfig:
         - inferType:            Do we need to infer the component type (testbench, package, interface...) ?
         - inferPolarity :       Do we need to infer the polarity of the signals ?
         - inferGroups :         Do we need to groups the ports and signals following that start similar ?
+        - inferAssignments:     Do we need to infer the constant assignments ?
+        - resolveModules:       Do we need to infer the submodules IO types to ourselves ?
         - showSource :          Do we need to show the source file ?
         - mermaid :             Do we need to load the mermaid render from a CDN ?
         - wavedrom :            Do we need to load wavefrom render from a CDN ?
@@ -55,6 +57,12 @@ class RTLConfig:
 
     # @nogroups
     inferGroups: bool = True
+
+    # @noassigns
+    inferAssignments: bool = False
+
+    # @noresolve
+    resolveModules: bool = True
 
     # @nosource
     showSource: bool = True
@@ -128,19 +136,21 @@ class RTLConfig:
         """
 
         # Merge the elements
-        self.inferClocks = self.inferClocks or override.inferClocks
-        self.inferResets = self.inferResets or override.inferResets
-        self.inferIOs = self.inferIOs or override.inferIOs
-        self.inferType = self.inferType or override.inferType
-        self.inferPolarity = self.inferPolarity or override.inferPolarity
-        self.inferGroups = self.inferGroups or override.inferGroups
-        self.showSource = self.showSource or override.showSource
-        self.mermaid = self.mermaid or override.mermaid
-        self.wavedrom = self.wavedrom or override.wavedrom
-        self.template = self.template or override.template
-        self.signals = self.signals or override.signals
-        self.internals = self.internals or override.internals
-        self.inferVendor = self.inferVendor or override.inferVendor
+        self.inferClocks = self.inferClocks and override.inferClocks
+        self.inferResets = self.inferResets and override.inferResets
+        self.inferIOs = self.inferIOs and override.inferIOs
+        self.inferType = self.inferType and override.inferType
+        self.inferPolarity = self.inferPolarity and override.inferPolarity
+        self.inferGroups = self.inferGroups and override.inferGroups
+        self.inferAssignments = self.inferAssignments and override.inferAssignments
+        self.resolveModules = self.resolveModules and override.resolveModules
+        self.showSource = self.showSource and override.showSource
+        self.mermaid = self.mermaid and override.mermaid
+        self.wavedrom = self.wavedrom and override.wavedrom
+        self.template = self.template and override.template
+        self.signals = self.signals and override.signals
+        self.internals = self.internals and override.internals
+        self.inferVendor = self.inferVendor and override.inferVendor
         self.vendor = list(set(self.vendor) | set(override.vendor))
 
         # Return a copy

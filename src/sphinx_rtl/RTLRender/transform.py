@@ -14,6 +14,7 @@ from sphinx_rtl.nodes import RTLPlaceholderNode
 from sphinx_rtl.models import Component, FileInfo
 from sphinx_rtl.RTLDomain import RTLDomain
 from sphinx_rtl.RTLRender import RTLRender
+import time
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -42,22 +43,27 @@ class RTLRenderTransform(SphinxPostTransform):
         placeholders = list(self.document.findall(RTLPlaceholderNode))
         for placeholder in placeholders:
 
+            ts = time.time()
+
             name = placeholder["component_name"]
             data = components.get(name, Component(FileInfo()))
 
             # Fetch the render engine
-            render = RTLRender()
+            render = RTLRender(self.app, self.env)
             rendered_nodes, refs = render.render(data, placeholder["base_doc"])
 
             # Add the references to the domain
             domain.add_symbol_batch(refs, self.env.docname)
 
-            # Add some logs
-            count = len(list(rendered_nodes.findall()))
-            logger.info(f"[INFO] Rendered {name.strip()} ({count} nodes)")
-
             # Replace ourselves
             placeholder.replace_self(rendered_nodes)
+
+            # Add some logs
+            count = len(list(rendered_nodes.findall()))
+            tt = time.time()
+            logger.info(
+                f"[INFO] Rendered {name.strip()} ({count} nodes) in {(tt - ts) * 1000:.1f} ms."
+            )
 
         # Do we have any images to render ?
         # If yes, include them in the Sphinx image collector.

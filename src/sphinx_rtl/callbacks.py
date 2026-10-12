@@ -11,6 +11,7 @@ from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 from sphinx_rtl.RTLConfig import RTLConfig
+from sphinx_rtl.RTLAnalyse import RTLAnalyse
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -45,9 +46,16 @@ def on_env_get_outdated(
 
 def on_env_updated(app: Sphinx, env: BuildEnvironment) -> list[str]:
 
-    logger.info(">>> [EVENT: 3. env-updated] Execution de l'analyse globale")
+    # Fetch the different elements
     domain = env.get_domain("rtl")
     components = domain.data.get("components", {})
-    logger.info(f"[ANALYSE] {len(components)} composant(s) à ordonnancer dans le DAG.")
 
+    # Perform the analysis
+    engine = RTLAnalyse(app, env)
+    engine.analyse(components)
+
+    # Update the components
+    domain.data["components"] = components
+
+    # Exit
     return []

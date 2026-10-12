@@ -6,7 +6,9 @@
 #           different supported languages.
 # ----------------------------------------------------------------------------
 
+# Imports
 from dataclasses import dataclass, field
+from typing import Any
 from .RTLConfig import RTLConfig
 
 
@@ -440,6 +442,8 @@ class Component:
 
         - isVendor :        Define the current component as a dependant of some vendors.
         - vendors :         Store the different vendors involved.
+
+        - user :            A user defined element, for a better plugin support. Not used by the default extension.
     """
 
     # ----------------------------------------------------------------------
@@ -474,6 +478,9 @@ class Component:
 
     # Unknown flags
     flags: list[str] = field(default_factory=list)
+
+    # User custom element
+    user: Any = None
 
     # ----------------------------------------------------------------------
     # PROPERTIES

@@ -13,4 +13,5 @@ from .module_type import infer_type
 from .polarity import infer_polarity
 from .process import infer_process
 from .resets import infer_resets
+from .submodules import infer_submodules
 from .vendors import infer_vendors
