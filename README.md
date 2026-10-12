@@ -16,6 +16,7 @@ What make Sphinx-RTL better than others ? There are two points :
 
 - IR documentation pass : By reading the intermediate representation after parsing the file, we can extract more information : Related clock, CDC, nets groups, outputs ...
 - Git integration : The tool natively read your repo and search for commits, tags, author, messages ... No need to configure that in the top of the file.
+- Plugin integration : Add any custom Python code to edit on the fly the rendered page ! This enables NDA status, brands customizations or even CI/CD status network fetch !
 
 An example could be found here
 
@@ -58,22 +59,21 @@ Add this line, configured as you need in the main rst file.
 .. rtl-autodoc:: ../examples/vhdl/*.vhd
 ```
 
-```
-The extension support to modes of adding files :
-- glob (*, **/*) and any valid syntax to the python glob module
-- specific files.
+> ℹ️ **INFO**
+> The extension support to modes of adding files :
+>
+> - glob (_, \*\*/_) and any valid syntax to the python glob module
+> - specific files.
+>
+> To be noted : When the glob mode is used, all the modules found will be added to a single page, with all the elements.
+> This can be especially useful for different but similar modules, but shall not be used as a primary documentation method.
 
-To be noted : When the glob mode is used, all the modules found will be added to a single page, with all the elements.
-This can be especially useful for different but similar modules, but shall not be used as a primary documentation method.
-```
-
-```
-The extension also enable some aliases :
-
-- vhdl-autodoc
-- sv-autodoc
-They all do the same, without any differences.*
-```
+> ℹ️ **INFO**
+> The extension also enable some aliases :
+>
+> - vhdl-autodoc
+> - sv-autodoc
+>   They all do the same, without any differences.\*
 
 4. **Run sphinx as you always did**
 
@@ -89,7 +89,7 @@ More advanced users may want to fine the output documentation. For this, sphinx-
 
 All the arguments are reusing an older syntax scheme, close to what Doxygen proposed. This look like :
 
-```
+```sh
 @warning This module must be held in reset for at least 10 clock cycle.
 ```
 
@@ -128,7 +128,7 @@ an additive process : You can only add element to the documentation.
 
 These flags target the user, by enabling or disabling features for the final render.
 
-```
+```sh
 @warning This module must be held in reset for at least 10 clock cycle.
 ```
 
@@ -150,3 +150,24 @@ These flags target the user, by enabling or disabling features for the final ren
 | nointernals | `@nointernals` | Disable the process / enums for the doc.                                                                 |
 | novendors   | `@novendors`   | Disable the vendors inferring pass                                                                       |
 | vendor      | `@vendor`      | Set the vendor manually.                                                                                 |
+
+## Plugin integration
+
+Sphinx-rtl does not handle plugin individually, it rather depends on the native Sphinx plugin management.
+Therefore, natively the plugin emit events that you can fetch by writing your own Sphinx extension, and listen to them.
+
+> ℹ️ **INFO**
+> Sphinx-RTL provide a "user" field into each Component object, free for the user. This enables passing data between events and to the rendering pass
+> without having to maintain a dict of elements.
+>
+> By default, this "user" field is simply ignored by any rendering pass.
+
+### Emitted events :
+
+| Event                 | Name                         | Arguments                    | Description                                                                                                                               |
+| :-------------------- | :--------------------------- | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| Pre Analyse           | `rtl-pre-analysis`           | app, env, components         | Provide the raw parsed components access before performing the analysis. For example to add infos that could not be fetched from the AST. |
+| Post Analyse          | `rtl-post-analysis`          | app, env, components         | Provide the component after performing the analysis. For example to add infos or build a post analysis custom CI/CD format.               |
+| FileInfo Rendering    | `rtl-card-rendered`          | app, env, context, component | Provide the access to the component card element to add a section between the description and the file information (git, edit ...).       |
+| Component pre Render  | `rtl-pre-elements-rendered`  | app, env, context, component | Provide access to the first section of the component, before the parameters to be rendered.                                               |
+| Component post Render | `rtl-post-elements-rendered` | app, env, context, component | Provide access to the last section of the component.                                                                                      |

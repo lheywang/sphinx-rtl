@@ -36,17 +36,19 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
   - add support for inter module resolution pass
 - [ ] Add support for multi-top files
 - [ ] Add support for note_dependency for the globed files at runtime.
+- [ ] Add the support for the missing xref callback to fetch them and redirect to the module instantiation rather than triggering an error.
+- [ ] Add support for the changes within the files set and set tracking in place.
 
 ### Changes
 
 - [ ] Add RTLConfig (to builder-inited event) --> Load config file and tools paths -
   - Stored into env. ...
-- [ ] Add RTLParser (directive as actual, under a custom built class)
+- [x] Add RTLParser (directive as actual, under a custom built class)
   - Store results into env["components"]. Do not care about anything else
   - Store a placeholder to the node as a "render"
-- [ ] Add RTLAnalyse (to env-updated event) --> Perform the analysis
-- [ ] Add RTLRender (to SphinxPostTransform event) --> Perform the rendering pass
-- [ ] Add a component database to the RTLDomain element ("components")
+- [x] Add RTLAnalyse (to env-updated event) --> Perform the analysis
+- [x] Add RTLRender (to SphinxPostTransform event) --> Perform the rendering pass
+- [x] Add a component database to the RTLDomain element ("components")
 
 ### Tests and debug
 
@@ -66,3 +68,7 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [x] Interface based ports are shown as "Input", which is incorrect.
 - [ ] SystemVerilog interfaces aren't correctly parsed --> Return an empty component.
 - [x] Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.
+
+### Corrections
+
+- [ ] Add links to the assignment panel

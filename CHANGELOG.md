@@ -37,3 +37,4 @@ _Note : This version is not available under a git tag_
 
 - Changed the project structure to exploit the sphinx BuildEnvironment feature. This enable higher quality builds (faster due to the cache,
   more analysis possibles as the elements are analyzed after parsing all of them ...).
+- Added events ability to add custom features to the rendering and analysis passes. This enable custom notes (Logos, NDA status, or more CI/CD integrations directly into the app !).
