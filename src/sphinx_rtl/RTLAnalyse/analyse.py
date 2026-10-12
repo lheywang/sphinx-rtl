@@ -11,6 +11,7 @@ from sphinx.util import logging
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx_rtl.models import Component, RTLConfig
+import time
 
 from .modules import (
     infer_assigns,
@@ -121,6 +122,7 @@ class RTLAnalyse:
         Perform the analysis from a single component, according the passed configuration element.
         """
         logger.info(f"[INFO] --- Running analysis for {component.name}.")
+        ts = time.time()
 
         cfg: RTLConfig = component.render
 
@@ -184,4 +186,9 @@ class RTLAnalyse:
         if cfg.inferVendor:
             component = infer_vendors(component)
 
+        # Final logs
+        tt = time.time()
+        logger.info(
+            f"[INFO] Finished analysis for {component.name} in {(tt - ts) * 1000:.1f} ms."
+        )
         return component
