@@ -308,21 +308,21 @@ module assembly_alu #(
     alu0 alu_0 [4:0] (
         .clk(clk),
         .rst_n(rst_n),
-        .arg0(alu0_arg0),
-        .arg1(alu0_arg1),
-        .addr(alu0_addr),
-        .imm(alu0_imm),
-        .cmd(alu0_cmd),
+        .i_arg0(alu0_arg0),
+        .i_arg1(alu0_arg1),
+        .i_addr(alu0_addr),
+        .i_imm(alu0_imm),
+        .i_cmd(alu0_cmd),
         .i_rd(alu0_i_rd),
-        .busy(alu0_busy),
+        .i_busy(alu0_busy),
         .i_error(alu0_i_error),
-        .res(alu0_res),
-        .jmp(alu0_jmp),
+        .o_res(alu0_res),
+        .o_jmp(alu0_jmp),
         .o_rd(alu0_o_rd),
-        .valid(alu0_valid),
-        .o_error(alu0_o_error),
-        .req(alu0_req),
-        .clear(alu0_clear)
+        .o_valid(alu0_valid),
+        .o_o_error(alu0_o_error),
+        .o_req(alu0_req),
+        .o_clear(alu0_clear)
     );
 
 endmodule
