@@ -8,6 +8,7 @@
 # Imports
 import sys
 from pathlib import Path
+from sphinx_rtl.RTLConfig import RTLConfig
 
 # Ensure the code will be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -28,3 +29,12 @@ html_theme_options = {
     "body_max_width": "auto",
     "sidebar_width": "280px",
 }
+
+# Configure the project
+rtl_config = RTLConfig()
+rtl_config.configure_shown_elements(mermaid=False, wavedrom=False)
+rtl_config.configure_resolution(modules=True)
+rtl_config.add_public_output("db.json")
+rtl_config.add_public_output("backup/db_bckp.json")
+rtl_config.add_private_output("db_nda.json")
+rtl_config.add_component_source("../examples/db_nda.json")

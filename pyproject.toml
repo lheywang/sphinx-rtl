@@ -18,6 +18,7 @@ dependencies = [
     "pyslang>=11.0.0",
     "pyghdl>=1.0.dev0",
     "sphinx-design>=0.7.0",
+    "cattrs>=26.2.1",
 ]
 
 [project.optional-dependencies]

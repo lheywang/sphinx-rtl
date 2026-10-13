@@ -164,10 +164,11 @@ Therefore, natively the plugin emit events that you can fetch by writing your ow
 
 ### Emitted events :
 
-| Event                 | Name                         | Arguments                    | Description                                                                                                                               |
-| :-------------------- | :--------------------------- | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
-| Pre Analyse           | `rtl-pre-analysis`           | app, env, components         | Provide the raw parsed components access before performing the analysis. For example to add infos that could not be fetched from the AST. |
-| Post Analyse          | `rtl-post-analysis`          | app, env, components         | Provide the component after performing the analysis. For example to add infos or build a post analysis custom CI/CD format.               |
-| FileInfo Rendering    | `rtl-card-rendered`          | app, env, context, component | Provide the access to the component card element to add a section between the description and the file information (git, edit ...).       |
-| Component pre Render  | `rtl-pre-elements-rendered`  | app, env, context, component | Provide access to the first section of the component, before the parameters to be rendered.                                               |
-| Component post Render | `rtl-post-elements-rendered` | app, env, context, component | Provide access to the last section of the component.                                                                                      |
+| Event                   | Name                         | Arguments                    | Description                                                                                                                               |
+| :---------------------- | :--------------------------- | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| Pre Analyse             | `rtl-pre-analysis`           | app, env, components         | Provide the raw parsed components access before performing the analysis. For example to add infos that could not be fetched from the AST. |
+| Post Analyse            | `rtl-post-analysis`          | app, env, components         | Provide the component after performing the analysis. For example to add infos or build a post analysis custom CI/CD format.               |
+| FileInfo Rendering      | `rtl-card-rendered`          | app, env, context, component | Provide the access to the component card element to add a section between the description and the file information (git, edit ...).       |
+| Component pre Render    | `rtl-pre-elements-rendered`  | app, env, context, component | Provide access to the first section of the component, before the parameters to be rendered.                                               |
+| Component post Render   | `rtl-post-elements-rendered` | app, env, context, component | Provide access to the last section of the component.                                                                                      |
+| Component clear request | `rtl-pre-private-export`     | app, env, components         | Request for the cleaning of the components. Must return the components as a list, otherwise the default function will be called.          |

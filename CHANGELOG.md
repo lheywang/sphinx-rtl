@@ -38,3 +38,5 @@ _Note : This version is not available under a git tag_
 - Changed the project structure to exploit the sphinx BuildEnvironment feature. This enable higher quality builds (faster due to the cache,
   more analysis possibles as the elements are analyzed after parsing all of them ...).
 - Added events ability to add custom features to the rendering and analysis passes. This enable custom notes (Logos, NDA status, or more CI/CD integrations directly into the app !).
+- Added the ability to export and imports JSON components from a previous / different run. Ensure NDA information aren't shared !
+- Moved the configuration from a sphinx_rtl.toml file to a configuration done at the runtime within the conf.py file.
