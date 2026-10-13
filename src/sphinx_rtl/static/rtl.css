@@ -50,3 +50,18 @@ a.sd-text-decoration-none:hover {
   text-decoration: none !important;
   border-bottom: none !important;
 }
+
+a.rtl-fallback-xref {
+  border-bottom: 1px dotted var(--sd-color-primary, #007bff);
+  text-decoration: none;
+  cursor: help;
+}
+
+a.rtl-fallback-xref:hover {
+  opacity: 0.85;
+}
+
+.sd-badge.rtl-stub-badge {
+  cursor: not-allowed;
+  font-family: monospace;
+}

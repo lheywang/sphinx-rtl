@@ -11,8 +11,15 @@ from pathlib import Path
 from sphinx_rtl.nodes import RTLPlaceholderNode
 from sphinx_rtl.RTLDomain import RTLDomain
 from sphinx_rtl.RTLRender import RTLRenderTransform
+from sphinx_rtl.RTLConfig import RTLConfig
 from sphinx_rtl.directive import RTLAutodocDirective
-from sphinx_rtl.callbacks import on_builder_inited, on_env_get_outdated, on_env_updated
+from sphinx_rtl.callbacks import (
+    on_builder_inited,
+    on_env_get_outdated,
+    on_env_updated,
+    on_build_finished,
+    on_missing_reference,
+)
 
 
 # Setup
@@ -28,6 +35,9 @@ def setup(app):
     app.add_event("rtl-pre-elements-rendered")
     app.add_event("rtl-post-elements-rendered")
 
+    # Add our configuration values
+    app.add_config_value("rtl_config", default=RTLConfig(), rebuild="env")
+
     # Load the extensions
     app.setup_extension("myst_parser")
     app.setup_extension("sphinx_design")
@@ -39,6 +49,8 @@ def setup(app):
     app.connect("builder-inited", on_builder_inited)
     app.connect("env-get-outdated", on_env_get_outdated)
     app.connect("env-updated", on_env_updated)
+    app.connect("build-finished", on_build_finished)
+    app.connect("missing-reference", on_missing_reference)
 
     # Add the post transform
     app.add_post_transform(RTLRenderTransform)

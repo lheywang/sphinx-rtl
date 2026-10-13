@@ -225,3 +225,84 @@ class RTLDomain(Domain):
         for target_id, sym in self.data["symbols"].items():
             disp = f"{sym['comp']}.{sym['name']}" if sym["comp"] else sym["name"]
             yield (target_id, disp, sym["type"], sym["docname"], target_id, 1)
+
+    def resolve_missing_xref(
+        self,
+        env: BuildEnvironment,
+        fromdocname: str,
+        builder: Any,
+        typ: str,
+        target: str,
+        node: nodes.Element,
+        contnode: nodes.Element,
+    ) -> nodes.Element | None:
+        """
+        Resolve missing xref by searching for the nearest element that could match.
+        Not perfect, but better than anything.
+        """
+
+        components = self.data.get("components", {})
+        docnames = self.data.get("doc_files", {})
+
+        # Fetch the known slugs
+        slug_map = {name.lower().replace("_", "-"): name for name in components}
+
+        # Sort by length to ensure we always find the most precise slug first
+        sorted_slugs = sorted(slug_map.keys(), key=len, reverse=True)
+
+        # Normalize slug
+        target_slug = target.lower()
+        parent_slug = None
+        real_parent_name = None
+
+        # Search for a known parent.
+        for slug in sorted_slugs:
+            if target_slug.startswith(slug):
+                parent_slug = slug
+                real_parent_name = slug_map[slug]
+                break
+
+        # Did we find any valid parents ?
+        if not real_parent_name:
+            return None
+
+        # For now, this does not work correctly. Docnames is empty --> Never updated !
+        comp = components[real_parent_name]
+        target_doc = docnames.get(real_parent_name)
+        print(docnames)
+        if not target_doc:
+            return None
+
+        # Extract the missing part
+        remainder = target_slug[len(parent_slug) :].strip("-")
+        print(remainder)
+
+        # Découpage du sous-élément (ex: "csr" et "port-clk")
+        parts = remainder.split("-", 1)
+        sub_instance = parts[0] if parts else ""
+        sub_element = parts[1].replace("-", " ") if len(parts) > 1 else "signal interne"
+
+        base_uri = builder.get_relative_uri(fromdocname, target_doc)
+
+        # 4. Construction de l'ancre de redirection
+        # On cible en priorité la section d'instanciation du sous-bloc dans le parent
+        # (Adapte l'ancre selon ton générateur : ex. '#instances', '#module-instances' ou '#inst-csr')
+        target_anchor = (
+            f"{parent_slug}-instances"  # ou f"{parent_slug}-inst-{sub_instance}"
+        )
+
+        hover_msg = (
+            f"Le sous-bloc « {sub_instance} » n'a pas de page dédiée.\n"
+            f"Redirection vers l'instanciation dans « {real_parent_name} » ({sub_element})."
+        )
+
+        ref_node = nodes.reference(
+            "",
+            "",
+            internal=True,
+            refuri=f"{base_uri}#{target_anchor}",
+            reftitle=hover_msg,  # Hover text natif (attribut HTML title)
+            classes=["rtl-fallback-instance-xref"],
+        )
+        ref_node += contnode
+        return ref_node

@@ -9,7 +9,14 @@
 # Imports
 from dataclasses import dataclass, field
 from typing import Any
+import json
+from pathlib import Path
+from cattrs import Converter
 from .RTLConfig import RTLConfig
+
+# ----------------------------------------------------------------------------
+# CLASSES
+# ----------------------------------------------------------------------------
 
 
 @dataclass(slots=True)
@@ -425,6 +432,8 @@ class Component:
         - details :         The long description of the component.
         - config :          The extended config file to be used.
         - comp_type :       The component type, to eventually be inferred by the IR.
+        - is_stub:          Is the component coming from a json import ? Is yes, must not be rendered.
+        - doc_url:          A user available URL to link to anything external. Any links inside the description will be added to this list.
 
         - parameters :      The list of available parameters for this component.
         - ports :           The list of module ports.
@@ -458,6 +467,8 @@ class Component:
     brief: str = ""
     details: str = ""
     comp_type: str = ""
+    is_stub: bool = False
+    doc_url: list[str] = field(default_factory=list)
 
     # Render config
     config: ComponentConfig = field(default_factory=ComponentConfig)
@@ -490,3 +501,93 @@ class Component:
     def vendors(self) -> set[str]:
         """Fetch the vendors known for the entity"""
         return {mod.vendor for mod in self.modules if mod.isVendor and mod.vendor}
+
+
+# ----------------------------------------------------------------------------
+# FUNCTIONS FOR EXPORT / IMPORT
+# ----------------------------------------------------------------------------
+def _make_converter() -> Converter:
+    """
+    Build and configure the converter engine, used to serialize / deserialize structures.
+    """
+    conv = Converter()
+
+    conv.register_structure_hook(Path, lambda s, _: Path(s))
+    conv.register_unstructure_hook(Path, lambda p: str(p))
+
+    return conv
+
+
+# Instantiate the main converter function
+_converter = _make_converter()
+
+
+def serialize_components(comps: list[Component], output: Path) -> None:
+    """
+    Serialize a list of components to a given JSON file.
+    """
+
+    raw_data = _converter.unstructure(comps)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(raw_data, indent=2, ensure_ascii=True), encoding="utf-8"
+    )
+
+
+def load_components(source: Path) -> list[Component]:
+    """
+    Load components from a json file and return the list of associated components.
+    """
+
+    # Load the components
+    raw_text = source.read_text(encoding="utf-8")
+    raw_data: Any = json.loads(raw_text)
+
+    # Build the list and update the settings
+    elements = _converter.structure(raw_data, list[Component])
+
+    for element in elements:
+        element.is_stub = True
+
+    return elements
+
+
+# ----------------------------------------------------------------------------
+# BASIC CLEANUP FUNCTION FOR PRIVATE EXPORT
+# ----------------------------------------------------------------------------
+def standard_cleanup(comps: list[Component]) -> list[Component]:
+    """
+    Remove internals and comments from objects on the list.
+    """
+    for component in comps:
+
+        # Clear internals
+        component.signals.clear()
+        component.modules.clear()
+        component.assigns.clear()
+        component.enums.clear()
+        component.functions.clear()
+        component.imports.clear()
+        component.interfaces.clear()
+        component.structures.clear()
+        component.flags.clear()
+        component.process.clear()
+
+        # Reset file infos and parameters
+        component.file = FileInfo()
+        component.config = ComponentConfig()
+        component.render = RTLConfig()
+
+        # Clear the user field name
+        component.user = None
+
+        # Clear port and parameters comments
+        for port in component.ports:
+            port.description = ""
+            port.line = -1
+
+        for param in component.parameters:
+            param.description = ""
+            param.line = -1
+
+    return comps

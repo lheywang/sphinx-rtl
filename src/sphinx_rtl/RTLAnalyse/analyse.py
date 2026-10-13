@@ -133,6 +133,7 @@ class RTLAnalyse:
 
             # Inferring processes are required for the others to operate properly.
             component = infer_process(component)
+            component = infer_assigns(component)
 
             # ------------------------------
             # INFER CLOCKS

@@ -16,6 +16,9 @@ from sphinx.util import logging
 logger = logging.getLogger(__name__)
 
 
+# ----------------------------------------------------------------------------
+# CLASSES
+# ----------------------------------------------------------------------------
 @dataclass(slots=True)
 class RTLConfig:
     """
@@ -38,6 +41,10 @@ class RTLConfig:
         - internals :           Do we need to show all the internals (Processes, Enums, Imports ...) in the doc ? Setting this will also infer @nosignals.
         - inferVendor :         Do we need to infer the vendor from the different modules ?
         - vendor :              User available config to set the vendor manually.
+
+        - public_output:        The stripped component output as JSON. Useful for NDA elements where not all documentation shall be exported.
+        - private_output:       The internal fully detailed export as JSON. Useful for internal usage.
+        - external_stubs:       The import stubs to be used for the rendering pass. Useful to import external component under any restrictions without comprising the quality of the infer pass.
     """
 
     # @noclocks
@@ -88,48 +95,14 @@ class RTLConfig:
     # @vendor Altera
     vendor: list[str] = field(default_factory=list)
 
-    @classmethod
-    def discover(cls, base_path: Path) -> RTLConfig:
-        """
-        Discover and self-load the first sphinx-rtl.toml file to be found.
-        """
+    # Global fields
+    public_output: list[str] = field(default_factory=list)
+    private_output: list[str] = field(default_factory=list)
+    external_stubs: list[str] = field(default_factory=list)
 
-        # Init elements
-        current = base_path.resolve()
-        toml_path: Path | None = None
-
-        # Iterate until we find something
-        for parent in [current, *current.parents]:
-            candidate = parent / "sphinx-rtl.toml"
-            if candidate.is_file():
-                toml_path = candidate
-                break
-
-        if not toml_path:
-            logger.warning(
-                "Could not find any sphinx-rtl.toml file. Using default config."
-            )
-            return cls()
-
-        logger.info(f"[INFO] Found config file at {str(toml_path)}. Using it.")
-
-        # Loading the parameters :
-        try:
-            with toml_path.open("rb") as f:
-                data = tomllib.load(f).get("rtl", {})
-
-            init = cls()
-            for key, value in data.items():
-                try:
-                    setattr(init, key, value)
-                except AttributeError as e:
-                    pass
-            return init
-
-        except Exception as e:
-            logger.error(f"[ERROR] Could not load the config file. Reason : {e}")
-            return cls()
-
+    # ----------------------------------------------------------------------------
+    # FUNCTIONS
+    # ----------------------------------------------------------------------------
     def merge(self, override: RTLConfig) -> RTLConfig:
         """
         Merge two elements into ourselves, and return a copy of us.
@@ -155,3 +128,89 @@ class RTLConfig:
 
         # Return a copy
         return copy.deepcopy(self)
+
+    def configure_infer(
+        self,
+        clocks: bool = True,
+        resets: bool = True,
+        IOs: bool = True,
+        types: bool = True,
+        polarity: bool = True,
+        groups: bool = True,
+        assignments: bool = True,
+        vendor=True,
+    ) -> None:
+        """
+        Configure the infer process elements.
+        """
+        self.inferClocks = clocks
+        self.inferResets = resets
+        self.inferIOs = IOs
+        self.inferType = types
+        self.inferPolarity = polarity
+        self.inferGroups = groups
+        self.inferAssignments = assignments
+        self.inferVendor = vendor
+
+    def configure_resolution(self, modules: bool = True) -> None:
+        """
+        Configure the plugin resolution
+        """
+        self.resolveModules = modules
+
+    def configure_shown_elements(
+        self,
+        source: bool = True,
+        mermaid: bool = True,
+        wavedrom: bool = True,
+        template: bool = True,
+        signals: bool = True,
+        internals: bool = True,
+    ) -> None:
+        """
+        Configure the shown elements.
+        """
+        self.showSource = source
+        self.mermaid = mermaid
+        self.wavedrom = wavedrom
+        self.template = template
+        self.signals = signals
+        self.internals = internals
+
+    def add_vendor(self, vendor: str | list[str]) -> None:
+        """
+        Add a vendor to the internal database.
+        """
+        if type(vendor) is str:
+            self.vendor.append(vendor)
+        elif type(vendor) is list:
+            self.vendor.extend(vendor)
+
+    def add_public_output(self, output: str | list[str]) -> None:
+        """
+        Add an output of the public type (fully detailed JSON).
+        """
+        if type(output) is str:
+            self.public_output.append(output)
+        elif type(output) is list:
+            self.public_output.extend(output)
+
+    def add_private_output(self, output: str | list[str]) -> None:
+        """
+        Add an output of the private type (limited JSON).
+        This output can be customized by the associated event.
+        """
+        if type(output) is str:
+            self.private_output.append(output)
+        elif type(output) is list:
+            self.private_output.extend(output)
+
+    def add_component_source(self, source: str | list[str]) -> None:
+        """
+        Add an external database to be loaded before performing the IR.
+        This enable sharing data where the source must not be available to all.
+        """
+        if type(source) is str:
+            self.external_stubs.append(source)
+        elif type(source) is list:
+            self.external_stubs.extend(source)
