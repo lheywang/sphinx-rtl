@@ -1,0 +1,448 @@
+[
+    {
+        "file": {
+            "name": "",
+            "path": "",
+            "repo_path": "",
+            "creation_author": "",
+            "creation_hash": "",
+            "creation_date": "",
+            "creation_tag": "",
+            "edit_date": "",
+            "edit_hash": "",
+            "edit_author": "",
+            "edit_tag": "",
+            "is_dirty": false,
+            "message": ""
+        },
+        "name": "altera_avalon_i2c",
+        "brief": "(C) 2001-2025 Altera Corporation",
+        "details": "All rights reserved.\nYour use of Altera Corporation's design tools, logic functions and other\nsoftware and tools, and its AMPP partner logic functions, and any output\nfiles from any of the foregoing (including device programming or simulation\nfiles), and any associated documentation or information are expressly subject\nto the terms and conditions of the Altera Program License Subscription\nAgreement, Altera IP License Agreement, or other applicable\nlicense agreement, including, without limitation, that your use is for the\nsole purpose of programming logic devices manufactured by Altera and sold by\nAltera or its authorized distributors.  Please refer to the applicable\nagreement for further details.",
+        "comp_type": "module",
+        "config": {
+            "warning": "",
+            "notes": "",
+            "isTestbench": false,
+            "testbenchTarget": "",
+            "isPackage": false,
+            "isInterface": false,
+            "constraints": [],
+            "clock": [],
+            "latency": 0,
+            "throughput": "",
+            "register": [],
+            "target": "",
+            "tool": "",
+            "sim": "",
+            "complicante": "",
+            "burst": 0,
+            "security": "",
+            "status": "release",
+            "deprecated": "",
+            "version": "1.0.0",
+            "task": "",
+            "license": "",
+            "copyright": "",
+            "tags": []
+        },
+        "render": {
+            "inferClocks": true,
+            "inferResets": true,
+            "inferIOs": true,
+            "inferType": true,
+            "inferPolarity": true,
+            "inferGroups": true,
+            "inferAssignments": false,
+            "resolveModules": true,
+            "showSource": true,
+            "mermaid": true,
+            "wavedrom": true,
+            "template": true,
+            "signals": true,
+            "internals": true,
+            "inferVendor": true,
+            "vendor": [],
+            "public_output": [],
+            "private_output": [],
+            "external_stubs": []
+        },
+        "parameters": [
+            {
+                "name": "USE_AV_ST",
+                "description": "",
+                "line": -1,
+                "hdl_type": "logic signed[31:0]",
+                "hdl_value": "0"
+            },
+            {
+                "name": "FIFO_DEPTH",
+                "description": "",
+                "line": -1,
+                "hdl_type": "logic signed[31:0]",
+                "hdl_value": "8"
+            },
+            {
+                "name": "FIFO_DEPTH_LOG2",
+                "description": "",
+                "line": -1,
+                "hdl_type": "logic signed[31:0]",
+                "hdl_value": "3"
+            }
+        ],
+        "ports": [
+            {
+                "name": "clk",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "rst_n",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "negative",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "addr",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "3",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "read",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "write",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "writedata",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "31",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "readdata",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "31",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            },
+            {
+                "name": "src_data",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "7",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "src",
+                "pair": ""
+            },
+            {
+                "name": "src_valid",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "src",
+                "pair": ""
+            },
+            {
+                "name": "src_ready",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "src",
+                "pair": ""
+            },
+            {
+                "name": "snk_data",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "15",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "snk",
+                "pair": ""
+            },
+            {
+                "name": "snk_valid",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "snk",
+                "pair": ""
+            },
+            {
+                "name": "snk_ready",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "snk",
+                "pair": ""
+            },
+            {
+                "name": "scl_oe",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "scl",
+                "pair": ""
+            },
+            {
+                "name": "sda_oe",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "sda",
+                "pair": ""
+            },
+            {
+                "name": "scl_in",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "scl",
+                "pair": ""
+            },
+            {
+                "name": "sda_in",
+                "description": "",
+                "line": -1,
+                "direction": "input",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "sda",
+                "pair": ""
+            },
+            {
+                "name": "intr",
+                "description": "",
+                "line": -1,
+                "direction": "output",
+                "hdl_type": "logic",
+                "hdl_size": [
+                    "0",
+                    "0"
+                ],
+                "hdl_value": "",
+                "hdl_sync": [
+                    "clk"
+                ],
+                "hdl_reset": "",
+                "hdl_polarity": "positive",
+                "group": "",
+                "pair": ""
+            }
+        ],
+        "enums": [],
+        "imports": [],
+        "signals": [],
+        "process": [],
+        "assigns": [],
+        "interfaces": [],
+        "modules": [],
+        "functions": [],
+        "structures": [],
+        "flags": [],
+        "user": null
+    }
+]
