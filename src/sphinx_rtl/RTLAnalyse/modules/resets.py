@@ -7,11 +7,12 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component, Port, Signal
+from sphinx_rtl.models import Component, Port, Signal
 import itertools
 
 # Configure logger
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,9 @@ def infer_resets(component: Component) -> Component:
 
     if count > 0:
         logger.info(
-            f"[INFO] Attached resets to {count} port{"s" if count > 1 else ""} and signal{"s" if count > 1 else ""}."
+            blue(
+                f"[INFO] Attached resets to {count} port{"s" if count > 1 else ""} and signal{"s" if count > 1 else ""}."
+            )
         )
 
     return component

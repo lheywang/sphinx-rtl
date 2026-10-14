@@ -6,10 +6,11 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component
+from sphinx_rtl.models import Component
 
 # Configure logger
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +23,15 @@ def infer_type(component: Component) -> Component:
     # Does the component is already tagged ?
     if component.config.isTestbench:
         component.comp_type = "testbench"
-        logger.info(f"[INFO] Detected type : testbench")
+        logger.info(blue(f"[INFO] Detected type : testbench"))
         return component
     elif component.config.isPackage:
         component.comp_type = "package"
-        logger.info(f"[INFO] Detected type : package")
+        logger.info(blue(f"[INFO] Detected type : package"))
         return component
     elif component.config.isInterface:
         component.comp_type = "interface"
-        logger.info(f"[INFO] Detected type : interface")
+        logger.info(blue(f"[INFO] Detected type : interface"))
         return component
 
     # First, fetch the number of different modules
@@ -48,12 +49,12 @@ def infer_type(component: Component) -> Component:
         if (modules_count > 0) and (interface_count == 0) and (signal_count > 0):
             component.config.isTestbench = True
             component.comp_type = "testbench"
-            logger.info(f"[INFO] Flagged type : testbench")
+            logger.info(blue(f"[INFO] Flagged type : testbench"))
 
         elif ((enums_count > 0) or (parameter_count > 0)) and (signal_count == 0):
             component.config.isPackage = True
             component.comp_type = "package"
-            logger.info(f"[INFO] Flagged type : package")
+            logger.info(blue(f"[INFO] Flagged type : package"))
 
     else:
 
@@ -61,10 +62,10 @@ def infer_type(component: Component) -> Component:
         if (modules_count == 0) and (interface_count > 0):
             component.config.isInterface = True
             component.comp_type = "interface"
-            logger.info(f"[INFO] Flagged type : interface")
+            logger.info(blue(f"[INFO] Flagged type : interface"))
 
         else:
             component.comp_type = "module"
-            logger.info(f"[INFO] Flagged type : module")
+            logger.info(blue(f"[INFO] Flagged type : module"))
 
     return component

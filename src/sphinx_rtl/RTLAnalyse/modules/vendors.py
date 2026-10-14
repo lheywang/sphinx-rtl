@@ -7,12 +7,12 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-import re
-from ...models import Component
+from sphinx_rtl.models import Component
 from .vendor_rules import classify_vendor
 
 # Configure logger
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,9 @@ def infer_vendors(component: Component) -> Component:
     # Add some logging
     if count > 0:
         logger.info(
-            f"[INFO] Found {count} primitive{"s" if count > 1 else ""} that match known vendors : {component.vendors}"
+            blue(
+                f"[INFO] Found {count} primitive{"s" if count > 1 else ""} that match known vendors : {component.vendors}"
+            )
         )
 
     return component

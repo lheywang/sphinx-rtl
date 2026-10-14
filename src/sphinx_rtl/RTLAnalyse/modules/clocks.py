@@ -7,11 +7,12 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component
+from sphinx_rtl.models import Component
 import itertools
 
 # Configure logger
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,9 @@ def infer_clocks(component: Component) -> Component:
     clk_count = max(clk_length) if len(clk_length) > 0 else 0
     if count > 0:
         logger.info(
-            f"[INFO] Attached {clk_count} clock{"s" if clk_count > 1 else ""} to {count} port{"s" if count > 1 else ""} and signal{"s" if count > 1 else ""}."
+            blue(
+                f"[INFO] Attached {clk_count} clock{"s" if clk_count > 1 else ""} to {count} port{"s" if count > 1 else ""} and signal{"s" if count > 1 else ""}."
+            )
         )
 
     return component

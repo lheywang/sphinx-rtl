@@ -7,11 +7,11 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component
-import itertools
+from sphinx_rtl.models import Component
 
 # Configure logger
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,9 @@ def infer_assigns(component: Component) -> Component:
 
     if count > 0:
         logger.info(
-            f"[INFO] Detected {count} assignment{"s" if count > 1 else ""} and updated the target settings to match the source settings."
+            blue(
+                f"[INFO] Detected {count} assignment{"s" if count > 1 else ""} and updated the target settings to match the source settings."
+            )
         )
 
     return component

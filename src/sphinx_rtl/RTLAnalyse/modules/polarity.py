@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component
+from sphinx_rtl.models import Component
 from dataclasses import dataclass
 import itertools
 from enum import StrEnum
@@ -14,6 +14,7 @@ import re
 
 # Configure logger
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +178,8 @@ def infer_polarity(component: Component) -> Component:
 
     # Final logs
     if count > 0:
-        logger.info(f"[INFO] Attached {count} polarities / pairs markers to ports.")
+        logger.info(
+            blue(f"[INFO] Attached {count} polarities / pairs markers to ports.")
+        )
 
     return component

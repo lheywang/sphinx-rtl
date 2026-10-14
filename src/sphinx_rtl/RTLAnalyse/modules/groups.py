@@ -6,12 +6,13 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component
+from sphinx_rtl.models import Component
 from collections import Counter, defaultdict
+from typing import TypeVar
 
 # Configure logger
 from sphinx.util import logging
-from typing import TypeVar
+from sphinx._cli.util.colour import blue
 
 # Get a free type variable
 T = TypeVar("T")
@@ -60,7 +61,7 @@ def _infer(names: list[str], elements: list[T]):
     groups_count = len(groups.keys())
     if groups_count > 1:
         logger.info(
-            f"[INFO] Found {groups_count} group{"s" if groups_count > 1 else ""}"
+            blue(f"[INFO] Found {groups_count} group{"s" if groups_count > 1 else ""}")
         )
 
 

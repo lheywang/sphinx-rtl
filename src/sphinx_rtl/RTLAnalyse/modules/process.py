@@ -6,12 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from ...models import Component
-
-# Configure logger
-from sphinx.util import logging
-
-logger = logging.getLogger(__name__)
+from sphinx_rtl.models import Component
 
 
 def infer_process(component: Component) -> Component:

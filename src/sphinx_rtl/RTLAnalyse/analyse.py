@@ -8,6 +8,7 @@
 # Imports
 from graphlib import CycleError, TopologicalSorter
 from sphinx.util import logging
+from sphinx._cli.util.colour import bold, blue
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx_rtl.models import Component, RTLConfig
@@ -55,7 +56,9 @@ class RTLAnalyse:
 
         # First, logs.
         logger.info(
-            f"[INFO] Running analysis for {len(components)} component{"s" if len(components) > 1 else ""}"
+            bold(
+                f"[INFO] Running analysis for {len(components)} component{"s" if len(components) > 1 else ""}"
+            )
         )
 
         # Emit an event before doing anything
@@ -121,7 +124,7 @@ class RTLAnalyse:
         """
         Perform the analysis from a single component, according the passed configuration element.
         """
-        logger.info(f"[INFO] --- Running analysis for {component.name}.")
+        logger.info(bold(f"[INFO] --- Running analysis for {component.name}."))
         ts = time.time()
 
         cfg: RTLConfig = component.render
@@ -133,7 +136,6 @@ class RTLAnalyse:
 
             # Inferring processes are required for the others to operate properly.
             component = infer_process(component)
-            component = infer_assigns(component)
 
             # ------------------------------
             # INFER CLOCKS
@@ -146,6 +148,9 @@ class RTLAnalyse:
             # ------------------------------
             if cfg.inferResets:
                 component = infer_resets(component)
+
+            # Finally infer assignments.
+            component = infer_assigns(component)
 
         else:
             if cfg.inferClocks:
@@ -190,6 +195,8 @@ class RTLAnalyse:
         # Final logs
         tt = time.time()
         logger.info(
-            f"[INFO] Finished analysis for {component.name} in {(tt - ts) * 1000:.1f} ms."
+            blue(
+                f"[INFO] Finished analysis for {component.name} in {(tt - ts) * 1000:.1f} ms."
+            )
         )
         return component
