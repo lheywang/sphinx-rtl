@@ -7,11 +7,13 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from dataclasses import dataclass, field
-from typing import Any
 import json
+from dataclasses import dataclass, field, fields, is_dataclass
+from typing import Any
+from pprint import pformat
 from pathlib import Path
 from cattrs import Converter
+from collections.abc import Sequence
 from .RTLConfig import RTLConfig
 
 # ----------------------------------------------------------------------------
@@ -306,6 +308,14 @@ class FileInfo:
     is_dirty: bool = False
     message: str = ""
 
+    # ----------------------------------------------------------------------
+    # FUNCTIONS
+    # ----------------------------------------------------------------------
+    def __repr__(self) -> str:
+        data = {f.name: getattr(self, f.name) for f in fields(self)}
+        formatted = pformat(data, indent=2, width=120, sort_dicts=False)
+        return f"{self.__class__.__name__} (\n{formatted}\n)"
+
 
 @dataclass(slots=True)
 class ComponentConfig:
@@ -417,6 +427,14 @@ class ComponentConfig:
     # @tags Done
     tags: list[str] = field(default_factory=list)
 
+    # ----------------------------------------------------------------------
+    # FUNCTIONS
+    # ----------------------------------------------------------------------
+    def __repr__(self) -> str:
+        data = {f.name: getattr(self, f.name) for f in fields(self)}
+        formatted = pformat(data, indent=2, width=120, sort_dicts=False)
+        return f"{self.__class__.__name__} (\n{formatted}\n)"
+
 
 @dataclass(slots=True)
 class Component:
@@ -501,6 +519,16 @@ class Component:
     def vendors(self) -> set[str]:
         """Fetch the vendors known for the entity"""
         return {mod.vendor for mod in self.modules if mod.isVendor and mod.vendor}
+
+    # ----------------------------------------------------------------------
+    # FUNCTIONS
+    # ----------------------------------------------------------------------
+    def __repr__(self) -> str:
+        data = {
+            f.name: _summarize_for_repr(getattr(self, f.name)) for f in fields(self)
+        }
+        formatted = pformat(data, indent=2, width=120, sort_dicts=False)
+        return f"{self.__class__.__name__} (\n{formatted}\n)"
 
 
 # ----------------------------------------------------------------------------
@@ -591,3 +619,31 @@ def standard_cleanup(comps: list[Component]) -> list[Component]:
             param.line = -1
 
     return comps
+
+
+def _summarize_for_repr(val: Any) -> Any:
+    if isinstance(val, Element):
+        name = getattr(val, "name", "")
+        return (
+            f"<{val.__class__.__name__}: {name}>"
+            if name
+            else f"<{val.__class__.__name__}>"
+        )
+
+    if (
+        isinstance(val, Sequence)
+        and not isinstance(val, (str, bytes))
+        and val
+        and isinstance(val[0], Element)
+    ):
+        elem_cls = val[0].__class__.__name__
+        return f"[{len(val)} instances of {elem_cls}]"
+
+    if (
+        isinstance(val, dict)
+        and val
+        and any(isinstance(v, Element) for v in val.values())
+    ):
+        return f"{{{len(val)} items ({type(next(iter(val.values()))).__name__})}}"
+
+    return val
