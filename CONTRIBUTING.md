@@ -23,33 +23,35 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 
 ### Features
 
-- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better).
-- [x] Add links between the elements, outside of the simple container. --> RTLDomain to be added
-- [ ] Select the function rendering method (natural or complete).
-- [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
-- [ ] Add the configuration layers models (sphinx-rtl.toml then arguments passed to the config then the flags on the file).
+- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
+- [x] ~~Add links between the elements, outside of the simple container. --> RTLDomain to be added~~
+- [x] ~~Support for multi-instances top levels~~
+- [x] ~~Move the infer engine into the RTLAnalyse module, isolated from the parser.~~
+- [x] ~~Add support for multi-top files~~
+- [x] ~~Add support for note_dependency for the globed files at runtime.~~
+- [x] ~~Add the support for the missing xref callback to fetch them and redirect to the module instantiation rather than triggering an error.~~
+- [x] ~~Add support for the changes within the files set and set tracking in place.~~
+- [x] ~~Add JSON export / import support with NDA event triggering.~~
+- [ ] Add the snipplet generator into the renderer engine.
+- [ ] Add support for inter module resolution pass
 - [ ] CLI tool with different features
   - get include files for SystemC / Scala based and so
   - get output json from IR pass
-- [ ] Support for multi-instances top levels
-- [ ] Move the infer engine into the RTLAnalyse module, isolated from the parser.
-  - add support for inter module resolution pass
-- [ ] Add support for multi-top files
-- [ ] Add support for note_dependency for the globed files at runtime.
-- [ ] Add the support for the missing xref callback to fetch them and redirect to the module instantiation rather than triggering an error.
-- [ ] Add support for the changes within the files set and set tracking in place.
-- [x] Add JSON export / import support with NDA event triggering.
+- [ ] Select the function rendering method (natural or complete).
+- [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
+- [ ] Add the flag processing method
+- [ ] Add the configuration layers models (~~sphinx-rtl.toml~~ (replaced by the RTLConfig helpers) then arguments passed to the config then the flags on the file).
 
 ### Changes
 
-- [x] Add RTLConfig (to builder-inited event) --> Load config file and tools paths -
-  - Stored into env. ...
-- [x] Add RTLParser (directive as actual, under a custom built class)
-  - Store results into env["components"]. Do not care about anything else
-  - Store a placeholder to the node as a "render"
-- [x] Add RTLAnalyse (to env-updated event) --> Perform the analysis
-- [x] Add RTLRender (to SphinxPostTransform event) --> Perform the rendering pass
-- [x] Add a component database to the RTLDomain element ("components")
+- [x] ~~Add RTLConfig (to builder-inited event) --> Load config file and tools paths -~~
+  - ~~Stored into env. ...~~
+- [x] ~~Add RTLParser (directive as actual, under a custom built class)~~
+  - ~~Store results into env["components"]. Do not care about anything else~~
+  - ~~Store a placeholder to the node as a "render"~~
+- [x] ~~Add RTLAnalyse (to env-updated event) --> Perform the analysis~~
+- [x] ~~Add RTLRender (to SphinxPostTransform event) --> Perform the rendering pass~~
+- [x] ~~Add a component database to the RTLDomain element ("components")~~
 
 ### Tests and debug
 
@@ -64,11 +66,11 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 
 ### Bugs to remove
 
-- [x] Incorrect size parsing (VariableSymbolDimension string is present.)
-- [x] Some structures are incorporating comments into the type. To be checked.
-- [x] Interface based ports are shown as "Input", which is incorrect.
+- [x] ~~Incorrect size parsing (VariableSymbolDimension string is present.)~~
+- [x] ~~Some structures are incorporating comments into the type. To be checked.~~
+- [x] ~~Interface based ports are shown as "Input", which is incorrect.~~
 - [ ] SystemVerilog interfaces aren't correctly parsed --> Return an empty component.
-- [x] Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.
+- [x] ~~Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.~~
 
 ### Corrections
 

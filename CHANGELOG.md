@@ -35,8 +35,23 @@ _Note : This version is not available under a git tag_
 
 ## [v0.5.0]
 
-- Changed the project structure to exploit the sphinx BuildEnvironment feature. This enable higher quality builds (faster due to the cache,
-  more analysis possibles as the elements are analyzed after parsing all of them ...).
+### Added
+
 - Added events ability to add custom features to the rendering and analysis passes. This enable custom notes (Logos, NDA status, or more CI/CD integrations directly into the app !).
 - Added the ability to export and imports JSON components from a previous / different run. Ensure NDA information aren't shared !
 - Moved the configuration from a sphinx_rtl.toml file to a configuration done at the runtime within the conf.py file.
+- Added support for automated dependency check
+- Added support for multi top-level entities.
+
+### Changed
+
+- Changed the project structure to exploit the sphinx BuildEnvironment feature. This enable higher quality builds (faster due to the cache,
+  more analysis possibles as the elements are analyzed after parsing all of them ...).
+- Updated log colors for a better readability of the console. This does indeed come with others logs under warnings and errors.
+  - white bold for the most important logs.
+  - blue for standard informations
+  - darkgray for the least important informations.
+
+### Corrected
+
+- Corrected the missing SystemVerilog interface parsing.
