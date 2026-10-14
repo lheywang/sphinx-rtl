@@ -10,6 +10,7 @@ from pathlib import Path
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
+from sphinx._cli.util.colour import bold, blue, darkgray
 from sphinx_rtl.RTLConfig import RTLConfig
 from sphinx_rtl.RTLAnalyse import RTLAnalyse
 from sphinx_rtl.RTLDomain import RTLDomain
@@ -31,7 +32,7 @@ def on_builder_inited(app: Sphinx) -> None:
     """
     root_dir = Path(app.confdir)
     # config = RTLConfig.discover(root_dir)
-    domain = app.env.get_domain("rtl")
+    domain: RTLDomain = app.env.get_domain("rtl")  # type: ignore
     # domain.data["base_config"] = config
 
 
@@ -45,21 +46,22 @@ def on_env_get_outdated(
     """
     Fetch all the dependencies of the changed names to be rebuilt.
     """
-    logger.info(
-        f">>> [EVENT: 2. env-get-outdated] Added: {len(added)}, Changed: {len(changed)}, Removed: {len(removed)}"
-    )
-    return []
+    domain: RTLDomain = env.get_domain("rtl")  # type: ignore
+    extra = domain.get_outdated(env)
+
+    logger.info(bold(f"[INFO] Found {len(extra)} files that need to be re-read."))
+    return extra
 
 
 def on_env_updated(app: Sphinx, env: BuildEnvironment) -> list[str]:
 
     # Fetch the different elements
-    domain = env.get_domain("rtl")
+    domain: RTLDomain = env.get_domain("rtl")  # type: ignore
     components = domain.data.get("components", {})
 
     # Before running the analysis, import the external components
     cfg: RTLConfig = getattr(app.config, "rtl_config", RTLConfig())
-    logger.info("[INFO] Importing components ...")
+    logger.info(bold("[INFO] Importing components ..."))
 
     for source in cfg.external_stubs:
 
@@ -77,7 +79,9 @@ def on_env_updated(app: Sphinx, env: BuildEnvironment) -> list[str]:
 
         # Logs
         logger.info(
-            f"[INFO] Loaded {len(loaded_dict.keys())} component{"s" if len(loaded_dict.keys()) > 1 else ""} from {target}"
+            blue(
+                f"[INFO] Loaded {len(loaded_dict.keys())} component{"s" if len(loaded_dict.keys()) > 1 else ""} from {target}"
+            )
         )
 
     # Perform the analysis
@@ -101,14 +105,14 @@ def on_build_finished(app: Sphinx, exception: Exception | None) -> None:
         return
 
     # Fetch the domain
-    domain = app.env.get_domain("rtl")
+    domain: RTLDomain = app.env.get_domain("rtl")  # type: ignore
     components: dict[str, Component] = domain.data.get("components", {})
     if not components:
         return
 
     # Fetch the config
     cfg: RTLConfig = getattr(app.config, "rtl_config", RTLConfig())
-    logger.info("[INFO] Performing exports ...")
+    logger.info(bold("[INFO] Performing exports ..."))
 
     # First, export the fully qualified elements
     for output in cfg.public_output:
@@ -118,7 +122,7 @@ def on_build_finished(app: Sphinx, exception: Exception | None) -> None:
         target.parent.mkdir(exist_ok=True, parents=True)
 
         # Serialize the output
-        logger.info(f"[INFO] Writing {target}")
+        logger.info(blue(f"[INFO] Writing full database : {target}"))
         serialize_components(list(components.values()), target)
 
     # Then, export the private elements
@@ -136,12 +140,14 @@ def on_build_finished(app: Sphinx, exception: Exception | None) -> None:
         # Did someone cleaned us the components ?
         if len(cleaned) == 0:
             logger.info(
-                "[INFO] No callbacks were called for the cleanup. Using the default cleaning method."
+                darkgray(
+                    "[INFO] No callbacks were called for the cleanup. Using the default cleaning method."
+                )
             )
             cleaned = standard_cleanup(list(components.values()))
 
         # Now, we can export them
-        logger.info(f"[INFO] Writing {target}")
+        logger.info(blue(f"[INFO] Writing stripped database : {target}"))
         serialize_components(cleaned, target)
 
 

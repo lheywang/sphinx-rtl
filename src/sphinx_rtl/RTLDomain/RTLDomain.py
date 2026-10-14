@@ -6,9 +6,10 @@
 # ----------------------------------------------------------------------------
 
 # Imports
+import glob
 from collections.abc import Iterable
-
 from docutils import nodes
+from docutils.nodes import make_id
 from typing import AbstractSet, Any
 from sphinx.addnodes import pending_xref
 from sphinx.builders import Builder
@@ -16,7 +17,9 @@ from sphinx.domains import Domain, ObjType
 from sphinx.environment import BuildEnvironment
 from sphinx.roles import XRefRole
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue, darkgray
 from sphinx.util.nodes import make_refnode
+from pathlib import Path
 from sphinx_rtl.models import Component
 
 # Configure the logger
@@ -41,6 +44,7 @@ class RTLDomain(Domain):
         "file_doc": {},  # -> dict[filepath, docname]. Act a lock for unique docnames.
         "doc_files": {},  # -> dict[docname, list[str]]
         "doc_globs": {},  # -> dict[docname, set[str]]
+        "comp_to_doc": {},  # -> dict[comp_name, docname]
     }
 
     # Object config
@@ -89,7 +93,7 @@ class RTLDomain(Domain):
             self.data["file_doc"].pop(f, None)
         self.data["doc_globs"].pop(docname, None)
 
-        logger.info("[INFO] Cleaned up the RTLDomain cache")
+        logger.info(darkgray("[INFO] Cleaned up the RTLDomain cache"))
 
     def merge_domaindata(
         self, docnames: AbstractSet[str], otherdata: dict[str, Any]
@@ -105,13 +109,11 @@ class RTLDomain(Domain):
                 self.data["symbols"][target_id] = sym
                 count += 1
 
-        # Merge components
-        for comp in otherdata.get("component", {}).values():
-            self.add_component(comp)
-            count += 1
-
-        # Merge files
+        # Merge files and files
         for doc in docnames:
+            for comp in otherdata.get("component", {}).values():
+                self.add_component(comp, doc)
+                count += 1
             if doc in otherdata.get("doc_files", {}):
                 self.data["doc_files"][doc] = otherdata["doc_files"][doc]
             if doc in otherdata.get("doc_globs", {}):
@@ -121,8 +123,37 @@ class RTLDomain(Domain):
 
         if count > 0:
             logger.info(
-                f"[INFO] Merged {count} reference{"s" if count > 1 else ""} into the master domain."
+                blue(
+                    f"[INFO] Merged {count} reference{"s" if count > 1 else ""} into the master domain."
+                )
             )
+
+    def get_outdated(self, env: BuildEnvironment):
+        """
+        Examine all known globs and return the outdated components.
+        """
+        outdated: list[str] = []
+        doc_files = self.data.get("doc_files", {})
+        doc_globs = self.data.get("doc_globs", {})
+
+        src_dir = Path(env.srcdir)
+
+        for docname, patterns in doc_globs.items():
+            current_match: set[str] = set()
+
+            for pattern in patterns:
+                resolved = (
+                    pattern if Path(pattern).is_absolute() else str(src_dir / pattern)
+                )
+                for f in glob.glob(resolved, recursive=True):
+                    current_match.add(str(Path(f).resolve()))
+
+            known_files = doc_files.get(docname, set())
+
+            if current_match != known_files:
+                outdated.append(docname)
+
+        return outdated
 
     # --------------------------------------------------------------------
     # REFERENCE ADD
@@ -159,13 +190,15 @@ class RTLDomain(Domain):
 
         if count > 0:
             logger.info(
-                f"[INFO] Imported {count} reference{"s" if count > 1 else ""} into the domain."
+                blue(
+                    f"[INFO] Imported {count} reference{"s" if count > 1 else ""} into the domain."
+                )
             )
 
     # --------------------------------------------------------------------
     # COMPONENT MANAGEMENT
     # --------------------------------------------------------------------
-    def add_component(self, component: Component) -> None:
+    def add_component(self, component: Component | None, docname: str) -> None:
         """
         Add a component to the internal knowledge base.
         """
@@ -174,12 +207,43 @@ class RTLDomain(Domain):
 
         if component.name not in self.data["components"].keys():
             self.data["components"][component.name] = component
+            self.data["comp_to_doc"][component.name] = docname
             return
 
         logger.warning(
             f"Duplicate component (name={component.name}) insertion required. Action ignored."
         )
         return
+
+    def register_file_to_doc(
+        self, filepath: str | Path, docname: str, glob: str | None = None
+    ) -> bool:
+        """
+        Link an RTL source to a sphinx document.
+
+        Return false if the document is already associated with another file.
+        """
+
+        path_str = str(Path(filepath).resolve())
+
+        # Is this file unique ?
+        existing = self.data["file_doc"].get(path_str)
+        if existing and existing != docname:
+            logger.warning(
+                f"Conflict : {path_str} is already claimed by {existing}. Ignored link.",
+                location=docname,
+            )
+            return False
+
+        # Locking the file
+        self.data["file_doc"][path_str] = docname
+        self.data["doc_files"].setdefault(docname, set()).add(path_str)
+
+        if glob:
+            self.data["doc_globs"].setdefault(docname, set()).add(glob)
+
+        self.env.note_dependency(path_str)
+        return True
 
     # --------------------------------------------------------------------
     # LINK RESOLUTION
@@ -242,7 +306,7 @@ class RTLDomain(Domain):
         """
 
         components = self.data.get("components", {})
-        docnames = self.data.get("doc_files", {})
+        comp_doc = self.data.get("comp_to_doc", {})
 
         # Fetch the known slugs
         slug_map = {name.lower().replace("_", "-"): name for name in components}
@@ -266,42 +330,46 @@ class RTLDomain(Domain):
         if not real_parent_name:
             return None
 
-        # For now, this does not work correctly. Docnames is empty --> Never updated !
-        comp = components[real_parent_name]
-        target_doc = docnames.get(real_parent_name)
-        print(docnames)
+        # Fetch the target document that is handling this reference.
+        comp: Component = components[real_parent_name]
+
+        # Fetch the source of our component
+        source = comp_doc.get(comp.name)
+        if not source:
+            return None
+
+        # Fetch the docname of the target component
+        target_doc = comp_doc.get(comp.name)
         if not target_doc:
             return None
 
         # Extract the missing part
-        remainder = target_slug[len(parent_slug) :].strip("-")
-        print(remainder)
+        remainder = target_slug[len(parent_slug) :].strip("-")  # type: ignore
 
-        # Découpage du sous-élément (ex: "csr" et "port-clk")
-        parts = remainder.split("-", 1)
-        sub_instance = parts[0] if parts else ""
-        sub_element = parts[1].replace("-", " ") if len(parts) > 1 else "signal interne"
+        # Now, we can search for the right module name.
+        # This has an effect : Will always match the first element in case multiple elements are assigned.
+        # This is fine as it's a backup.
+        module_name = ""
+        for module in comp.modules:
+            if target_slug.startswith(module.entity.replace("_", "-")):
+                module_name = module.name
+                break
 
+        # Build the missing reference.
+        # Try to link to ourselves, but will default to the generic module element.
+        if module_name:
+            target_anchor = make_id(f"{parent_slug}-module-{module_name}")
+        else:
+            target_anchor = make_id(f"{parent_slug}-module")
+
+        # Build the URI ...
         base_uri = builder.get_relative_uri(fromdocname, target_doc)
-
-        # 4. Construction de l'ancre de redirection
-        # On cible en priorité la section d'instanciation du sous-bloc dans le parent
-        # (Adapte l'ancre selon ton générateur : ex. '#instances', '#module-instances' ou '#inst-csr')
-        target_anchor = (
-            f"{parent_slug}-instances"  # ou f"{parent_slug}-inst-{sub_instance}"
-        )
-
-        hover_msg = (
-            f"Le sous-bloc « {sub_instance} » n'a pas de page dédiée.\n"
-            f"Redirection vers l'instanciation dans « {real_parent_name} » ({sub_element})."
-        )
 
         ref_node = nodes.reference(
             "",
             "",
             internal=True,
             refuri=f"{base_uri}#{target_anchor}",
-            reftitle=hover_msg,  # Hover text natif (attribut HTML title)
             classes=["rtl-fallback-instance-xref"],
         )
         ref_node += contnode
