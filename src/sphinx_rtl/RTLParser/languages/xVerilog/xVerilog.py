@@ -6,27 +6,16 @@
 # ----------------------------------------------------------------------------
 
 # Imports
+import re
+import copy
+import itertools
 import pyslang.ast as ast
 import pyslang.syntax as syntax
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 from pyslang import SourceManager
 from pathlib import Path
-import re
-import inspect
-
-from sphinx_rtl.models import (
-    Component,
-    Parameter,
-    Port,
-    Enum,
-    Import,
-    Signal,
-    Process,
-    Assignment,
-    Interface,
-    Module,
-    Element,
-)
+from sphinx_rtl.models import Component, Port
 from sphinx_rtl.RTLParser.xParser import xParser
 from sphinx_rtl.RTLParser.languages.xVerilog.functions import (
     build_signal,
@@ -283,7 +272,6 @@ class xVerilogParser(xParser):
         # First get the file Infos
         infos = self.getFileInfo(file)
         comp = Component(file=infos)
-        comp.name = file.name.rsplit(".", 1)[0]
 
         # Extract the file comments
         comments = self.fetch_comments(file)
@@ -328,31 +316,56 @@ class xVerilogParser(xParser):
 
         # Iterate over the nodes available.
         # Doing in this way enable us to reuse the same logic, and therefore reduce the bug surface...
+        output_comp: list[Component] = []
 
-        for instance in root.topInstances:
-            self.populate_component(comp, instance.body, False)
-        for package in packages:
-            self.populate_component(comp, package, True)
+        for element in itertools.chain(root.topInstances, packages):
 
-        # Extract the imports
-        comp.imports = extract_imports(tree, self.sm)
+            # Build a copy of the component we'll build
+            future = copy.deepcopy(comp)
+            future.imports = extract_imports(tree, self.sm)
 
-        # Add some logs in the console :
-        if self.ignored > 0:
-            logger.debug(f"[INFO] Ignored {self.ignored} nodes from the source file.")
+            # Fill the essential fields
+            future.name = element.name
 
-        # Finally, add the comments to the different elements.
-        # As designed, this function is agnostic from the design type, and is already done within the IR reduction pass.
-        comment_counts = len(comments.keys())
-        count, miss, remaining, comp = self.linkComments(comp, comments)
+            if type(element) is ast.InstanceSymbol:
+                self.populate_component(future, element.body, False)
+            elif type(element) is ast.PackageSymbol:
+                self.populate_component(future, element, True)
 
-        logger.info(
-            f"[INFO] Attached {count} / {comment_counts} comment{"s" if count > 1 else ""} to the component."
-        )
-        if miss > 0:
-            logger.warning(
-                f"Still {remaining} comment{"s" if remaining > 1 else ""} to be attached for {file.name}."
+            else:
+                logger.warning(f"Found unknown top level type {type(element)}")
+
+            # Add some logs in the console :
+            logger.info(blue(f"[INFO] Found entity name to be {future.name}"))
+            if self.ignored > 0:
+                logger.debug(
+                    blue(f"[INFO] Ignored {self.ignored} nodes from the source file.")
+                )
+
+            # Finally, add the comments to the different elements.
+            # As designed, this function is agnostic from the design type, and is already done within the IR reduction pass.
+            comment_counts = len(comments.keys())
+            count, miss, remaining, future = self.linkComments(future, comments)
+
+            logger.info(
+                blue(
+                    f"[INFO] Attached {count} / {comment_counts} comment{"s" if count > 1 else ""} to the component."
+                )
             )
+            if miss > 0:
+                logger.info(
+                    blue(
+                        f"[INFO] Still {remaining} comment{"s" if remaining > 1 else ""} to be attached within the file."
+                    )
+                )
+
+            # Append the component to the list.
+            output_comp.append(future)
 
         # Return the final component
-        return comp
+        logger.info(
+            blue(
+                f"[INFO] Built {len(output_comp)} component{"s" if len(output_comp) > 1 else ""} from the source."
+            )
+        )
+        return output_comp

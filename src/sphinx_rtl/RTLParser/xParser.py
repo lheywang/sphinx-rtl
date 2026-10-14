@@ -18,6 +18,7 @@ from typing import Any, get_args, get_origin
 from collections import defaultdict
 from git import Commit, GitCommandError
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 from typing import TypeVar
 from pathlib import Path
 
@@ -48,7 +49,7 @@ class xParser:
         if tool is not None:
             self.tool = shutil.which(tool)
             if self.tool is not None:
-                logger.info(f"[INFO] Found {tool} at {self.tool}")
+                logger.info(blue(f"[INFO] Found {tool} at {self.tool}"))
                 self.isToolAvailable = True
             else:
                 logger.error(f"Cannot found a valid {tool} install.")
@@ -351,7 +352,9 @@ class xParser:
 
         if count > 0:
             logger.info(
-                f"[INFO] Found {count} flag{"s" if count > 1 else ""} and configured them."
+                blue(
+                    f"[INFO] Found {count} flag{"s" if count > 1 else ""} and configured them."
+                )
             )
         elif missed > 0:
             logger.warning(
