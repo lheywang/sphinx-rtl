@@ -18,17 +18,18 @@ import core_config_pkg::PERF_CNT_INC;
 import core_config_pkg::XLEN;
 
 module counter (
-    input logic clk,
-    input logic clk_en,
-    input logic rst_n,
-    input logic enable,
-    output logic [(XLEN - 1) : 0] outL,
-    output logic [(XLEN - 1) : 0] outH
+    input logic clk, // Master clock
+    input logic clk_en, // Clock enable
+    input logic rst_n, // Master reset. *active_low*
+    input logic enable, // Counter enable
+    output logic [(XLEN - 1) : 0] outL, // LSB output
+    output logic [(XLEN - 1) : 0] outH // MSH output
 );
 
     // Internal counter
     logic [(PERF_CNT_LEN - 1) : 0] cnt;
 
+    // Increment the counter
     always_ff @(posedge clk or negedge rst_n) begin
 
         if (!rst_n) begin

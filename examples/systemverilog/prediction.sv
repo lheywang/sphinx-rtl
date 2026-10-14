@@ -176,3 +176,23 @@ module prediction (
     assign addr_out_n = addr_out;
 
 endmodule
+
+module counter_b #(
+    parameter WIDTH = 4 // Width of the counter
+)(
+    input  logic             clk,   // Clock signal
+    input  logic             rst_n, // Async reset, *active low*
+    input  logic             en,    // Enable
+    output logic [WIDTH-1:0] count  // Output
+);
+
+    // Increment the counter
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            count <= '0; 
+        end else if (en) begin
+            count <= count + 1'b1; 
+        end
+    end
+
+endmodule
