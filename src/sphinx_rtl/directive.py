@@ -7,11 +7,12 @@
 
 # Imports
 import glob
+import time
 from sphinx.util import logging
+from sphinx._cli.util.colour import bold, blue
 from pathlib import Path
-from docutils import nodes
 from docutils.parsers.rst import Directive
-
+from sphinx_rtl.RTLDomain import RTLDomain
 from sphinx_rtl.RTLParser import xVerilogParser, VHDLParser
 from sphinx_rtl.nodes import RTLPlaceholderNode
 
@@ -37,7 +38,7 @@ class RTLAutodocDirective(Directive):
         # Fetch the settings
         env = self.state.document.settings.env
         docname = env.docname
-        rtl_domain = env.get_domain("rtl")
+        rtl_domain: RTLDomain = env.get_domain("rtl")
 
         # Fetch the absolute path
         search = Path(env.srcdir) / Path(self.arguments[0])
@@ -78,17 +79,26 @@ class RTLAutodocDirective(Directive):
         component = None
 
         for match in matches:
-            env.note_dependency(str(match))
 
-            logger.info(f"[INFO] --- Processing file : {str(match)}")
+            ts = time.time()
+
+            ok = rtl_domain.register_file_to_doc(
+                filepath=match, docname=docname, glob=str(search)
+            )
+
+            # If the file is already claimed, continue.
+            if not ok:
+                continue
+
+            logger.info(bold(f"[INFO] --- Processing file : {str(match)}"))
 
             # Call the matching parser :
             suffix = match.suffix.lower()
             if suffix in [".sv", ".v"]:
-                component = xVerilogTool.parse(match)
+                components = xVerilogTool.parse(match)
             elif suffix in [".vhd", ".vhdl"]:
-                # component = VHDLTool.parse(match)
-                pass
+                # components = VHDLTool.parse(match)
+                components = []
             else:
                 return self.state.reporter.error(
                     f"Unknown format ({suffix}) for {match}.",
@@ -96,20 +106,22 @@ class RTLAutodocDirective(Directive):
                 )
 
             # Add the component to the internal db
-            rtl_domain.add_component(component)
+            for component in components:
+                rtl_domain.add_component(component, docname)
 
-            # Build the placeholder
-            base_doc = str(Path(self.state.document["source"]).resolve().parent)
+                # Build the placeholder
+                base_doc = str(Path(self.state.document["source"]).resolve().parent)
+                if component is not None:
+                    rendered_nodes.append(
+                        RTLPlaceholderNode(name=component.name, base_doc=base_doc)
+                    )
+                else:
+                    logger.warning(
+                        f"Source file at {match} failed to generate a valid component."
+                    )
 
-            # Add the nodes into the list
-            if component is not None:
-                rendered_nodes.append(
-                    RTLPlaceholderNode(name=component.name, base_doc=base_doc)
-                )
-            else:
-                logger.warning(
-                    f"Source file at {match} failed to generate a valid component."
-                )
+            tt = time.time()
+            logger.info(blue(f"Processed file in {(tt - ts) * 1000:.3f} ms."))
 
         # Return the rendered nodes
         return rendered_nodes
