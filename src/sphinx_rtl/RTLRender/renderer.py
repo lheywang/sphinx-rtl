@@ -9,6 +9,7 @@
 # Imports
 from docutils import nodes
 from sphinx.util import logging
+from sphinx._cli.util.colour import bold, blue
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from pathlib import Path
@@ -109,19 +110,25 @@ class RTLRender:
         match component.comp_type:
             case "testbench":
                 logger.info(
-                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a testbench."
+                    bold(
+                        f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a testbench."
+                    )
                 )
                 return self.render_as_testbench(component=component, root=root)
 
             case "package":
                 logger.info(
-                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a package."
+                    bold(
+                        f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a package."
+                    )
                 )
                 return self.render_as_package(component=component, root=root)
 
             case "interface":
                 logger.info(
-                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as an interface."
+                    bold(
+                        f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as an interface."
+                    )
                 )
                 return self.render_as_interface(component=component, root=root)
 
@@ -129,7 +136,9 @@ class RTLRender:
             # This is the most complete, exception shall not be fully wrong if nothing is present.
             case _:
                 logger.info(
-                    f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a module."
+                    bold(
+                        f"[INFO] --- Rendering {f'{component.name} ' if component.name != "" else ""}as a module."
+                    )
                 )
                 return self.render_as_module(component=component, root=root)
 
@@ -330,9 +339,7 @@ class RTLRender:
 
         # Module name
         title_box = nodes.paragraph(classes=["sd-m-0"])
-        title_box += nodes.strong(
-            text=comp.file.name.rsplit(".", 1)[0], classes=["sd-fs-5"]
-        )
+        title_box += nodes.strong(text=comp.name, classes=["sd-fs-5"])
         title_box += nodes.inline(" ", " ")
 
         # Module type
@@ -732,6 +739,7 @@ class RTLRender:
             module_title += nodes.inline(" ", " ")
 
             if module.name:
+                module_title += render_ref(module.name, comp.name, "module", self.refs)
                 module_title += nodes.Text(module.name)
             else:
                 module_title += nodes.Text("-")
@@ -1357,11 +1365,12 @@ class RTLRender:
         """
         Create a section within the current context, and return it.
         """
+        norm_name = name.removesuffix("s")
 
         if id:
-            section = nodes.section(ids=[make_id(f"{id}-{name}")])
+            section = nodes.section(ids=[make_id(f"{id}-{norm_name}")])
         else:
-            section = nodes.section(ids=[make_id(name)])
+            section = nodes.section(ids=[make_id(norm_name)])
         section += nodes.title(text=name)
         section += render_ref(name, id, "", self.refs)
         root += section

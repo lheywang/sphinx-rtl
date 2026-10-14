@@ -10,6 +10,7 @@ from docutils import nodes
 from pathlib import Path
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
+from sphinx._cli.util.colour import bold, blue
 from sphinx_rtl.nodes import RTLPlaceholderNode
 from sphinx_rtl.models import Component, FileInfo
 from sphinx_rtl.RTLDomain import RTLDomain
@@ -34,7 +35,7 @@ class RTLRenderTransform(SphinxPostTransform):
         """
 
         # Logs
-        logger.info(f"[INFO] Executing the render on {self.env.docname}")
+        logger.info(bold(f"[INFO] Executing the render on {self.env.docname}"))
 
         # Fetch elements
         domain: RTLDomain = self.env.get_domain("rtl")  # type: ignore
@@ -62,7 +63,9 @@ class RTLRenderTransform(SphinxPostTransform):
             count = len(list(rendered_nodes.findall()))
             tt = time.time()
             logger.info(
-                f"[INFO] Rendered {name.strip()} ({count} nodes) in {(tt - ts) * 1000:.1f} ms."
+                blue(
+                    f"[INFO] Rendered {name.strip()} ({count} nodes) in {(tt - ts) * 1000:.1f} ms."
+                )
             )
 
         # Do we have any images to render ?
