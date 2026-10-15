@@ -13,66 +13,30 @@ I essentially work on my side, with little to no interactions with the other. A 
 
 This is essentially my own list, but this could be extended to anyone ! Grab a free task, and here we go !
 
-### Languages support
+### Target v0.6.0
 
-- [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
-- [ ] Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
-- [ ] SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
-- [ ] Cocotb (Target < v1.0.0)
 - [ ] VHDL (Target < v1.0.0)
-
-### Features
-
-- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
-- [x] ~~Add links between the elements, outside of the simple container. --> RTLDomain to be added~~
-- [x] ~~Support for multi-instances top levels~~
-- [x] ~~Move the infer engine into the RTLAnalyse module, isolated from the parser.~~
-- [x] ~~Add support for multi-top files~~
-- [x] ~~Add support for note_dependency for the globed files at runtime.~~
-- [x] ~~Add the support for the missing xref callback to fetch them and redirect to the module instantiation rather than triggering an error.~~
-- [x] ~~Add support for the changes within the files set and set tracking in place.~~
-- [x] ~~Add JSON export / import support with NDA event triggering.~~
-- [ ] Add the snipplet generator into the renderer engine.
-- [ ] Add support for inter module resolution pass
-- [ ] CLI tool with different features
-  - get include files for SystemC / Scala based and so
-  - get output json from IR pass
-- [ ] Select the function rendering method (natural or complete).
-- [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
 - [ ] Add the flag processing method
 - [ ] Add the configuration layers models (~~sphinx-rtl.toml~~ (replaced by the RTLConfig helpers) then arguments passed to the config then the flags on the file).
 
-### Changes
+### Target v0.7.0
 
-- [x] ~~Add RTLConfig (to builder-inited event) --> Load config file and tools paths -~~
-  - ~~Stored into env. ...~~
-- [x] ~~Add RTLParser (directive as actual, under a custom built class)~~
-  - ~~Store results into env["components"]. Do not care about anything else~~
-  - ~~Store a placeholder to the node as a "render"~~
-- [x] ~~Add RTLAnalyse (to env-updated event) --> Perform the analysis~~
-- [x] ~~Add RTLRender (to SphinxPostTransform event) --> Perform the rendering pass~~
-- [x] ~~Add a component database to the RTLDomain element ("components")~~
+- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
+- [ ] CLI tool with different features
+  - get include files for SystemC / Scala based and so
+  - get output json from IR pass
+- [ ] Add the snipplet generator into the renderer engine.
+- [ ] Select the function rendering method (natural or complete).
+- [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
 
-### Tests and debug
+### Target v0.8.0+
 
+- [ ] Cocotb (Target < v1.0.0)
+- [ ] - [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
 - [ ] Test other edge-cases and bad documents.
 - [ ] Ensure all elements are properly rendered.
-
-### Examples
-
 - [ ] Make the examples cleaner (more files, more text --> Better demonstration)
 - [ ] Add a github workflow to push the rendered documentation to an example site
 - [ ] Add the online site into the readme.md file
-
-### Bugs to remove
-
-- [x] ~~Incorrect size parsing (VariableSymbolDimension string is present.)~~
-- [x] ~~Some structures are incorporating comments into the type. To be checked.~~
-- [x] ~~Interface based ports are shown as "Input", which is incorrect.~~
-- [ ] SystemVerilog interfaces aren't correctly parsed --> Return an empty component.
-- [x] ~~Grouping something use the second or third terms rather than the first. This lead to incorrect grouping methods.~~
-
-### Corrections
-
-- [ ] Add links to the assignment panel
-- [ ] Add links to the modules panel

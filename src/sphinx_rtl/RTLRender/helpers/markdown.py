@@ -10,6 +10,7 @@ from docutils import nodes, utils
 from myst_parser.parsers.docutils_ import Parser
 from pathlib import Path
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -74,7 +75,9 @@ def render_markdown(
 
     if count > 0:
         logger.info(
-            f"[INFO] Converted {count} link{"s" if count > 1 else ""} to absolute."
+            blue(
+                f"[INFO] Converted {count} link{"s" if count > 1 else ""} to absolute."
+            )
         )
 
     for p in document.findall(nodes.paragraph):

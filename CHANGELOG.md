@@ -51,6 +51,13 @@ _Note : This version is not available under a git tag_
   - white bold for the most important logs.
   - blue for standard informations
   - darkgray for the least important informations.
+- Corrected some missing links here and there in the web page. Shall be good now !
+
+## (Future) [v0.6.0]
+
+### Added
+
+- Added support for the VHDL language.
 
 ### Corrected
 

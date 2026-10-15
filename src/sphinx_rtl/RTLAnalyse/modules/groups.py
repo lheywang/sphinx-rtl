@@ -20,7 +20,7 @@ T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
 
-def _infer(names: list[str], elements: list[T]):
+def _infer(names: list[str], elements: list[T], typ: str):
     parsed = [(p.split("_"), p) for p in sorted(names)]
 
     # Count the different elements for the different paths.
@@ -61,7 +61,9 @@ def _infer(names: list[str], elements: list[T]):
     groups_count = len(groups.keys())
     if groups_count > 1:
         logger.info(
-            blue(f"[INFO] Found {groups_count} group{"s" if groups_count > 1 else ""}")
+            blue(
+                f"[INFO] Found {groups_count} {typ}{"s" if groups_count > 1 else ""} group{"s" if groups_count > 1 else ""}"
+            )
         )
 
 
@@ -71,10 +73,10 @@ def infer_groups(component: Component) -> Component:
     """
     # First, infer the ports groups
     port_names = [p.name for p in component.ports]
-    _infer(port_names, component.ports)
+    _infer(port_names, component.ports, "port")
 
     # Then, infer the signals groups
     signals_names = [p.name for p in component.signals]
-    _infer(signals_names, component.signals)
+    _infer(signals_names, component.signals, "signal")
 
     return component

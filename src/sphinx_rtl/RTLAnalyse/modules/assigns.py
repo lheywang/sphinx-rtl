@@ -45,9 +45,16 @@ def infer_assigns(component: Component) -> Component:
                     if source_obj is not None:
 
                         # Update element
-                        target.hdl_sync = source_obj.hdl_sync
-                        target.hdl_reset = source_obj.hdl_reset
-                        count += 1
+                        if target.hdl_sync != source_obj.hdl_sync:
+                            target.hdl_sync = source_obj.hdl_sync
+
+                        if target.hdl_reset != source_obj.hdl_reset:
+                            target.hdl_reset = source_obj.hdl_reset
+
+                        if (target.hdl_sync != source_obj.hdl_sync) or (
+                            target.hdl_reset != source_obj.hdl_reset
+                        ):
+                            count += 1
 
     if count > 0:
         logger.info(

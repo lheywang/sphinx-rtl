@@ -158,7 +158,7 @@ class RTLRender:
             )
         except ValueError:
             context_name = component.file.name
-        context = self._create_section(root, context_name)
+        context = self._create_section(root, component.name, sec_name=context_name)
 
         # Common module header
         self._render_file_info(context, component)
@@ -197,7 +197,7 @@ class RTLRender:
             )
         except ValueError:
             context_name = component.file.name
-        context = self._create_section(root, context_name)
+        context = self._create_section(root, component.name, sec_name=context_name)
 
         # Common module header
         self._render_file_info(context, component)
@@ -239,7 +239,7 @@ class RTLRender:
             )
         except ValueError:
             context_name = component.file.name
-        context = self._create_section(root, context_name)
+        context = self._create_section(root, component.name, sec_name=context_name)
 
         # Common module header
         self._render_file_info(context, component)
@@ -279,7 +279,7 @@ class RTLRender:
         except ValueError:
             context_name = component.file.name
 
-        context = self._create_section(root, context_name)
+        context = self._create_section(root, component.name, sec_name=context_name)
 
         # Common module header
         self._render_file_info(context, component)
@@ -807,34 +807,34 @@ class RTLRender:
 
                 # Add it to the list
                 # Errors could be done here, to check later
-                if source:
-
-                    source_node = nodes.paragraph()
-                    source_node += use_ref(
-                        source,
-                        module.entity,
-                        "port",
-                        render_badge(source, BadgeColor.GREEN, outline=True),
-                        False,
-                    )
-
-                    row.append(source_node)
-
-                if source and target:
-                    row.append(nodes.strong(text=" <-> "))
-
                 if target:
 
                     target_node = nodes.paragraph()
                     target_node += use_ref(
                         target,
-                        comp.name,
-                        target_type,
+                        module.entity,
+                        "port",
                         render_badge(target, BadgeColor.BLUE, outline=True),
                         False,
                     )
 
                     row.append(target_node)
+
+                if source and target:
+                    row.append(nodes.strong(text=" ⮂ "))
+
+                if source:
+
+                    source_node = nodes.paragraph()
+                    source_node += use_ref(
+                        source,
+                        comp.name,
+                        target_type,
+                        render_badge(source, BadgeColor.GREEN, outline=True),
+                        False,
+                    )
+
+                    row.append(source_node)
 
                 # Add the connection to the list
                 connections_list.append(row)
@@ -1360,7 +1360,11 @@ class RTLRender:
         root += divider
 
     def _create_section(
-        self, root: nodes.container | nodes.section, name: str, id: str = ""
+        self,
+        root: nodes.container | nodes.section,
+        name: str,
+        id: str = "",
+        sec_name: str = "",
     ) -> nodes.section:
         """
         Create a section within the current context, and return it.
@@ -1373,6 +1377,11 @@ class RTLRender:
             section = nodes.section(ids=[make_id(norm_name)])
         section += nodes.title(text=name)
         section += render_ref(name, id, "", self.refs)
+
+        if sec_name != "":
+            p = nodes.paragraph()
+            p += nodes.Text(sec_name)
+            section += p
         root += section
 
         return section
@@ -1407,9 +1416,12 @@ class RTLRender:
         Insert a line for a port in the table.
         """
 
+        # Fetch the ref_type
+        reftype = "signal" if type(element) is Signal else "port"
+
         # Name
         element_name = nodes.paragraph()
-        element_name += render_ref(element.name, comp.name, "port", self.refs)
+        element_name += render_ref(element.name, comp.name, reftype, self.refs)
         element_name += nodes.Text(element.name.strip())
 
         # Description

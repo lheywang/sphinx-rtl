@@ -192,6 +192,9 @@ class RTLAnalyse:
         if cfg.inferVendor:
             component = infer_vendors(component)
 
+            # Re-assigning assigns may be needed then
+            component = infer_assigns(component)
+
         # Final logs
         tt = time.time()
         logger.info(
