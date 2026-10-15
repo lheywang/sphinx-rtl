@@ -33,7 +33,7 @@ _Note : This version is not available under a git tag_
 - Patched different bugs (modport support in ports, comments that where leaking ...)
 - Refactored the grouping system to be more robust, and cleaner when rendered !
 
-## [v0.5.0]
+## [v0.5.0] / v[0.5.1]
 
 ### Added
 
