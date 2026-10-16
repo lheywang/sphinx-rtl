@@ -32,7 +32,9 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 ### Target v0.8.0+
 
 - [ ] Cocotb (Target < v1.0.0)
-- [ ] - [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] IPact (Target < v1.0.0)
+- [ ] HWtcl (Target < v1.0.0) --> Emulate the TCL shell by mocking up the functions
+- [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
 - [ ] Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
 - [ ] SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
 - [ ] Test other edge-cases and bad documents.
