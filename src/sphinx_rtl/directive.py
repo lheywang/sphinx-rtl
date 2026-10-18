@@ -97,7 +97,7 @@ class RTLAutodocDirective(Directive):
             if suffix in [".sv", ".v"]:
                 components = xVerilogTool.parse(match)
             elif suffix in [".vhd", ".vhdl"]:
-                # components = VHDLTool.parse(match)
+                components = VHDLTool.parse(match)
                 components = []
             else:
                 return self.state.reporter.error(

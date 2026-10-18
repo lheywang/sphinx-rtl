@@ -16,9 +16,11 @@ dependencies = [
     "myst-parser>=2.0.0",
     "gitpython>=3.1.62",
     "pyslang>=11.0.0",
-    "pyghdl>=1.0.dev0",
     "sphinx-design>=0.7.0",
     "cattrs>=26.2.1",
+    "tree-sitter>=0.26.0",
+    "tree-sitter-vhdl>=2.0.3",
+    "tree-sitter-verilog>=1.0.3",
 ]
 
 [project.optional-dependencies]

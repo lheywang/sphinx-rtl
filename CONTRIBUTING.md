@@ -18,6 +18,7 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [ ] VHDL (Target < v1.0.0)
 - [ ] Add the flag processing method
 - [ ] Add the configuration layers models (~~sphinx-rtl.toml~~ (replaced by the RTLConfig helpers) then arguments passed to the config then the flags on the file).
+- [ ] Migrate the Verilog parser to tree-sitter based one. Faster and unify both processing lines (more reliable, easier to maintain).
 
 ### Target v0.7.0
 

@@ -19,13 +19,12 @@ ENTITY pcounter IS
          
         XLEN : INTEGER := 32; --  Configure the data width in the core.
         RESET_ADDR : INTEGER := 0;  --  Configure the address exposed by the counter on startup. Must match the linker script file provided.
-        INCREMENT : INTEGER := 4 --  Configure the value that is added on each iteration cycle. This enable the ability to modify the memory alignement used.
+        INCREMENT : INTEGER := 4 --  Configure the value that is added on each iteration cycle. This enable the ability to modify the memory alignment used.
     );
     PORT (
         --------------------------------------------------------------------------------------------------------
         -- IO ports
-        --------------------------------------------------------------------------------------------------------
-         
+        -------------------------------------------------------------------------------------------------------- 
         address : OUT STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0); --  Address output, to be sent to the instruction memory.
         address_in : IN STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0); --  Address input, this value is copied synchronously into the counter when load = '1'
 
@@ -38,7 +37,7 @@ ENTITY pcounter IS
         -- Clocks
         --------------------------------------------------------------------------------------------------------
         clock : IN STD_LOGIC; --  **clock input** of the core. Must match the INPUT_FREQ generics within some tolerance.
-        clock_en : IN STD_LOGIC; --  **clock enable** from the core clock controller. Used to not create two clock domains from the master clock and the auxilliary clock.
+        clock_en : IN STD_LOGIC; --  **clock enable** from the core clock controller. Used to not create two clock domains from the master clock and the auxiliary clock.
 
         --------------------------------------------------------------------------------------------------------
         -- Control signals
@@ -50,7 +49,6 @@ ENTITY pcounter IS
 END ENTITY;
 
 ARCHITECTURE behavioral OF pcounter IS
-
       
     SIGNAL internal_address : unsigned((XLEN - 1) DOWNTO 0); --  Internal counter for the address value, as an unsigned of XLEN bits.
     SIGNAL address_maxval : unsigned((XLEN - 1) DOWNTO 0) := (OTHERS => '1');  --  Internal value for the maximal address, computed on the runtime.

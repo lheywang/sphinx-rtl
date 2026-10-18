@@ -56,23 +56,6 @@ class xParser:
         else:
             self.tool = ""
 
-    def runTool(self, args: str) -> str:
-        """
-        Run the tool in a safe subprocess. Return the raw command
-        """
-        # Build the command
-        cmd = [self.tool]
-        cmd.extend(args.split(" "))
-
-        # Run the subprocess
-        res = subprocess.run(cmd, capture_output=True, text=True)
-        if res.returncode != 0:
-            raise RuntimeError(
-                f"Failed to run {self.tool} for with {args}.\n    Error is {res.stderr}"
-            )
-
-        return res.stdout
-
     def getFileInfo(self, file: Path) -> FileInfo:
         """
         Use the git history to look for the file history
