@@ -71,3 +71,8 @@ BEGIN
         reg_array(ra2);
 
 END ARCHITECTURE;
+
+
+ENTITY tb_register_file IS 
+END ENTITY;
+

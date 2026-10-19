@@ -21,6 +21,7 @@ dependencies = [
     "tree-sitter>=0.26.0",
     "tree-sitter-vhdl>=2.0.3",
     "tree-sitter-verilog>=1.0.3",
+    "tree-sitter-python>=0.25.0",
 ]
 
 [project.optional-dependencies]

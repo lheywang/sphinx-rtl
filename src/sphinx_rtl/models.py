@@ -41,6 +41,15 @@ class Element:
 
 
 @dataclass(slots=True)
+class Comment(Element):
+    """
+    Define a comment object with it's associated metadata.
+    """
+
+    content: str = ""
+
+
+@dataclass(slots=True)
 class Parameter(Element):
     """
     Store the different values for a single parameter (or generic in VHDL) entry.
