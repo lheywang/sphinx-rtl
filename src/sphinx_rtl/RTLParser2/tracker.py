@@ -12,10 +12,12 @@ import sys
 from tree_sitter import Node
 from pathlib import Path
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 from enum import Enum as classEnum
+from typing import Callable
 
 from sphinx_rtl.models import Component
-from sphinx_rtl.RTLParser2.languages import get_text
+from sphinx_rtl.RTLParser2.languages.utils import get_text, get_line
 from sphinx_rtl.models import (
     Component,
     Port,
@@ -71,20 +73,28 @@ class EntityTracker:
         self.components: dict[str, Component] = {}
         self.scopes: list[dict] = []
 
-    def add_entity(self, nodes: dict[str, list[Node]], file: Path, code: bytes) -> None:
+    def add_entity(
+        self,
+        nodes: dict[str, list[Node]],
+        file: Path,
+        code: bytes,
+        namefunc: Callable[[dict[str, list[Node]], bytes], str],
+    ) -> None:
         """
         Add an entity into the register. Will reuse them later to
         append properties if needed.
         """
 
-        # Fetch the entity name
-        name = get_text(nodes["entity.name"][0], code)
+        # Fetch the entity name using the provided function.
+        name = namefunc(nodes, code)
 
-        start_line = nodes["entity.node"][0].end_point[0]
+        start_line = get_line(nodes["entity.node"][0])
+        if type(start_line) is tuple:
+            start_line = start_line[0]
 
         # Update the register
         if self.scopes and self.scopes[-1]["end"] == self.end:
-            self.scopes[-1]["end"] = max(self.scopes[-1]["start"], start_line - 1)
+            self.scopes[-1]["end"] = max(self.scopes[-1]["start"], start_line)
         self.scopes.append({"name": name, "start": start_line, "end": self.end})
 
         # Get file infos
@@ -92,6 +102,9 @@ class EntityTracker:
 
         # Build the component
         self.components[name] = Component(infos, name=name)
+
+        # Add some logs
+        logger.info(blue(f"[INFO] Found an entity {name} at line {start_line}"))
 
     def add_to_entity(
         self,
@@ -123,6 +136,8 @@ class EntityTracker:
 
             match element:
 
+                case Signal():
+                    target.signals.append(element)
                 case Port():
                     target.ports.append(element)
                 case Parameter():
@@ -133,8 +148,6 @@ class EntityTracker:
                     target.imports.append(element)
                 case Process():
                     target.process.append(element)
-                case Signal():
-                    target.signals.append(element)
                 case Interface():
                     target.interfaces.append(element)
                 case Module():
@@ -178,15 +191,26 @@ class EntityTracker:
 
         return
 
-    def resolve(self, line: int) -> Component | None:
+    def resolve(self, line: int | tuple[int, int]) -> Component | None:
         """
         Return the entity where the element must be added.
         """
 
+        int_line = -1
+        if isinstance(line, int):
+            int_line = line
+        elif isinstance(line, (tuple, list)):
+            int_line = line[0]
+        else:
+            logger.warning(
+                "Unknown element passed to the resolve function. Ignoring request."
+            )
+            return None
+
         # Get the entity
         target = ""
         for scope in self.scopes:
-            if scope["start"] <= line <= scope["end"]:
+            if scope["start"] <= int_line <= scope["end"]:
                 target = scope["name"]
                 break
 

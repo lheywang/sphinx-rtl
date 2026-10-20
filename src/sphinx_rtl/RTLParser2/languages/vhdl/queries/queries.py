@@ -45,16 +45,26 @@ def get_queries(lang: Language) -> dict[str, Query]:
         "Q_PORTS": Query(
             lang,
             """
-            (entity_declaration
-                (identifier) @entity.name
-                (port_clause
-                    (interface_list
+            (port_clause
+                (interface_list
+                    [
                     (interface_declaration
                         (identifier_list) @port.ids
                         (simple_mode_indication
                             (mode)? @port.mode
-                            (subtype_indication) @port.subtype))))?
-            ) @entity.node
+                            (subtype_indication) @port.subtype
+                        )
+                    )
+                    (interface_signal_declaration
+                        (identifier_list) @port.ids
+                        (simple_mode_indication
+                            (mode)? @port.mode
+                            (subtype_indication) @port.subtype
+                        )
+                    )
+                    ]
+                )
+            )
             """,
         ),
         "Q_TYPES": Query(
@@ -62,15 +72,12 @@ def get_queries(lang: Language) -> dict[str, Query]:
             """
             (type_declaration
                 (identifier) @type.name
-                (enumeration_type_definition) @type.enum)
-        
-            (type_declaration
-                (identifier) @type.name
-                (record_type_definition) @type.struct)
-
-            (type_declaration
-                (identifier) @type.name
-                (array_type_definition) @type.array)
+                [
+                    (array_type_definition) @type.array
+                    (enumeration_type_definition) @type.enum
+                    (record_type_definition) @type.record
+                ]?
+            )
             """,
         ),
         "Q_SIGNALS": Query(
@@ -86,14 +93,28 @@ def get_queries(lang: Language) -> dict[str, Query]:
             lang,
             """
             (process_statement
-                (label_declaration (label))? @process.label) @process.node
+                (label_declaration
+                    (label) @process.label
+                )?
+                (sensitivity_specification
+                    (sensitivity_list)? @process.sensitivity
+                )?
+                (sequential_block) @process.body
+            ) @process.node
             """,
         ),
         "Q_ASSIGNS": Query(
             lang,
             """
-            (concurrent_simple_signal_assignment) @assign.concurrent
-                (concurrent_conditional_signal_assignment) @assign.conditional
+            (concurrent_simple_signal_assignment
+                (name) @assign.target
+                (waveform) @assign.waveform
+            ) @assign.concurrent
+
+            (concurrent_conditional_signal_assignment
+                (name) @assign.target
+                (conditional_waveforms) @assign.waveform
+            ) @assign.conditional
             """,
         ),
         "Q_MODULES": Query(

@@ -16,11 +16,10 @@ from cattrs import Converter
 from collections.abc import Sequence
 from .RTLConfig import RTLConfig
 
+
 # ----------------------------------------------------------------------------
 # CLASSES
 # ----------------------------------------------------------------------------
-
-
 @dataclass(slots=True)
 class Element:
     """
@@ -37,7 +36,7 @@ class Element:
 
     name: str = ""
     description: str = ""
-    line: int = -1
+    line: int | tuple[int, int] = -1
 
 
 @dataclass(slots=True)
@@ -541,6 +540,40 @@ class Component:
 
 
 # ----------------------------------------------------------------------------
+# CATTRS HOOKS
+# ----------------------------------------------------------------------------
+ALL_MODELS = (
+    Port
+    | Enum
+    | Parameter
+    | Structure
+    | Import
+    | Signal
+    | Process
+    | Assignment
+    | Module
+    | Function
+    | Interface
+)
+
+
+# ----------------------------------------------------------------------------
+# CATTRS HOOKS
+# ----------------------------------------------------------------------------
+def _cattrs_line_fmt(value, type_):
+    """
+    Build the elements for the int | tuple[int, int] structure for the JSON elements.
+    """
+    if isinstance(value, int):
+        return value
+    if isinstance(value, (list, tuple)):
+        if len(value) == 1:
+            return int(value[0])
+        return tuple(int(x) for x in value)
+    raise ValueError(f"Could not structure the line {value}")
+
+
+# ----------------------------------------------------------------------------
 # FUNCTIONS FOR EXPORT / IMPORT
 # ----------------------------------------------------------------------------
 def _make_converter() -> Converter:
@@ -551,6 +584,10 @@ def _make_converter() -> Converter:
 
     conv.register_structure_hook(Path, lambda s, _: Path(s))
     conv.register_unstructure_hook(Path, lambda p: str(p))
+    conv.register_structure_hook(int | tuple[int, int], _cattrs_line_fmt)
+    conv.register_unstructure_hook(
+        int | tuple[int, int], lambda x: list(x) if isinstance(x, tuple) else x
+    )
 
     return conv
 

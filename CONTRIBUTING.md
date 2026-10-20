@@ -16,6 +16,11 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 ### Target v0.6.0
 
 - [ ] VHDL (Target < v1.0.0)
+  - Clean up the IR to integrate the differences since the VHDL addition.
+  - Missing elements for now
+    - Functions
+    - Generate
+    - Modules
 - [ ] Add the flag processing method
 - [ ] Add the configuration layers models (~~sphinx-rtl.toml~~ (replaced by the RTLConfig helpers) then arguments passed to the config then the flags on the file).
 - [ ] Migrate the Verilog parser to tree-sitter based one. Faster and unify both processing lines (more reliable, easier to maintain).
@@ -29,6 +34,7 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [ ] Add the snipplet generator into the renderer engine.
 - [ ] Select the function rendering method (natural or complete).
 - [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
+- [ ] Add a FanIN / FanOUT inferring pass into the IR.
 
 ### Target v0.8.0+
 

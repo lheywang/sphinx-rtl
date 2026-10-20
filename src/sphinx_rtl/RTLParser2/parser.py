@@ -15,7 +15,7 @@ from .registry import SpecificationRegistry
 from .languages import VHDLSpecification, SystemverilogSpecification
 from .tracker import EntityTracker, AddingPolicy
 
-from sphinx_rtl.models import Component, Comment
+from sphinx_rtl.models import Component, Comment, ALL_MODELS
 
 # Configure the global parser and add the different specifications to it
 registry = SpecificationRegistry()
@@ -68,15 +68,18 @@ class RTLParser2:
         comments: list[Comment] = []
 
         # Run the first query to discover the elements
-        if self.specification.ts_explore_query != "":
+        if (
+            self.specification.ts_explore_query != ""
+            and self.specification.ts_top_name is not None
+        ):
             explore_cursor = QueryCursor(
                 self.specification.ts_queries[self.specification.ts_explore_query]
             )
             for index, match in explore_cursor.matches(tree.root_node):
-                tracker.add_entity(match, file, code)
+                tracker.add_entity(match, file, code, self.specification.ts_top_name)
         else:
             logger.error(
-                f"Specification {self.specification.name} did not define an explore Query. Could not allocate memory for the parsing. Exiting."
+                f"Specification {self.specification.name} did not define an explore Query or the ts_top_name. Could not allocate memory for the parsing. Exiting."
             )
             return {}
 
@@ -94,16 +97,24 @@ class RTLParser2:
             for index, match in cursor.matches(tree.root_node):
                 result = self.specification.ts_transformers[name](index, match, code)
 
-                # Is there something for us ?
-                if result is None:
-                    continue
-                elif type(result) is Comment:
-                    comments.append(result)
-                else:
-                    tracker.add_to_entity(result, AddingPolicy.ADD_TO_ALL)
+                # Place all of that under a list
+                results = []
+                if isinstance(
+                    result,
+                    ALL_MODELS,
+                ):
+                    results = [result]
+                elif type(result) is list:
+                    results = result
 
-        for comment in comments:
-            print(comment)
+                for res in results:
+                    # Is there something for us ?
+                    if res is None:
+                        continue
+                    elif isinstance(res, Comment):
+                        comments.append(res)
+                    elif isinstance(res, ALL_MODELS):
+                        tracker.add_to_entity(res, AddingPolicy.ADD_TO_ALL)
 
         return tracker.components
 

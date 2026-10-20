@@ -9,7 +9,7 @@
 from tree_sitter import Node
 
 from sphinx_rtl.models import Comment
-from sphinx_rtl.RTLParser2.languages import get_text
+from sphinx_rtl.RTLParser2.languages.utils import get_text
 
 
 # Functions

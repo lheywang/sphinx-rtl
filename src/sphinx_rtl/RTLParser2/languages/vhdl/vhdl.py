@@ -7,6 +7,7 @@
 
 # Imports
 from sphinx_rtl.RTLParser2.languages import LanguageSpec
+from sphinx_rtl.RTLParser2.languages.utils import get_text
 from tree_sitter import Language
 from dataclasses import dataclass
 
@@ -37,3 +38,4 @@ class VHDLSpecification(LanguageSpec):
             self.ts_queries = get_queries(self.ts_lang)
             self.ts_transformers = get_transformers()
             self.ts_explore_query = "Q_ENTITY"
+            self.ts_top_name = lambda n, c: (get_text(n["entity.name"][0], c))

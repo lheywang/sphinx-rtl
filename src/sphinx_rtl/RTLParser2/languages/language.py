@@ -2,7 +2,7 @@
 # Author :  l.heywang <leonard.heywang@proton.me>
 # Date :    19/10/2026
 #
-# Brief :
+# Brief :   Define the core elements of a language specification.
 # ----------------------------------------------------------------------------
 
 # Imports
@@ -11,6 +11,21 @@ from typing import Callable, Optional, Any
 from tree_sitter import Language, Query, Node
 from sphinx.util import logging
 from pathlib import Path
+
+from sphinx_rtl.models import (
+    Port,
+    Enum,
+    Parameter,
+    Structure,
+    Import,
+    Signal,
+    Process,
+    Assignment,
+    Module,
+    Function,
+    Interface,
+    Comment,
+)
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -45,18 +60,37 @@ class LanguageSpec:
     # If language is not None, we'll use these as the parser.
     ts_queries: dict[str, Query] = field(default_factory=dict)
     ts_explore_query: str = ""
-    ts_transformers: dict[str, Callable[[int, dict[str, list[Node]], bytes], Any]] = (
-        field(default_factory=dict)
-    )
+    ts_transformers: dict[
+        str,
+        Callable[
+            [int, dict[str, list[Node]], bytes],
+            Port
+            | list[Port]
+            | Enum
+            | list[Enum]
+            | Parameter
+            | list[Parameter]
+            | Structure
+            | list[Structure]
+            | Import
+            | list[Import]
+            | Signal
+            | list[Signal]
+            | Process
+            | list[Process]
+            | Assignment
+            | list[Assignment]
+            | Module
+            | list[Module]
+            | Function
+            | list[Function]
+            | Interface
+            | list[Interface]
+            | Comment
+            | list[Comment],
+        ],
+    ] = field(default_factory=dict)
+    ts_top_name: Optional[Callable[[dict[str, list[Node]], bytes], str]] = None
 
     # Else, let's use the default parser (does)
     std_parser: Optional[Callable[[Path], Any]] = None
-
-
-def get_text(node: Node, source: bytes):
-    """
-    Return the text associated to nodes from the source file.
-    """
-    if node is None:
-        return ""
-    return source[node.start_byte : node.end_byte].decode("utf-8").strip()

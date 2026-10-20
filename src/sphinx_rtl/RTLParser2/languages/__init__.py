@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from .language import LanguageSpec, get_text
+from .language import LanguageSpec
 
 # Add other languages
 from .vhdl import VHDLSpecification
