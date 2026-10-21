@@ -46,13 +46,16 @@ def get_vector(
 
     init_val = ""
     if init is not None:
-        init_val = get_text(init, source)
+        init_val = get_text(init, source).strip()
 
         if "others" in init_val.lower():
             val = init_val.split("'")[1]
             init_val = f"{val}{val}{val}...{val}{val}{val}"
         else:
-            init_val = str(int(init_val.split("=")[-1]))
+            init_val = init_val.replace("'", "").replace('"', "").strip().split("=")[-1]
+
+            if init_val.isnumeric():
+                init_val = str(int(init_val.replace("'", "").split("=")[-1]))
 
     # Fetch size and type
     typ, size = get_size_type(typ)

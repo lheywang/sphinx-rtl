@@ -91,6 +91,11 @@ def VHDLTransformerProcess(
     # Merge the ior signals
     filtered_ior = list((set(ior) | set(iow)) - (set(clocks) | set(resets)))
 
+    # Infer the type is there's a clock somewhere
+    hdl_type = "combinatorial"
+    if clocks:
+        hdl_type = "flipflop"
+
     # Build the output object
     return Process(
         line=line,
@@ -99,4 +104,5 @@ def VHDLTransformerProcess(
         signals=filtered_ior,
         hdl_clock=clocks,
         hdl_reset=resets,
+        hdl_type=hdl_type,
     )

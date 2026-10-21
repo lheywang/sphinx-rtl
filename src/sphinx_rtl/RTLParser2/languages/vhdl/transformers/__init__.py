@@ -12,7 +12,6 @@ from .assign import VHDLTransformerAssign
 from .comments import VHDLTransformerComment
 from .component import VHDLTransformerComponent
 from .functions import VHDLTransformerFunction
-from .generate import VHDLTransformerGenerate
 from .imports import VHDLTransformerImport
 from .modules import VHDLTransformerModule
 from .parameter import VHDLTransformerParameter
@@ -36,6 +35,5 @@ def get_transformers() -> dict[str, Callable]:
         "Q_ASSIGNS": VHDLTransformerAssign,
         "Q_MODULES": VHDLTransformerModule,
         "Q_FUNCTIONS": VHDLTransformerFunction,
-        "Q_GENERATE": VHDLTransformerGenerate,
         "Q_ENTITY": VHDLTransformerComponent,
     }

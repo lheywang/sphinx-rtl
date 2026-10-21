@@ -20,7 +20,6 @@ def get_queries(lang: Language) -> dict[str, Query]:
             lang,
             """
             (line_comment (comment_content) @content) @node
-            (line_comment (comment_content) @content) @node
             """,
         ),
         "Q_IMPORTS": Query(
@@ -40,6 +39,12 @@ def get_queries(lang: Language) -> dict[str, Query]:
                         (simple_mode_indication
                         (subtype_indication) @param.subtype
                         (initialiser)? @param.init))))
+
+            (constant_declaration
+                (identifier_list) @constant.names
+                (subtype_indication) @constant.type
+                (initialiser)? @constant.init
+            ) @constant.node
             """,
         ),
         "Q_PORTS": Query(
@@ -75,7 +80,12 @@ def get_queries(lang: Language) -> dict[str, Query]:
                 [
                     (array_type_definition) @type.array
                     (enumeration_type_definition) @type.enum
-                    (record_type_definition) @type.record
+                    (record_type_definition
+                        (element_declaration
+                            (identifier_list) @record.field.ids
+                            (subtype_indication) @record.field.type
+                        )+ @type.fields
+                    ) @type.record
                 ]?
             )
             """,
@@ -121,25 +131,35 @@ def get_queries(lang: Language) -> dict[str, Query]:
             lang,
             """
             (component_instantiation_statement
-                (label_declaration (label))? @inst.label
-                (name) @inst.type) @inst.node
+                (label_declaration) @inst.unit.label
+                (instantiated_unit)? @inst.unit.unit
+                (name)? @inst.unit.name
+
+                (generic_map_aspect
+                    (association_list) @inst.generics
+                )?
+
+                (port_map_aspect
+                    (association_list) @inst.ports
+                )?
+            )@inst.unit
             """,
         ),
         "Q_FUNCTIONS": Query(
             lang,
             """
             (function_specification
-                (identifier) @func.name) @func.node
+                (identifier) @func.name
+                (subprogram_header)? @func.header
+                (parameter_list_specification) @func.args
+                (name) @func.return
+            ) @func.node
 
             (procedure_specification
-                (identifier) @proc.name) @proc.node
-            """,
-        ),
-        "Q_GENERATES": Query(
-            lang,
-            """
-            (generate_body) @gen.node
-                (case_generate_body) @gen.node
+                (identifier) @proc.name
+                (subprogram_header)? @func.header
+                (parameter_list_specification) @func.args
+            ) @proc.node
             """,
         ),
         "Q_ENTITY": Query(

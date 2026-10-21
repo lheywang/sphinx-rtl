@@ -58,10 +58,12 @@ class Parameter(Element):
     Fields :
         - hdl_type :        The type of the Parameter.
         - hdl_value :       The default value of the parameter (may also be the assigned value if called from a Module class)
+        - constant :        Is this element a constant ? Is True, could not be modified from the instantiation.
     """
 
     hdl_type: str = ""
     hdl_value: str = ""
+    constant: bool = False
 
 
 @dataclass(slots=True)
@@ -102,10 +104,12 @@ class Enum(Element):
     Inherit from : Element
 
     Fields :
+        - type :            Is there an attached type to it ?
         - values :          The different elaboration resolved values for the enum.
         - members :         The different members to be available on the file for this enum.
     """
 
+    hdl_type: str = ""
     values: list[int] = field(default_factory=list)
     members: list[str] = field(default_factory=list)
 
@@ -240,6 +244,7 @@ class Module(Element):
 
     Fields :
         - entity :          The entity name of the included module.
+        - architecture:     The entity architecture (VHDL).
         - connections :     A list of string tuples that match the port name and the actual connection name.
         - params :          The list of parameters passed to this module.
         - isVendor :        Does the module target something that looks like a vendor primitive ?
@@ -251,6 +256,7 @@ class Module(Element):
     """
 
     entity: str = ""
+    architecture: str = ""
     connections: list[tuple[str, str]] = field(default_factory=list)
     params: list[Parameter] = field(default_factory=list)
     isVendor: bool = False

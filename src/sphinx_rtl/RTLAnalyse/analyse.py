@@ -11,7 +11,7 @@ from sphinx.util import logging
 from sphinx._cli.util.colour import bold, blue
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
-from sphinx_rtl.models import Component, RTLConfig
+from sphinx_rtl.models import Component, RTLConfig, FileInfo
 import time
 
 from .modules import (
@@ -69,14 +69,18 @@ class RTLAnalyse:
 
         # Iterating over the components
         for component in component_order:
-            target = components.get(component)
-            if target is not None:
-                output = self._analyse_component(target, components)
-                components[component] = output
-            else:
-                logger.warning(
-                    f"Missing component ({component}). Documentation will use default values."
-                )
+
+            try:
+                target = components.get(component)
+                if target is not None:
+                    output = self._analyse_component(target, components)
+                    components[component] = output
+                else:
+                    logger.warning(
+                        f"Could not fetch a component from the global dict. Ignoring analysis."
+                    )
+            except Exception as e:
+                logger.error(f"Failed to analyse component {component} : {e}")
 
         # Emit an event before returning
         self.app.emit("rtl-pre-analysis", self.app, self.env, components)
