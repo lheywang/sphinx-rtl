@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sphinx-rtl"
 version = "0.6.0"
-description = "Automated RTL (VHDL, Verilog, SystemVerilog) documentation generator."
+description = "A sphinx extension to build documentation for Hardware RTL, by an RTL engineer !"
 readme = "README.md"
 requires-python = ">=3.11"
 license-files = ["LICENSE"]
@@ -15,7 +15,6 @@ dependencies = [
     "sphinx>=7.0.0",
     "myst-parser>=2.0.0",
     "gitpython>=3.1.62",
-    "pyslang>=11.0.0",
     "sphinx-design>=0.7.0",
     "cattrs>=26.2.1",
     "tree-sitter>=0.26.0",
