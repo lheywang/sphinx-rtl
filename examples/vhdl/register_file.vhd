@@ -40,8 +40,17 @@ END ENTITY;
 
 ARCHITECTURE rtl OF register_file IS
   
+    TYPE fsm_state IS (IDLE, START, OPERATING, CLEANING, ENDING);
+    SIGNAL state is fsm_state := IDLE;
+
     TYPE reg_array_t IS ARRAY (0 TO REG_NB - 1) OF STD_LOGIC_VECTOR(XLEN - 1 DOWNTO 0); --   Type definiton of the register array
     SIGNAL reg_array : reg_array_t := (OTHERS => (OTHERS => '0')); --   instantiation of the register array, to be used.
+
+    type bus_request_t is record
+        address : std_logic_vector(31 DOWNTO 0);
+        data    : std_logic_vector(31 DOWNTO 0);
+        we      : std_logic;
+    end record;
 
 BEGIN
 
