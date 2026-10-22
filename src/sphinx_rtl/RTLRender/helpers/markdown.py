@@ -30,8 +30,12 @@ def render_markdown(
     if not text or not text.strip():
         return [nodes.paragraph(text="-")]
 
-    # Parse the document
+    # Configure a document
     document = utils.new_document("")
+    document.settings.myst_suppress_warnings = ["myst.topmatter", "myst.header"]
+    document.settings.myst_enable_extensions = []
+
+    # Parse it
     md_parser.parse(text.strip(), document)
 
     # Search for images or any relative path, and try to make them absolute

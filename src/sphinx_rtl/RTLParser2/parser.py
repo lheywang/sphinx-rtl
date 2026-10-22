@@ -8,12 +8,14 @@
 
 # Imports
 from sphinx.util import logging
+from sphinx._cli.util.colour import blue
 from pathlib import Path
 from tree_sitter import Parser, QueryCursor
 
 from .registry import SpecificationRegistry
 from .languages import VHDLSpecification, SystemverilogSpecification
 from .tracker import EntityTracker, AddingPolicy
+from .linker import link_comments
 
 from sphinx_rtl.models import Component, Comment, ALL_MODELS
 
@@ -45,6 +47,7 @@ class RTLParser2:
 
         # First, fetch the matching Specification and the Parser
         self.specification = registry.get_specification(file)
+        logger.info(blue(f"[INFO] Using {self.specification.name} for the file."))
 
         # Did the file is defined as ts ?
         if self.specification.ts_lang is not None:
@@ -84,6 +87,11 @@ class RTLParser2:
             return {}
 
         # Using queries, we could fetch all elements directly
+        logger.info(
+            blue(
+                f"[INFO] Executing {len(self.specification.ts_queries)} queries to the AST."
+            )
+        )
         for name, query in self.specification.ts_queries.items():
 
             # Ignore the exploration query
@@ -101,7 +109,7 @@ class RTLParser2:
                 results = []
                 if isinstance(
                     result,
-                    ALL_MODELS,
+                    ALL_MODELS | Comment,
                 ):
                     results = [result]
                 elif type(result) is list:
@@ -115,6 +123,14 @@ class RTLParser2:
                         comments.append(res)
                     elif isinstance(res, ALL_MODELS):
                         tracker.add_to_entity(res, AddingPolicy.ADD_TO_ALL)
+
+        # Do we have a callback to execute ?
+        if self.specification.comment_transformer is not None:
+            logger.info(blue(f"[INFO] Executing the comment transformer provided"))
+            comments = self.specification.comment_transformer(comments)
+
+        # Finally, link the comments with the elements
+        link_comments(comments, tracker.components)
 
         return tracker.components
 

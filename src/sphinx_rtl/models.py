@@ -8,7 +8,7 @@
 
 # Imports
 import json
-from dataclasses import dataclass, field, fields, is_dataclass
+from dataclasses import dataclass, field, fields
 from typing import Any
 from pprint import pformat
 from pathlib import Path
@@ -38,14 +38,29 @@ class Element:
     description: str = ""
     line: int | tuple[int, int] = -1
 
+    def __iter__(self):
+        """
+        Enable to iterate over each lists within the dataclasses
+        """
+        for field in fields(self):
+            if isinstance(field, list):
+                yield getattr(self, field.name)
+
 
 @dataclass(slots=True)
 class Comment(Element):
     """
     Define a comment object with it's associated metadata.
+
+    Inherit from : Element
+
+    Fields :
+        - content : The content of the comment
+        - merge_authorized : Is this comment authorized to be merged ?
     """
 
     content: str = ""
+    merge_authorized: bool = True
 
 
 @dataclass(slots=True)

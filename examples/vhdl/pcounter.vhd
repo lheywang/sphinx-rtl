@@ -3,12 +3,12 @@
 -- Expose the current program address on it's output, and is incremented by four on each cycle.
 -- Can be preloaded.
 --
--- | enable | load | nRST | - | nOVER | output                     | 
--- | :----: | :--: | :--: | - | :---: | :------------------------: |
--- |   0    |   0  |  0   | - |   0   |  RESET_ADDR                |
--- |   X    |   1  |  1   | - |   0   |  address_in                |
--- |   1    |   0  |  1   | - |   0   | address + INCREMENT        |
--- |   1    |   0  |  1   | - |   1   | address + INCREMENT > 2^32 |
+-- | enable | load | nRST | nOVER | output                     | 
+-- | :----: | :--: | :--: | :---: | :------------------------: |
+-- |   0    |   0  |  0   |   0   |  RESET_ADDR                |
+-- |   X    |   1  |  1   |   0   |  address_in                |
+-- |   1    |   0  |  1   |   0   | address + INCREMENT        |
+-- |   1    |   0  |  1   |   1   | address + INCREMENT > 2^32 |
 
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
@@ -25,23 +25,27 @@ ENTITY pcounter IS
         --------------------------------------------------------------------------------------------------------
         -- IO ports
         -------------------------------------------------------------------------------------------------------- 
+
         address : OUT STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0); --  Address output, to be sent to the instruction memory.
         address_in : IN STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0); --  Address input, this value is copied synchronously into the counter when load = '1'
 
         --------------------------------------------------------------------------------------------------------
         -- Status
         --------------------------------------------------------------------------------------------------------
+
         nOVER : OUT STD_LOGIC; --  Overflow flag output. Asserted when the address is greater than 4 294 967 288.
 
         --------------------------------------------------------------------------------------------------------
         -- Clocks
         --------------------------------------------------------------------------------------------------------
+
         clock : IN STD_LOGIC; --  **clock input** of the core. Must match the INPUT_FREQ generics within some tolerance.
         clock_en : IN STD_LOGIC; --  **clock enable** from the core clock controller. Used to not create two clock domains from the master clock and the auxiliary clock.
 
         --------------------------------------------------------------------------------------------------------
         -- Control signals
         --------------------------------------------------------------------------------------------------------
+
         nRST : IN STD_LOGIC; --  **reset input, active low**. When held to '0', the system will remain in the reset state until set to '1'.
         load : IN STD_LOGIC;  --  **Load enable input**. When set to '1', the counting is disabled and the value of address_in is set into the counter.
         enable : IN STD_LOGIC --  **Enable input**. When set to '1', the counter is authorized to count.
@@ -56,7 +60,6 @@ ARCHITECTURE behavioral OF pcounter IS
 
 BEGIN
 
-    --========================================================================================
      --  P1 handle any operations of the program counter.
      --@details
      --On rising edges of the clocks, if authorized, the counter is increment by INCREMENT (typ. 4).
@@ -64,7 +67,6 @@ BEGIN
      --This effect is shown immediately on the output, since the assignement is done asynchrounsly.
      --When the value is greater than 0xFFFFFFF8, the overflow is asserted. This enable the ability to handle it
      --within the core_controller. 
-    --========================================================================================
     P1 : PROCESS (clock, nRST)
     BEGIN
         IF (nRST = '0') THEN

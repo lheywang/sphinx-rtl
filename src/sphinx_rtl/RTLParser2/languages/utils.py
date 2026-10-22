@@ -28,6 +28,10 @@ def get_line(node: Node) -> int | tuple[int, int]:
     start = node.start_point[0]
     stop = node.end_point[0]
 
+    # If the line "ends" on the first char, let's go back one upper.
+    if node.end_point[1] == 0:
+        stop -= 1
+
     if start != stop:
         return (start, stop)
     return start

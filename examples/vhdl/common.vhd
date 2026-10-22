@@ -1,10 +1,7 @@
---------------------------------------------------------------------
---------------------------------------------------------------------
-
---! @brief Package to define some wirings types to make easier the transfer between modules, by using names rather than obscur std_logic_vector values.
+-- Package to define some wirings types to make easier the transfer between modules, by using names rather than obscur std_logic_vector values.
 PACKAGE common IS
 
-    --! @brief Type listings to define the decoder outputs, per opcodes.
+    -- Type listings to define the decoder outputs, per opcodes.
     TYPE instructions IS (
         i_NOP,
 
@@ -34,7 +31,7 @@ PACKAGE common IS
         i_CSRRSI, i_CSRRCI
     );
 
-    --! @brief Type listings to define the controller outputs feed into the ALU.
+    -- Type listings to define the controller outputs feed into the ALU.
     TYPE commands IS (
         c_ADD, c_SUB,
 
@@ -47,7 +44,7 @@ PACKAGE common IS
         c_NONE
     );
 
-    --! @brief Type listings to define the names of the different CSR registers names.
+    -- Type listings to define the names of the different CSR registers names.
     TYPE csr_register IS (
         r_MSTATUS,
         r_MISA,

@@ -1,7 +1,5 @@
---! @file src/core/core.vhd
---! @brief The base file that assemble all of the components of the core. Does not include any form of memory.
---! @author l.heywang <leonard.heywang@proton.me>
---! @date 05-10-2025
+-- Assemble all of the components of the core
+-- The base file that assemble all of the components of the core. Does not include any form of memory.
 
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
@@ -10,46 +8,49 @@ USE work.common.ALL;
 
 ENTITY decoder IS
     GENERIC (
-        --! @brief Configure the data width in the core. DOES NOT configure the instruction lenght, which is fixed to 32 bits.
+        -- Configure the data width in the core. DOES NOT configure the instruction lenght, which is fixed to 32 bits.
         XLEN : INTEGER := 32
     );
     PORT (
         --------------------------------------------------------------------------------------------------------
         -- Inputs
         --------------------------------------------------------------------------------------------------------
-        --! @brief Instruction input, to be decoded.
+
+        -- Instruction input, to be decoded.
         instruction : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-        --! @brief Address of the program counter. This is actually the NEXT address for this implementation.
+        -- Address of the program counter. This is actually the NEXT address for this implementation.
         act_addr : IN STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0);
 
         --------------------------------------------------------------------------------------------------------
         -- Outputs
         --------------------------------------------------------------------------------------------------------
-        --! @brief Register selection 1 output.
+
+        -- Register selection 1 output.
         rs1 : OUT STD_LOGIC_VECTOR((XLEN / 8) DOWNTO 0) := (OTHERS => '0');
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         rs2 : OUT STD_LOGIC_VECTOR((XLEN / 8) DOWNTO 0) := (OTHERS => '0');
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         rd : OUT STD_LOGIC_VECTOR((XLEN / 8) DOWNTO 0) := (OTHERS => '0');
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         imm : OUT STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0) := (OTHERS => '0');
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         addr : OUT STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0) := (OTHERS => '0');
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         opcode : OUT instructions;
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         illegal : OUT STD_LOGIC;
-        --! @brief Register selection 1 output.
+        -- Register selection 1 output.
         pause : OUT STD_LOGIC;
 
         --------------------------------------------------------------------------------------------------------
         -- Clocks & controls
         --------------------------------------------------------------------------------------------------------
-        --! @brief clock input of the core. Must match the INPUT_FREQ generics within some tolerance.
+
+        -- clock input of the core. Must match the INPUT_FREQ generics within some tolerance.
         clock : IN STD_LOGIC;
-        --! @brief clock enable from the core clock controller. Used to not create two clock domains from the master clock and the auxilliary clock.
+        -- clock enable from the core clock controller. Used to not create two clock domains from the master clock and the auxilliary clock.
         clock_en : IN STD_LOGIC;
-        --! @brief reset input, active low. When held to '0', the system will remain in the reset state until set to '1'.
+        -- reset input, active low. When held to '0', the system will remain in the reset state until set to '1'.
         nRST : IN STD_LOGIC
     );
 END ENTITY;
@@ -59,75 +60,83 @@ ARCHITECTURE behavioral OF decoder IS
     --------------------------------------------------------------------------------------------------------
     -- Types definitions
     --------------------------------------------------------------------------------------------------------
-    --! @brief Custom types to define a name for the different decoders to be used.
+
+    -- Custom types to define a name for the different decoders to be used.
     TYPE decocders_type IS (U, I, R, B, S, J, default_t, illegal_t, NOP);
 
     --------------------------------------------------------------------------------------------------------
     -- Internal states
     --------------------------------------------------------------------------------------------------------
-    --! @brief Illegal flag issued from the first process.
+
+    -- Illegal flag issued from the first process.
     SIGNAL illegal_internal : STD_LOGIC := '0';
-    --! @brief Illegal flag issued from the second process.
+    -- Illegal flag issued from the second process.
     SIGNAL illegal_internal2 : STD_LOGIC := '0';
-    --! @brief Output illegal state (used because we can't readback an output port). Generate by ORing both of the previous signals.
+    -- Output illegal state (used because we can't readback an output port). Generate by ORing both of the previous signals.
     SIGNAL illegal_internal_out : STD_LOGIC := '0';
 
     --------------------------------------------------------------------------------------------------------
     -- Internal states
     --------------------------------------------------------------------------------------------------------
-    --! @brief Selected decoder issued by the first process. Depends on the custom type defined before.
+
+    -- Selected decoder issued by the first process. Depends on the custom type defined before.
     SIGNAL selected_decoder : decocders_type := default_t;
-    --! @brief Registered selected decoder, 
+    -- Registered selected decoder, 
     SIGNAL r_selected_decoder : decocders_type := default_t;
 
     --------------------------------------------------------------------------------------------------------
     -- Latchs outputs
     --------------------------------------------------------------------------------------------------------
-    --! @brief RS1 output before getting assigned (to enable illegal zeroing).
+
+    -- RS1 output before getting assigned (to enable illegal zeroing).
     SIGNAL rs1_internal : STD_LOGIC_VECTOR(4 DOWNTO 0) := (OTHERS => '0');
-    --! @brief RS2 output before getting assigned (to enable illegal zeroing).
+    -- RS2 output before getting assigned (to enable illegal zeroing).
     SIGNAL rs2_internal : STD_LOGIC_VECTOR(4 DOWNTO 0) := (OTHERS => '0');
-    --! @brief RD output before getting assigned (to enable illegal zeroing).
+    -- RD output before getting assigned (to enable illegal zeroing).
     SIGNAL rd_internal : STD_LOGIC_VECTOR(4 DOWNTO 0) := (OTHERS => '0');
-    --! @brief Immediate output before getting assigned (to enable illegal zeroing).
+    -- Immediate output before getting assigned (to enable illegal zeroing).
     SIGNAL imm_internal : STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0) := (OTHERS => '0');
 
     --------------------------------------------------------------------------------------------------------
     -- Internal instruction bus, with the right endianess
     --------------------------------------------------------------------------------------------------------
-    --! @brief Registered instruction to be treated within the first process.
+
+    -- Registered instruction to be treated within the first process.
     SIGNAL i_instruction : STD_LOGIC_VECTOR(31 DOWNTO 0) := (OTHERS => '0');
-    --! @brief Registered instruction to be treated within the second process (copy of i1, one cycle later).
+    -- Registered instruction to be treated within the second process (copy of i1, one cycle later).
     SIGNAL i2_instruction : STD_LOGIC_VECTOR(31 DOWNTO 0) := (OTHERS => '0');
-    --! @brief Raw instruction, output of the endianess corrector.
+    -- Raw instruction, output of the endianess corrector.
     SIGNAL r_instruction : STD_LOGIC_VECTOR(31 DOWNTO 0) := (OTHERS => '0');
 
     --------------------------------------------------------------------------------------------------------
     -- Internal address bus, for instruction corrections
     --------------------------------------------------------------------------------------------------------
-    --! @brief First stage of the address registration.
+
+    -- First stage of the address registration.
     SIGNAL i0_addr : STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0) := (OTHERS => '0');
-    --! @brief Second stage of the address registration.
+    -- Second stage of the address registration.
     SIGNAL i1_addr : STD_LOGIC_VECTOR((XLEN - 1) DOWNTO 0) := (OTHERS => '0');
 
     --------------------------------------------------------------------------------------------------------
     -- remove the first decoder cycle glitch
     --------------------------------------------------------------------------------------------------------
-    --! @brief Flag to prevent from the input register to getting the data. This prevent from a duplication of the first instruction.
-    --! Memory is responding within a clock cycle, before the first cycle of the decoder. And memory won't output the next instruction
-    --! before three cycle, which will effectively read the instruction twice.
+
+    -- Flag to prevent from the input register to getting the data. This prevent from a duplication of the first instruction.
+    -- Memory is responding within a clock cycle, before the first cycle of the decoder. And memory won't output the next instruction
+    -- before three cycle, which will effectively read the instruction twice.
     SIGNAL first_flag : STD_LOGIC := '0';
-    --! @brief A pause is required for this instruction, because it WILL need more than a CPU cycle to be executed.
+    -- A pause is required for this instruction, because it WILL need more than a CPU cycle to be executed.
     SIGNAL req_pause : STD_LOGIC := '0';
-    --! @brief Pause cycles that are required for the current instruction.
+    -- Pause cycles that are required for the current instruction.
     SIGNAL pause_cycles : INTEGER RANGE 0 TO 3 := 0;
-    --! @brief Paused flag, asserted when the logic acknowledged the pause_req status.
+    -- Paused flag, asserted when the logic acknowledged the pause_req status.
     SIGNAL paused : STD_LOGIC := '0';
 
     --------------------------------------------------------------------------------------------------------
     -- Evolution auth
     --------------------------------------------------------------------------------------------------------
-    --! @brief Enable or disable the registration of new values, to prevent from skipping instructions.
+
+    -- Enable or disable the registration of new values, to prevent from skipping instructions.
     SIGNAL shift_auth : STD_LOGIC := '0';
 
 BEGIN
@@ -142,14 +151,12 @@ BEGIN
             dataout => r_instruction
         );
 
-    --========================================================================================
-    --! @brief this first process, P0 handles address registration for the output, as well as 
-    --! instruction registering.
-    --! @details
-    --! This first process register inputs if the shift_auth bit is active. This enable the 
-    --! clocking of a new ONLY enough
-    --! stall cycles for the previous instruction has been elapsed.
-    --========================================================================================
+    -- this first process, P0 handles address registration for the output, as well as 
+    -- instruction registering.
+    -- @details
+    -- This first process register inputs if the shift_auth bit is active. This enable the 
+    -- clocking of a new ONLY enough
+    -- stall cycles for the previous instruction has been elapsed.
     P0 : PROCESS (clock, nRST)
     BEGIN
         IF (nRST = '0') THEN
@@ -177,21 +184,19 @@ BEGIN
 
     END PROCESS;
 
-    --========================================================================================
-    --! @brief This second process, P2 will handle the decoder selection.
-    --! @details
-    --! This second process look to the 7 LSB of the instruction, and decide which decoder 
-    --! shall be used for this instruction.
-    --! A second role is to handle the number of stall cycles required for an instruction, 
-    --! which won't enable the ability to
-    --! react extremely fast ON the pipeline, and thus, remove complex logic on the core 
-    --! controller (which would need 
-    --! to stall 6 stages of pipeline).
-    --! The only drawback is that we can't predict the output, so, instructions that could 
-    --! take 2 or 3 cycles will ALWAYS take 3.
-    --! On such a simple core, the performance loss is more than acceptable, but could be 
-    --! quite big if we need higher performances.
-    --========================================================================================
+    -- This second process, P2 will handle the decoder selection.
+    --
+    -- This second process look to the 7 LSB of the instruction, and decide which decoder 
+    -- shall be used for this instruction.
+    -- A second role is to handle the number of stall cycles required for an instruction, 
+    -- which won't enable the ability to
+    -- react extremely fast ON the pipeline, and thus, remove complex logic on the core 
+    -- controller (which would need 
+    -- to stall 6 stages of pipeline).
+    -- The only drawback is that we can't predict the output, so, instructions that could 
+    -- take 2 or 3 cycles will ALWAYS take 3.
+    -- On such a simple core, the performance loss is more than acceptable, but could be 
+    -- quite big if we need higher performances.
     P1 : PROCESS (nRST, clock)
 
         VARIABLE paused_cycles : INTEGER RANGE 0 TO 3 := 0;
@@ -331,15 +336,13 @@ BEGIN
 
     END PROCESS;
 
-    --========================================================================================
-    --! @brief This third process cut the decoding process into two halves, each one with a 
-    --! dedicated job
-    --! by registering the outputs from the first process to feed them into the second stage.
-    --! @details
-    --! In fact, this process gave us extremely high performance gain (+125% Core frequency), 
-    --! because the decoder is one of the elements that has a massive influcence on the 
-    --! critical path.
-    --========================================================================================
+    -- This third process cut the decoding process into two halves, each one with a 
+    -- dedicated job
+    -- by registering the outputs from the first process to feed them into the second stage.
+    -- @details
+    -- In fact, this process gave us extremely high performance gain (+125% Core frequency), 
+    -- because the decoder is one of the elements that has a massive influcence on the 
+    -- critical path.
     P2 : PROCESS (clock, nRST, clock_en)
     BEGIN
         IF (nRST = '0') THEN
@@ -353,13 +356,11 @@ BEGIN
         END IF;
     END PROCESS;
 
-    --========================================================================================
-    --! @brief This last process produce the output of the decoder, to the core controller.
-    --! @details
-    --! With the selected decoder previously selected, we can directly jump into slicing the 
-    --! instruction into smaller parts, and doing to SEXT operation on immediates.
-    --! Some combinational selection occurs to choose the right opcode.
-    --========================================================================================
+    -- This last process produce the output of the decoder, to the core controller.
+    -- @details
+    -- With the selected decoder previously selected, we can directly jump into slicing the 
+    -- instruction into smaller parts, and doing to SEXT operation on immediates.
+    -- Some combinational selection occurs to choose the right opcode.
     P3 : PROCESS (nRST, r_selected_decoder, i2_instruction)
     BEGIN
         IF (nRST = '0') THEN

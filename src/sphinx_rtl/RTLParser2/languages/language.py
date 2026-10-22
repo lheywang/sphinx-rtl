@@ -51,6 +51,9 @@ class LanguageSpec:
 
         The following fields are only used is ts_lang is None. That mean the language must be parsed as a standalone tool.
         std_parser : A function where we pass the target Path, and hope for the best.
+
+        The last fields are common, optional callbacks. Theses are called some points within the execution to perform different operations :
+        - comment_transformer : Enable to transform comments before passing them to the linker.
     """
 
     name: str = ""
@@ -94,3 +97,8 @@ class LanguageSpec:
 
     # Else, let's use the default parser (does)
     std_parser: Optional[Callable[[Path], Any]] = None
+
+    # Common definition
+    comment_transformer: Optional[Callable[[list[Comment]], list[Comment]]] | None = (
+        None
+    )
