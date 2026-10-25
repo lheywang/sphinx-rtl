@@ -320,7 +320,7 @@ module assembly_alu #(
         .o_jmp(alu0_jmp),
         .o_rd(alu0_o_rd),
         .o_valid(alu0_valid),
-        .o_o_error(alu0_o_error),
+        .o_error(alu0_o_error),
         .o_req(alu0_req),
         .o_clear(alu0_clear)
     );

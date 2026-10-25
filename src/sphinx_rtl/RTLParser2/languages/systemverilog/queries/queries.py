@@ -14,6 +14,18 @@ def get_queries(lang: Language) -> dict[str, Query]:
     Build the queries for the passed language.
     """
 
+    # "Q_ASSIGNS"
+    # "Q_ENUM"
+    # "Q_IMPORTS"
+    # "Q_INTERFACES"
+    # "Q_MODPORTS"
+    # "Q_PARAMETERS"
+    # "Q_PORTS"
+    # "Q_PROCESS"
+    # "Q_FUNCTIONS"
+    # "Q_SIGNALS"
+    # "Q_STRUCTURES"
+
     return {
         "Q_COMMENTS": Query(lang, """(comment) @comment"""),
         "Q_PORTS": Query(
@@ -25,7 +37,33 @@ def get_queries(lang: Language) -> dict[str, Query]:
         "Q_ENTITIES": Query(
             lang,
             """
-            (module_declaration) @entity.node
+            (module_declaration
+                (module_header
+                    [
+                        (simple_identifier)
+                        (escaped_identifier)
+                    ] @module.name
+                ) @entity.node
+            )
+            """,
+        ),
+        "Q_MODULES": Query(
+            lang,
+            """
+            (_
+            [
+                    (simple_identifier)
+                    (escaped_identifier)
+                    (interface_identifier)
+                    (program_identifier)
+                    (checker_identifier)
+                ] @module.instance.type
+                (parameter_value_assignment)? @module.parameters
+                (hierarchical_instance
+                    (name_of_instance) @module.instance.name
+                    (list_of_port_connections)? @ports.list
+                ) @module.instance
+            ) @module.node
             """,
         ),
     }

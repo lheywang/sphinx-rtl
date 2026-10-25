@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from tree_sitter import Node
+from tree_sitter import Node, QueryCursor
 
 
 def get_text(node: Node, source: bytes):
@@ -54,3 +54,27 @@ def get_identifiers(node: Node, source: bytes) -> list[str]:
 
     traverse(node)
     return identifiers
+
+
+def collect(query, container):
+    """
+    Collect data from a provided container and query.
+
+    Used for 2nd layers queries.
+    """
+
+    # If empty, return nothing.
+    if container is None:
+        return []
+
+    for _, caps in QueryCursor(query).matches(container):
+        conn = caps["conn"][0]
+        yield (
+            {
+                "node": conn,
+                "kind": conn.type,
+                "name": caps["name"][0] if "name" in caps else None,
+                "value": caps["value"][0] if "value" in caps else None,
+                "wildcard": conn.type == "dot_star_port_connection",
+            }
+        )

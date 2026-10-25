@@ -5,32 +5,32 @@
 
 module tb_top;
 
-	// Declare variables that need to be connected to the design instance
-	// These variables are assigned some values that in turn gets transferred to
-	// the design as inputs because they are connected with the ports in the design
-	reg clk;
-	wire en;
-	wire wr;
-	wire data;
+    // Declare variables that need to be connected to the design instance
+    // These variables are assigned some values that in turn gets transferred to
+    // the design as inputs because they are connected with the ports in the design
+    reg clk;
+    wire en;
+    wire wr;
+    wire data;
 
-	/* 
+    /* 
      * Instantiate the design module and connect the variables declared above
-	 * with the ports in the design
+     * with the ports in the design
      */
-	dut myDsn ( .clk (clk),
-	               .en  (en),
-	               .wr  (wr),
-	               .data (data)
+    dut myDsn ( .clk (clk),
+                   .en  (en),
+                   .wr  (wr),
+                   .data (data)
     );
 
     task apply_reset ();
-		#5  en <= 0;
-		#20 en <= 1;
-	endtask
+        #5  en <= 0;
+        #20 en <= 1;
+    endtask
 
-	initial begin
-		apply_reset();
-	end
+    initial begin
+        apply_reset();
+    end
     always
     
     begin
@@ -38,5 +38,5 @@ module tb_top;
         #5 Clock = 0;
     end
 
-	// Develop rest of the testbench and write stimulus that can be driven to the design
+    // Develop rest of the testbench and write stimulus that can be driven to the design
 endmodule
