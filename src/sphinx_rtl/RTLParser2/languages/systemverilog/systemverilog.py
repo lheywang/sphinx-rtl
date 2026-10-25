@@ -6,11 +6,13 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from sphinx_rtl.RTLParser2.languages import LanguageSpec
+import tree_sitter_verilog
+
 from tree_sitter import Language
 from dataclasses import dataclass
 
-import tree_sitter_verilog
+from sphinx_rtl.RTLParser2.languages import LanguageSpec
+from sphinx_rtl.RTLParser2.languages.utils import get_text, get_line
 
 from .queries import get_queries
 from .transformers import get_transformers
@@ -36,3 +38,5 @@ class SystemverilogSpecification(LanguageSpec):
         if self.ts_lang is not None:
             self.ts_queries = get_queries(self.ts_lang)
             self.ts_transformers = get_transformers()
+            self.ts_explore_query = "Q_ENTITIES"
+            self.ts_top_name = lambda n, c: "None"

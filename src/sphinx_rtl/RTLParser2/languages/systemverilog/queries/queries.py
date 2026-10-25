@@ -6,7 +6,6 @@
 # ----------------------------------------------------------------------------
 
 # From
-import tree_sitter_vhdl as tsvhdl
 from tree_sitter import Language, Query
 
 
@@ -15,4 +14,18 @@ def get_queries(lang: Language) -> dict[str, Query]:
     Build the queries for the passed language.
     """
 
-    return {}
+    return {
+        "Q_COMMENTS": Query(lang, """(comment) @comment"""),
+        "Q_PORTS": Query(
+            lang,
+            """
+            (port) @port
+            """,
+        ),
+        "Q_ENTITIES": Query(
+            lang,
+            """
+            (module_declaration) @entity.node
+            """,
+        ),
+    }

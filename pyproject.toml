@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sphinx-rtl"
-version = "0.6.0"
+version = "0.6.1"
 description = "A sphinx extension to build documentation for Hardware RTL, by an RTL engineer !"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -6,7 +6,6 @@
 # ----------------------------------------------------------------------------
 
 # From
-import tree_sitter_vhdl as tsvhdl
 from tree_sitter import Language, Query
 
 

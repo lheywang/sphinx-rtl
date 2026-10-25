@@ -130,7 +130,12 @@ class RTLParser2:
             comments = self.specification.comment_transformer(comments)
 
         # Finally, link the comments with the elements
-        link_comments(comments, tracker.components)
+        if len(comments) > 0:
+            link_comments(comments, tracker.components)
+        else:
+            logger.info(
+                f"[INFO] : File did not provide any comments. Skipping the linking step."
+            )
 
         return tracker.components
 

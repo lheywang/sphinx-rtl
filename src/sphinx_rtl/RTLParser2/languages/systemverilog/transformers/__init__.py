@@ -8,14 +8,36 @@
 # Imports
 from typing import Callable
 
-from .ports import VHDLTransformerPort
-from .signals import VHDLTransformerSignal
+from .assignment import VerilogTransformerAssignment
+from .comment import VerilogTransformerComment
+from .enum import VerilogTransformerEnum
+from .imports import VerilogTransformerImport
+from .interface import VerilogTransformerInterface
+from .modport import VerilogTransformerModport
+from .module import VerilogTransformerModule
+from .parameter import VerilogTransformerParameter
+from .port import VerilogTransformerPort
+from .process import VerilogTransformerProcess
+from .routine import VerilogTransformerRoutine
+from .signal import VerilogTransformerSignal
+from .structure import VerilogTransformerStructure
 
 
 # Define the functions to get the keys
 def get_transformers() -> dict[str, Callable]:
 
     return {
-        "Q_PORTS": VHDLTransformerPort,
-        "Q_SIGNALS": VHDLTransformerSignal,
+        "Q_ASSIGNS": VerilogTransformerAssignment,
+        "Q_COMMENTS": VerilogTransformerComment,
+        "Q_ENUM": VerilogTransformerEnum,
+        "Q_IMPORTS": VerilogTransformerImport,
+        "Q_INTERFACES": VerilogTransformerInterface,
+        "Q_MODPORTS": VerilogTransformerModport,
+        "Q_MODULES": VerilogTransformerModule,
+        "Q_PARAMETERS": VerilogTransformerParameter,
+        "Q_PORTS": VerilogTransformerPort,
+        "Q_PROCESS": VerilogTransformerProcess,
+        "Q_FUNCTIONS": VerilogTransformerRoutine,
+        "Q_SIGNALS": VerilogTransformerSignal,
+        "Q_STRUCTURES": VerilogTransformerStructure,
     }

@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Import
-from tree_sitter import Node, Point
+from tree_sitter import Node
 
 from sphinx_rtl.models import Comment
 from sphinx_rtl.RTLParser2.languages.utils import get_text, get_line
