@@ -125,7 +125,7 @@ class Enum(Element):
     """
 
     hdl_type: str = ""
-    values: list[int] = field(default_factory=list)
+    values: list[str] = field(default_factory=list)
     members: list[str] = field(default_factory=list)
 
 

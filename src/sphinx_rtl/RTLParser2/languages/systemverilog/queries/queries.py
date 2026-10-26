@@ -2,7 +2,7 @@
 # Author :  l.heywang <leonard.heywang@proton.me>
 # Date :    18/09/2026
 #
-# Brief :   Define the queries used by the VHDL parser.
+# Brief :   Define the queries used by the Verilog parser.
 # ----------------------------------------------------------------------------
 
 # From
@@ -14,9 +14,6 @@ def get_queries(lang: Language) -> dict[str, Query]:
     Build the queries for the passed language.
     """
 
-    # "Q_ASSIGNS"
-    # "Q_ENUM"
-    # "Q_IMPORTS"
     # "Q_INTERFACES"
     # "Q_MODPORTS"
     # "Q_PARAMETERS"
@@ -51,7 +48,7 @@ def get_queries(lang: Language) -> dict[str, Query]:
             lang,
             """
             (_
-            [
+                [
                     (simple_identifier)
                     (escaped_identifier)
                     (interface_identifier)
@@ -64,6 +61,50 @@ def get_queries(lang: Language) -> dict[str, Query]:
                     (list_of_port_connections)? @ports.list
                 ) @module.instance
             ) @module.node
+            """,
+        ),
+        "Q_ASSIGNS": Query(
+            lang,
+            """
+            (continuous_assign
+                [
+                    (list_of_net_assignments
+                        (net_assignment
+                            (net_lvalue) @assign.target
+                            (expression) @assign.source
+                        )*
+                    )
+                    (list_of_variable_assignments
+                        (variable_assignment
+                            (variable_lvalue) @assign.target
+                            (expression) @assign.source
+                        )*
+                    )
+                ]
+            ) @assign.node
+            """,
+        ),
+        "Q_IMPORTS": Query(
+            lang,
+            """
+            (package_import_item
+                (package_identifier) @import.identifier
+                [
+                    (_) @import.element
+                ]
+            ) @import
+            """,
+        ),
+        "Q_ENUM": Query(
+            lang,
+            """
+           (type_declaration
+                (data_type) @typedef.body
+                [
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @typedef.name
+            ) @typedef.node
             """,
         ),
     }

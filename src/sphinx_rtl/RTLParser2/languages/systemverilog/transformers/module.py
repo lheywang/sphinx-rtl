@@ -7,66 +7,22 @@
 
 # Import
 import re
-import tree_sitter_verilog
 
-from tree_sitter import Node, Language, Query, QueryCursor
+from tree_sitter import Node, QueryCursor
 
 from sphinx_rtl.models import Module, Parameter
 from sphinx_rtl.RTLParser2.languages.utils import get_text, get_line, collect
-
-# As we use our own language, let's define it
-VERILOG_LANGUAGE = Language(tree_sitter_verilog.language())
+from sphinx_rtl.RTLParser2.languages.systemverilog.queries import (
+    MODULE_CASE_Q,
+    MODULE_IF_Q,
+    MODULE_LOOP_Q,
+    MODULE_PARAM_Q,
+    MODULE_PORT_Q,
+)
 
 # Compile an RE expression to filter assignments
 _CMP = re.compile(r"\s*(<=|>=|==|!=|<|>)\s*")
 
-# Let's define some sub queries
-PORT_Q = Query(
-    VERILOG_LANGUAGE,
-    """
-    (named_port_connection
-        (port_identifier) @name
-        (expression)? @value) @conn
-    (ordered_port_connection
-        (expression) @value) @conn
-""",
-)
-
-PARAM_Q = Query(
-    VERILOG_LANGUAGE,
-    """
-    (named_parameter_assignment
-        (parameter_identifier) @name
-        (param_expression)? @value) @conn
-    (ordered_parameter_assignment
-        (_)? @value) @conn
-""",
-)
-LOOP_Q = Query(
-    VERILOG_LANGUAGE,
-    """
-    (loop_generate_construct
-        (genvar_initialization) @init
-        (constant_expression)   @cond
-        (genvar_iteration)      @step) @gen
-""",
-)
-
-IF_Q = Query(
-    VERILOG_LANGUAGE,
-    """
-    (if_generate_construct
-        (constant_expression) @cond) @gen
-""",
-)
-
-CASE_Q = Query(
-    VERILOG_LANGUAGE,
-    """
-    (case_generate_construct
-        (constant_expression) @cond) @gen
-""",
-)
 
 # Get markers where we shall stop
 GENERATE_KINDS = {
@@ -99,9 +55,9 @@ def generate_info(node: Node, source: bytes) -> tuple[bool, bool, str]:
 
     while cur is not None and cur.type not in STOP:
         q = {
-            "loop_generate_construct": LOOP_Q,
-            "if_generate_construct": IF_Q,
-            "case_generate_construct": CASE_Q,
+            "loop_generate_construct": MODULE_LOOP_Q,
+            "if_generate_construct": MODULE_IF_Q,
+            "case_generate_construct": MODULE_CASE_Q,
         }.get(cur.type)
         if q:
             for _, caps in QueryCursor(q).matches(cur):
@@ -160,7 +116,7 @@ def VerilogTransformerModule(
     first = lambda k: nodes[k][0] if k in nodes else None
 
     # Add the parameters
-    for param in collect(PARAM_Q, first("module.parameters")):
+    for param in collect(MODULE_PARAM_Q, first("module.parameters")):
         parameter = Parameter()
         parameter.line = get_line(param["node"])
 
@@ -174,7 +130,7 @@ def VerilogTransformerModule(
         module.params.append(parameter)
 
     # Add the ports
-    for port in collect(PORT_Q, first("ports.list")):
+    for port in collect(MODULE_PORT_Q, first("ports.list")):
         rhs = lhs = ""
         match port["kind"]:
             case "named_port_connection":
@@ -214,7 +170,5 @@ def VerilogTransformerModule(
         # Append the max
         module.count = max(buf)
         module.isRepeated = True
-
-    print(module)
 
     return module

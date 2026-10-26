@@ -5,4 +5,13 @@
 # Brief :   Define the queries needed by the system.
 # ----------------------------------------------------------------------------
 
+# Imports
 from .queries import get_queries
+from .transformer_queries import (
+    MODULE_CASE_Q,
+    MODULE_IF_Q,
+    MODULE_LOOP_Q,
+    MODULE_PARAM_Q,
+    MODULE_PORT_Q,
+    ENUM_Q_MEMBERS,
+)

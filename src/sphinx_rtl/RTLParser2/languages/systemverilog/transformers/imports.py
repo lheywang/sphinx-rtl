@@ -17,6 +17,20 @@ def VerilogTransformerImport(
     index: int, nodes: dict[str, list[Node]], source: bytes
 ) -> Import | None:
 
-    print(nodes)
+    # Is there all we need ?
+    if (
+        ("import" not in nodes)
+        or ("import.identifier" not in nodes)
+        or ("import.element" not in nodes)
+    ):
+        return None
 
-    return None
+    # Build the output object
+    imp = Import()
+
+    # Fill the object
+    imp.line = get_line(nodes["import"][0])
+    imp.library = get_text(nodes["import.identifier"][0], source)
+    imp.element = [get_text(nodes["import.element"][0], source)]
+
+    return imp

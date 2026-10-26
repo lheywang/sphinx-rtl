@@ -6,6 +6,8 @@
 # ----------------------------------------------------------------------------
 
 # Import
+import re
+
 from tree_sitter import Node
 
 from sphinx_rtl.models import Assignment
@@ -17,6 +19,23 @@ def VerilogTransformerAssignment(
     index: int, nodes: dict[str, list[Node]], source: bytes
 ) -> Assignment | None:
 
-    print(nodes)
+    # Is there everything for us ?
+    if (
+        ("assign.node" not in nodes)
+        or ("assign.target" not in nodes)
+        or ("assign.source" not in nodes)
+    ):
+        return None
+
+    # Build the object
+    assign = Assignment()
+
+    assign.line = get_line(nodes["assign.node"][0])
+    assign.target = get_text(nodes["assign.target"][0], source)
+    assign.source = re.findall(
+        r"\b[a-zA-Z_]\w*\b",
+        re.sub(r"\[[^\]]*\]", "", get_text(nodes["assign.source"][0], source)).strip(),
+    )
+    assign.isComb = len(assign.source) > 1
 
     return None
