@@ -17,6 +17,132 @@ from tree_sitter import Language, Query
 VERILOG_LANGUAGE = Language(tree_sitter_verilog.language())
 
 # -----------------------------------------------------------
+# PORTS
+# -----------------------------------------------------------
+PORTS_ANSI_NET_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (net_port_header1
+        [
+            (
+                (port_direction)? @direction
+                (net_port_type1) @type
+            )
+            (port_direction) @direction
+        ]
+    )
+    """,
+)
+
+PORTS_ANSI_INTERFACE_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (interface_port_header
+        (interface_identifier)? @type
+        (modport_identifier) @direction
+    )
+    """,
+)
+
+PORTS_ANSI_VARIABLE_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (variable_port_header
+        (port_direction)? @direction
+        (
+            [
+                (data_type)
+                (data_type_or_implicit1) 
+            ] @type
+        )
+    )
+    """,
+)
+
+PORTS_NON_ANSI_INOUT_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (inout_declaration
+        (net_port_type1)? @port.type
+        (list_of_port_identifiers
+            (port_identifier) @port.name
+            (unpacked_dimension) @port.dimension
+        )  
+    ) 
+    """,
+)
+
+PORTS_NON_ANSI_INPUT_OUTPUT_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (input_declaration
+        [
+            (
+                (net_port_type1)? @port.type
+                (list_of_port_identifiers
+                    (port_identifier) @port.name
+                    (unpacked_dimension) @port.dimension
+                ) 
+            )
+            (
+                [
+                    (_)
+                ] @port.type
+                (
+                    [
+                        (simple_identifier)
+                        (escaped_identifier)
+                    ] @port.name
+                    [
+                        (unsized_dimension)
+                        (unpacked_dimension)
+                        (associative_dimension)
+                        (queue_dimension)    
+                    ] @port.dimension
+                )
+            )
+        ]
+    )    
+    """,
+)
+
+PORTS_NON_ANSI_REF_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (ref_declaration
+        [
+            (_)
+        ] @port.type
+        (list_of_variable_identifiers
+            [
+                (simple_identifier)
+                (escaped_identifier)
+            ] @port.name
+            [
+                (unsized_dimension)
+                (unpacked_dimension)
+                (associative_dimension)
+                (queue_dimension)    
+            ] @port.dimension
+        )
+    )
+    """,
+)
+
+PORTS_NON_ANSI_INTERFACE_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (interface_port_declaration
+        (interface_identifier) @port.type
+        (modport_identifier) @port.direction
+        (list_of_interface_identifiers
+            (unpacked_dimension) @port.dimension
+        )
+    )
+    """,
+)
+
+# -----------------------------------------------------------
 # MODULES
 # -----------------------------------------------------------
 MODULE_PORT_Q = Query(

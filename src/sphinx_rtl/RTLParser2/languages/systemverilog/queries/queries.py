@@ -28,7 +28,29 @@ def get_queries(lang: Language) -> dict[str, Query]:
         "Q_PORTS": Query(
             lang,
             """
-            (port) @port
+            (port_declaration
+                (attribute_instance)? @port.instance
+                [
+                    (inout_declaration) @port.inout
+                    (input_declaration) @port.input
+                    (output_declaration) @port.output
+                    (ref_declaration) @port.ref
+                    (interface_port_declaration) @port.interface
+                ] @port.direction
+            ) @port.node
+
+            (ansi_port_declaration
+                [
+                    (net_port_header1) @port.net
+                    (interface_port_header) @port.interface
+                    (variable_port_header) @port.var
+                ]?
+                [
+                    (port_identifier)
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
+            ) @port.node
             """,
         ),
         "Q_ENTITIES": Query(
