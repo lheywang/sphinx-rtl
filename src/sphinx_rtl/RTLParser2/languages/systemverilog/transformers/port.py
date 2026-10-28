@@ -45,22 +45,53 @@ def VerilogTransformerPort(
 
             # Execute the second layer Query as needed.
             first = nodes["port.node"][0]
+            match = None
             if "port.inout" in nodes:
-                for _, match in QueryCursor(PORTS_NON_ANSI_INOUT_Q).matches(first):
-                    print(match)
-            elif ("port.input" in nodes) or ("port.output" in nodes):
-                for _, match in QueryCursor(PORTS_NON_ANSI_INPUT_OUTPUT_Q).matches(
-                    first
-                ):
-                    print(match)
+                _, match = QueryCursor(PORTS_NON_ANSI_INOUT_Q).matches(first)[0]
+                port.direction = "inout"
+            elif "port.input" in nodes:
+                _, match = QueryCursor(PORTS_NON_ANSI_INPUT_OUTPUT_Q).matches(first)[0]
+                port.direction = "input"
+            elif "port.output" in nodes:
+                _, match = QueryCursor(PORTS_NON_ANSI_INPUT_OUTPUT_Q).matches(first)[0]
+                port.direction = "output"
             elif "port.ref" in nodes:
-                for _, match in QueryCursor(PORTS_NON_ANSI_REF_Q).matches(first):
-                    print(match)
+                _, match = QueryCursor(PORTS_NON_ANSI_REF_Q).matches(first)[0]
+                if match:
+                    port.direction = (
+                        get_text(match.get("port.direction")[0], source)  # type: ignore
+                        if "port.direction" in match
+                        else ""
+                    )
             elif "port.interface" in nodes:
-                for _, match in QueryCursor(PORTS_NON_ANSI_INTERFACE_Q).matches(first):
-                    print(match)
+                _, match = QueryCursor(PORTS_NON_ANSI_INTERFACE_Q).matches(first)[0]
+                if match:
+                    port.direction = (
+                        get_text(match.get("port.direction")[0], source)  # type: ignore
+                        if "port.direction" in match
+                        else ""
+                    )
 
-            print(nodes)
+            # As the request standardize the system, we can process them commonly
+            if match:
+                port.name = (
+                    get_text(match.get("port.name")[0], source)  # type: ignore
+                    if "port.name" in match
+                    else ""
+                )
+
+                port.hdl_type, port.hdl_size = get_size_and_type(
+                    get_text(match.get("port.type")[0], source)  # type: ignore
+                    if "port.type" in match
+                    else ""
+                )
+                temp = (
+                    get_size_and_type(get_text(match.get("port.dimension")[0], source))  # type: ignore
+                    if "port.dimension" in match
+                    else ""
+                )
+                if temp:
+                    port.hdl_size.extend(temp[1])
 
         # Ansi ports
         case 1:
@@ -82,10 +113,8 @@ def VerilogTransformerPort(
                         get_text(match["type"][0], source) if "type" in match else ""
                     )
             elif "port.interface" in nodes:
-                print(QueryCursor(PORTS_ANSI_INTERFACE_Q).matches(first))
                 _, match = QueryCursor(PORTS_ANSI_INTERFACE_Q).matches(first)[0]
                 if match:
-                    print("Matched", match)
                     port.direction = get_text(match["direction"][0], source)
                     port.hdl_type, port.hdl_size = get_size_and_type(
                         get_text(match["type"][0], source)
@@ -97,7 +126,5 @@ def VerilogTransformerPort(
                     port.hdl_type, port.hdl_size = get_size_and_type(
                         get_text(match["type"][0], source)
                     )
-
-    print(port)
 
     return port

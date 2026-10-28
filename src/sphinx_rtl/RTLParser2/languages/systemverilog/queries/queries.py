@@ -16,8 +16,6 @@ def get_queries(lang: Language) -> dict[str, Query]:
 
     # "Q_INTERFACES"
     # "Q_MODPORTS"
-    # "Q_PARAMETERS"
-    # "Q_PORTS"
     # "Q_PROCESS"
     # "Q_FUNCTIONS"
     # "Q_SIGNALS"
@@ -127,6 +125,26 @@ def get_queries(lang: Language) -> dict[str, Query]:
                     (escaped_identifier)
                 ] @typedef.name
             ) @typedef.node
+            """,
+        ),
+        "Q_PARAMETERS": Query(
+            lang,
+            """
+            (parameter_declaration
+                (data_type_or_implicit1)? @parameter.type
+                [
+                    (list_of_param_assignments) @parameter.elements
+                    (list_of_type_assignments) @parameter.elements
+                ]
+            ) @parameter.node
+
+            (local_parameter_declaration
+                (data_type_or_implicit1)? @parameter.type
+                [
+                    (list_of_param_assignments) @parameter.elements
+                    (list_of_type_assignments) @parameter.elements      
+                ]
+            ) @parameter.node
             """,
         ),
     }

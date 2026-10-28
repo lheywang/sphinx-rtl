@@ -68,7 +68,7 @@ PORTS_NON_ANSI_INOUT_Q = Query(
             (port_identifier) @port.name
             (unpacked_dimension) @port.dimension
         )  
-    ) 
+    ) @port.direction
     """,
 )
 
@@ -77,32 +77,65 @@ PORTS_NON_ANSI_INPUT_OUTPUT_Q = Query(
     """
     (input_declaration
         [
-            (
-                (net_port_type1)? @port.type
-                (list_of_port_identifiers
-                    (port_identifier) @port.name
-                    (unpacked_dimension) @port.dimension
-                ) 
-            )
-            (
+            (net_port_type1)
+            (data_type)
+            (_)
+        ]? @port.type
+        [
+            (list_of_port_identifiers
                 [
-                    (_)
-                ] @port.type
-                (
-                    [
-                        (simple_identifier)
-                        (escaped_identifier)
-                    ] @port.name
-                    [
-                        (unsized_dimension)
-                        (unpacked_dimension)
-                        (associative_dimension)
-                        (queue_dimension)    
-                    ] @port.dimension
-                )
+                    (port_identifier)
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
+            )
+            (list_of_variable_identifiers
+                [
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
+            )
+            (list_of_variable_port_identifiers
+                [
+                    (port_identifier)
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
             )
         ]
-    )    
+        (unpacked_dimension)? @port.dimension
+    ) @port.direction
+
+    (output_declaration
+        [
+            (net_port_type1)
+            (data_type)
+            (_)
+        ]? @port.type
+        [
+            (list_of_port_identifiers
+                [
+                    (port_identifier)
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
+            )
+            (list_of_variable_identifiers
+                [
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
+            )
+            (list_of_variable_port_identifiers
+                [
+                    (port_identifier)
+                    (simple_identifier)
+                    (escaped_identifier)
+                ] @port.name
+            )
+        ]
+        (unpacked_dimension)? @port.dimension
+    ) @port.direction
     """,
 )
 
@@ -125,7 +158,7 @@ PORTS_NON_ANSI_REF_Q = Query(
                 (queue_dimension)    
             ] @port.dimension
         )
-    )
+    ) @port.direction
     """,
 )
 
@@ -139,6 +172,34 @@ PORTS_NON_ANSI_INTERFACE_Q = Query(
             (unpacked_dimension) @port.dimension
         )
     )
+    """,
+)
+
+# -----------------------------------------------------------
+# PARAMETERS
+# -----------------------------------------------------------
+PARAMS_ELEMENTS_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (param_assignment
+        (parameter_identifier) @parameter.identifier
+        (unpacked_dimension)?* @parameter.dimensions
+        (constant_param_expression
+            [
+                (constant_mintypmax_expression)? @parameter.value
+                (data_type)? @parameter.type
+            ] 
+        )
+    ) @parameter
+
+    (type_assignment
+        [
+            (simple_identifier) @parameter.type
+            (escaped_identifier) @parameter.type
+        ]
+        (data_type)? @parameter.type
+    
+    ) @parameter    
     """,
 )
 
