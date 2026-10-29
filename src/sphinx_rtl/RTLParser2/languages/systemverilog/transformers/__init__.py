@@ -20,7 +20,6 @@ from .port import VerilogTransformerPort
 from .process import VerilogTransformerProcess
 from .routine import VerilogTransformerRoutine
 from .signal import VerilogTransformerSignal
-from .structure import VerilogTransformerStructure
 
 
 # Define the functions to get the keys
@@ -39,5 +38,4 @@ def get_transformers() -> dict[str, Callable]:
         "Q_PROCESS": VerilogTransformerProcess,
         "Q_FUNCTIONS": VerilogTransformerRoutine,
         "Q_SIGNALS": VerilogTransformerSignal,
-        "Q_STRUCTURES": VerilogTransformerStructure,
     }

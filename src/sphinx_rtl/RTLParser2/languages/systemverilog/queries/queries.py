@@ -18,8 +18,6 @@ def get_queries(lang: Language) -> dict[str, Query]:
     # "Q_MODPORTS"
     # "Q_PROCESS"
     # "Q_FUNCTIONS"
-    # "Q_SIGNALS"
-    # "Q_STRUCTURES"
 
     return {
         "Q_COMMENTS": Query(lang, """(comment) @comment"""),
@@ -115,10 +113,11 @@ def get_queries(lang: Language) -> dict[str, Query]:
             ) @import
             """,
         ),
+        # Q_ENUM also handle Q_STRUCTURES !
         "Q_ENUM": Query(
             lang,
             """
-           (type_declaration
+            (type_declaration
                 (data_type) @typedef.body
                 [
                     (simple_identifier)
@@ -145,6 +144,40 @@ def get_queries(lang: Language) -> dict[str, Query]:
                     (list_of_type_assignments) @parameter.elements      
                 ]
             ) @parameter.node
+            """,
+        ),
+        "Q_SIGNALS": Query(
+            lang,
+            """
+            [
+                (net_declaration
+                    [
+                        (
+                            (net_type)? @signal.kind
+                            (data_type_or_implicit1)? @signal.type
+                            (list_of_net_decl_assignments) @signal.names
+                        )
+                        (
+                            [
+                                (simple_identifier)
+                                (escaped_identifier) 
+                            ] @signal.type
+                            (list_of_net_decl_assignments) @signal.names
+                        )
+                    ]
+                ) @signal.node
+
+                (data_declaration
+                    [
+                        (
+                            (data_type_or_implicit1)? @signal.type
+                            (list_of_variable_decl_assignments) @signal.names
+                        )
+                        (type_declaration) @signal.type
+                        (net_type_declaration) @signal.type
+                    ]
+                ) @signal.node
+            ]
             """,
         ),
     }

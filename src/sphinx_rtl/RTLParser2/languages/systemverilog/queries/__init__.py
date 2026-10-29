@@ -22,4 +22,5 @@ from .transformer_queries import (
     PORTS_NON_ANSI_INPUT_OUTPUT_Q,
     PORTS_NON_ANSI_INOUT_Q,
     PARAMS_ELEMENTS_Q,
+    SIGNALS_NAME_Q,
 )

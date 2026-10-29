@@ -60,7 +60,7 @@ module commiter (
         ALL
     } alu_t; 
 
-    alu_t last_active_alu [2],  // Feedback
+    alu_t last_active_alu [2][3],  // Feedback
           active_alu [2];       // Currently active ALU.
 
     /*

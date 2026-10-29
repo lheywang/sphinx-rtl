@@ -204,6 +204,38 @@ PARAMS_ELEMENTS_Q = Query(
 )
 
 # -----------------------------------------------------------
+# SIGNALS
+# -----------------------------------------------------------
+SIGNALS_NAME_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (net_decl_assignment      
+        [
+            (simple_identifier) @name
+            (escaped_identifier) @name
+        ]    
+    ) @decl
+
+    (variable_decl_assignment 
+        [
+            (
+                [
+                    (simple_identifier) @name
+                    (escaped_identifier) @name
+                ]
+            )
+            (
+                [
+                    (simple_identifier) @name
+                    (escaped_identifier) @name
+                ] 
+            )
+        ]
+    ) @decl
+    """,
+)
+
+# -----------------------------------------------------------
 # MODULES
 # -----------------------------------------------------------
 MODULE_PORT_Q = Query(
