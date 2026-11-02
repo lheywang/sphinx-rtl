@@ -293,7 +293,7 @@ class RTLRender:
         self._render_component_imports(context, component)
         self._render_component_parameters(context, component)
         self._render_component_ports(context, component)
-        self._render_component_interfaces(context, component)
+        self._render_component_modports(context, component)
 
         # Add a separator last
         self._add_separator(context)
@@ -689,7 +689,7 @@ class RTLRender:
             headers=headers,
             width=widths,
             row_renderer=lambda tbl, p: self._draw_port_signal_row(
-                tbl, p, comp, clocks, resets
+                tbl, p, comp, clocks, resets, headers
             ),
         )
         renderer.render(tree, body)
@@ -1226,7 +1226,7 @@ class RTLRender:
             headers=headers,
             width=widths,
             row_renderer=lambda tbl, p: self._draw_port_signal_row(
-                tbl, p, comp, clocks, resets
+                tbl, p, comp, clocks, resets, headers
             ),
         )
         renderer.render(tree, body)
@@ -1327,25 +1327,79 @@ class RTLRender:
         # render the list
         body += render_def_list(element_list, description_list)
 
-    def _render_component_interfaces(
-        self, root: nodes.section, comp: Component
-    ) -> None:
+    def _render_component_modports(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component interfaces.
         """
 
         # Do we have anything to render ?
-        if len(comp.interfaces) == 0:
+        if len(comp.modports) == 0:
             return
 
         # First, build the section we need
         section = self._create_section(
-            root, "Interfaces", comp.file.name.rsplit(".", 1)[0]
+            root, "Modports", comp.file.name.rsplit(".", 1)[0]
         )
 
-        # Nothing to be tried for now ...
-        for interface in comp.interfaces:
-            print(interface)
+        # Build the master title
+        title = nodes.paragraph()
+        title += nodes.Text("Modport list")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.modports)} element{"s" if len(comp.modports) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # At first, we'll need the default dropdown
+        dd, body = render_dropdown(title, is_open=True)
+        section += dd
+
+        # Allocate memory and render the assignments.
+        for modport in comp.modports:
+
+            # Build the title for the modport
+            modport_title = nodes.paragraph()
+            modport_title += nodes.Text(modport.name)
+
+            # Create a sub dd for the current dropdown
+            modport_dd, modport_body = render_dropdown(modport_title)
+
+            # Let's add the description to it
+            modport_description = nodes.paragraph()
+            modport_description += render_markdown(
+                modport.description, comp.file.path, self.base_doc
+            )
+            modport_body += modport_description
+
+            # Now add the different elements into an array
+            # Into the body, let's add a table
+            # Configure the table
+            headers = ["Name", "Direction", "Description", "Type", "Size"]
+            widths = [1, 3, 3, 1, 2, 2, 1]
+
+            # Build the caches
+            clocks: dict[str, nodes.Element] = {}
+            resets: dict[str, nodes.Element] = {}
+
+            # Classify the elements
+            classifier = ElementClassifier[Port]()
+            tree = classifier.build_tree(modport.signals)
+
+            # Render the elements
+            renderer = TreeRenderer[Port](
+                headers=headers,
+                width=widths,
+                row_renderer=lambda tbl, p: self._draw_port_signal_row(
+                    tbl, p, comp, clocks, resets, headers
+                ),
+            )
+            renderer.render(tree, modport_body)
+
+            # Add ourselves to the main body
+            body += modport_dd
 
     # --------------------------------------------------------------------------------
     # PRIVATE NODES MANAGEMENT
@@ -1411,6 +1465,7 @@ class RTLRender:
         comp: Component,
         clocks_cache: dict[str, nodes.Element],
         resets_cache: dict[str, nodes.Element],
+        headers: list[str] = [],
     ) -> None:
         """
         Insert a line for a port in the table.
@@ -1476,28 +1531,42 @@ class RTLRender:
             element_kind += nodes.inline(" ", " ")
             element_kind += rst_badge
 
-        # Insert into the table
+        # First, build the table content based on what the headers are asking !
+        table_content = []
+        headers_l = [x.lower() for x in headers]
+
         if type(element) is Port:
-            render_table_line(
-                table,
-                [
-                    element_name,
-                    element_dir,
-                    element_desc,
-                    element_type,
-                    element_size,
-                    element_kind,
-                    element_pol,
-                ],
-            )
+
+            if "name" in headers_l:
+                table_content.append(element_name)
+            if "direction" in headers_l:
+                table_content.append(element_dir)
+            if "description" in headers_l:
+                table_content.append(element_desc)
+            if "type" in headers_l:
+                table_content.append(element_type)
+            if "size" in headers_l:
+                table_content.append(element_size)
+            if "kind" in headers_l:
+                table_content.append(element_kind)
+            if "polarity" in headers_l:
+                table_content.append(element_pol)
+
         elif type(element) is Signal:
-            render_table_line(
-                table,
-                [
-                    element_name,
-                    element_desc,
-                    element_type,
-                    element_size,
-                    element_kind,
-                ],
-            )
+
+            if "name" in headers_l:
+                table_content.append(element_name)
+            if "description" in headers_l:
+                table_content.append(element_desc)
+            if "type" in headers_l:
+                table_content.append(element_type)
+            if "size" in headers_l:
+                table_content.append(element_size)
+            if "kind" in headers_l:
+                table_content.append(element_kind)
+
+        # Render the table as needed
+        render_table_line(
+            table,
+            table_content,
+        )

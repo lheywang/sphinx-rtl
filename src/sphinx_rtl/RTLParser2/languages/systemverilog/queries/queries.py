@@ -14,11 +14,6 @@ def get_queries(lang: Language) -> dict[str, Query]:
     Build the queries for the passed language.
     """
 
-    # "Q_INTERFACES"
-    # "Q_MODPORTS"
-    # "Q_PROCESS"
-    # "Q_FUNCTIONS"
-
     return {
         "Q_COMMENTS": Query(lang, """(comment) @comment"""),
         "Q_PORTS": Query(
@@ -60,6 +55,26 @@ def get_queries(lang: Language) -> dict[str, Query]:
                     ] @module.name
                 ) @entity.node
             )
+
+            (interface_declaration
+                [
+                    (interface_ansi_header
+                        (interface_identifier) @entity.node
+                    )
+                    (interface_nonansi_header
+                        (interface_identifier) @entity.node
+                    )
+                ]
+            ) @entity.decl
+
+            (package_declaration
+                (package_identifier
+                    [
+                        (simple_identifier) @entity.name
+                        (escaped_identifier) @entity.name
+                    ] 
+                ) @entity.node
+            ) @entity.decl
             """,
         ),
         "Q_MODULES": Query(
@@ -178,6 +193,34 @@ def get_queries(lang: Language) -> dict[str, Query]:
                     ]
                 ) @signal.node
             ]
+            """,
+        ),
+        "Q_PROCESS": Query(
+            lang,
+            """
+            (always_construct
+                (always_keyword) @process.kind
+            ) @process.node
+
+            (initial_construct) @process.node
+
+            (final_construct) @process.node
+            """,
+        ),
+        "Q_FUNCTIONS": Query(
+            lang,
+            """
+            (function_declaration
+                (function_body_declaration) @function.body
+            ) @function.node
+            """,
+        ),
+        "Q_MODPORTS": Query(
+            lang,
+            """
+            (modport_item
+                (modport_identifier) @modport.name
+            ) @modport.node
             """,
         ),
     }

@@ -26,6 +26,8 @@ from .modules import (
     infer_submodules,
 )
 
+from .common import bind_modports
+
 # Configure the logger
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,7 @@ class RTLAnalyse:
             try:
                 target = components.get(component)
                 if target is not None:
-                    output = self._analyse_component(target, components)
+                    output = self._advanced_analyse_component(target, components)
                     components[component] = output
                 else:
                     logger.warning(
@@ -122,7 +124,7 @@ class RTLAnalyse:
         # Return the elements
         return order
 
-    def _analyse_component(
+    def _advanced_analyse_component(
         self, component: Component, all: dict[str, Component]
     ) -> Component:
         """
@@ -132,6 +134,11 @@ class RTLAnalyse:
         ts = time.time()
 
         cfg: RTLConfig = component.render
+
+        # ------------------------------
+        # COMMON ANALYSIS
+        # ------------------------------
+        output = self._standard_analyse_component(component, all)
 
         # ------------------------------
         # INFER IOs
@@ -207,3 +214,13 @@ class RTLAnalyse:
             )
         )
         return component
+
+    def _standard_analyse_component(
+        self, component: Component, all: dict[str, Component]
+    ) -> Component:
+        """
+        Perform the standard analyse on the passed component.
+        This is not "fancy", but this is required for the system to operate !
+        """
+
+        return bind_modports(component)

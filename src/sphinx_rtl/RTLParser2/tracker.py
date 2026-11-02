@@ -30,7 +30,7 @@ from sphinx_rtl.models import (
     Assignment,
     Module,
     Function,
-    Interface,
+    Modport,
 )
 
 from .utils import getFileInfo
@@ -119,7 +119,7 @@ class EntityTracker:
             | Assignment
             | Module
             | Function
-            | Interface
+            | Modport
         ),
         policy: AddingPolicy,
     ) -> None:
@@ -148,8 +148,8 @@ class EntityTracker:
                     target.imports.append(element)
                 case Process():
                     target.process.append(element)
-                case Interface():
-                    target.interfaces.append(element)
+                case Modport():
+                    target.modports.append(element)
                 case Module():
                     target.modules.append(element)
                 case Function():

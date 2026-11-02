@@ -44,16 +44,34 @@ def VerilogTransformerSignal(
     signal.line = get_line(node)
 
     signals = []
+    last_type = ""
+    last_size = []
     for _, match in QueryCursor(SIGNALS_NAME_Q).matches(names):
         temp = deepcopy(signal)
 
         # Add elements
         temp.name = get_text(match["name"][0], source) if "name" in match else ""
-        temp.hdl_type, temp.hdl_size = (
-            get_size_and_type(get_text(nodes["signal.type"][0], source))
-            if "signal.type" in nodes
-            else ("", ["0", "0"])
-        )
+
+        # Sometimes the type may be placed on different elements...
+        # Combine them before calling our function.
+        full_type = ""
+        if "signal.kind" in nodes:
+            full_type += get_text(nodes["signal.kind"][0], source)
+        if "signal.type" in nodes:
+            full_type += get_text(nodes["signal.type"][0], source) + " "
+
+        temp.hdl_type, temp.hdl_size = get_size_and_type(full_type)
+
+        # Update accordingly to the spec the port, if declared in a single line.
+        if temp.hdl_type == "":
+            temp.hdl_type = last_type
+        else:
+            last_type = temp.hdl_type
+
+        if temp.hdl_size == "":
+            temp.hdl_size = last_size
+        else:
+            last_size = temp.hdl_size
 
         # Is there any dimension mails ?
         dims = [

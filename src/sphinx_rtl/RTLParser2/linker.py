@@ -112,7 +112,7 @@ def link_comments(source: list[Comment], elements: dict[str, Component]) -> None
         count += recursive_iterative_assignment(element.imports, source)
         count += recursive_iterative_assignment(element.process, source)
         count += recursive_iterative_assignment(element.assigns, source)
-        count += recursive_iterative_assignment(element.interfaces, source)
+        count += recursive_iterative_assignment(element.modports, source)
         count += recursive_iterative_assignment(element.modules, source)
         count += recursive_iterative_assignment(element.functions, source)
         count += recursive_iterative_assignment(element.structures, source)

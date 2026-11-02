@@ -36,7 +36,7 @@ def infer_type(component: Component) -> Component:
 
     # First, fetch the number of different modules
     ports_count = len(component.ports)
-    interface_count = len(component.interfaces)
+    modports_count = len(component.modports)
     modules_count = len(component.modules)
     parameter_count = len(component.parameters)
     enums_count = len(component.enums)
@@ -46,7 +46,7 @@ def infer_type(component: Component) -> Component:
     if ports_count == 0:
 
         # An empty port with no interface and some signals really look like a testbench !
-        if (modules_count > 0) and (interface_count == 0) and (signal_count > 0):
+        if (modules_count > 0) and (modports_count == 0) and (signal_count > 0):
             component.config.isTestbench = True
             component.comp_type = "testbench"
             logger.info(blue(f"[INFO] Flagged type : testbench"))
@@ -59,7 +59,7 @@ def infer_type(component: Component) -> Component:
     else:
 
         # An interface could not have any modules in it...
-        if (modules_count == 0) and (interface_count > 0):
+        if (modules_count == 0) and (modports_count > 0):
             component.config.isInterface = True
             component.comp_type = "interface"
             logger.info(blue(f"[INFO] Flagged type : interface"))

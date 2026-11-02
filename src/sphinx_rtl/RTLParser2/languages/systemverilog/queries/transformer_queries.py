@@ -310,3 +310,83 @@ ENUM_Q_MEMBERS = Query(
     )
     """,
 )
+
+# -----------------------------------------------------------
+# PROCESS
+# -----------------------------------------------------------
+PROCESS_EVENT_CTRL_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (event_control) @ec
+    """,
+)
+
+PROCESS_EVENT_LEAF_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (event_expression
+        (edge_identifier)? @edge
+        (expression) @signal 
+    ) @leaf
+    """,
+)
+
+PROCESS_EVENT_WRITE_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (blocking_assignment    
+        (variable_lvalue) @edge
+        (expression
+            (primary)? @leaf
+        )?
+    )
+
+    (nonblocking_assignment 
+        (variable_lvalue) @lhs
+        (expression
+            (primary)? @leaf
+        )?
+    )
+    """,
+)
+
+# -----------------------------------------------------------
+# FUNCTIONS
+# -----------------------------------------------------------
+FUNCTIONS_PARTS_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (function_body_declaration
+        (function_data_type_or_implicit1)? @ret
+        (function_identifier) @name
+        (tf_port_list)? @ports
+    ) @body
+    """,
+)
+
+FUNCTIONS_PORTS_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (tf_port_item1
+        (tf_port_direction)? @dir
+        (data_type_or_implicit1)? @type
+        (port_identifier) @name
+        (expression)? @default
+    ) @item
+    """,
+)
+
+# -----------------------------------------------------------
+# MODPORTS
+# -----------------------------------------------------------
+MODPORTS_PORTS_Q = Query(
+    VERILOG_LANGUAGE,
+    """
+    (modport_simple_ports_declaration
+        (port_direction) @dir
+        (modport_simple_port 
+            (port_identifier) @name
+        ) @port
+    )
+    """,
+)

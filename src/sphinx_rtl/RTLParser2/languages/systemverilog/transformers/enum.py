@@ -72,6 +72,4 @@ def VerilogTransformerEnum(
     item.line = get_line(nodes["typedef.node"][0])
     item.name = get_text(nodes["typedef.name"][0], source)
 
-    print(item)
-
     return None

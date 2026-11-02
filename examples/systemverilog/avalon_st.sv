@@ -16,7 +16,7 @@ interface avalon_st #(
     input logic rst_n // **Master reset**
 );
 
-    localparam EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH);
+    localparam EMPTY_WIDTH = $clog2(DATA_WIDTH / SYMBOL_WIDTH); // Compute the size of the empty signal !
 
     logic [CHANNEL_WIDTH - 1 : 0]   channel;            // Channel data
     logic [DATA_WIDTH - 1 : 0]      data;               // Data data

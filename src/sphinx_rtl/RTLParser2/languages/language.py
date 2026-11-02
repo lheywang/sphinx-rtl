@@ -23,8 +23,8 @@ from sphinx_rtl.models import (
     Assignment,
     Module,
     Function,
-    Interface,
     Comment,
+    Modport,
 )
 
 # Configure the logger
@@ -87,8 +87,8 @@ class LanguageSpec:
             | list[Module]
             | Function
             | list[Function]
-            | Interface
-            | list[Interface]
+            | Modport
+            | list[Modport]
             | Comment
             | list[Comment],
         ],

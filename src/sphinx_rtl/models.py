@@ -231,26 +231,6 @@ class Modport(Element):
 
 
 @dataclass(slots=True)
-class Interface(Element):
-    """
-    Store the config for an interface entry.
-
-    Inherit from : Element
-
-    Fields :
-        - parameters :      The list of passed parameters to the interface.
-        - ports :           The list of ports of the interface.
-        - signals :         The list of signals within the interface.
-        - modports :        The list of modports for this inferace.
-    """
-
-    parameters: list[Parameter] = field(default_factory=list)
-    ports: list[Port] = field(default_factory=list)
-    signals: list[Signal] = field(default_factory=list)
-    modports: list[Modport] = field(default_factory=list)
-
-
-@dataclass(slots=True)
 class Module(Element):
     """
     Store the config for a known module, instantiated within the passed design.
@@ -529,7 +509,7 @@ class Component:
     signals: list[Signal] = field(default_factory=list)
     process: list[Process] = field(default_factory=list)
     assigns: list[Assignment] = field(default_factory=list)
-    interfaces: list[Interface] = field(default_factory=list)
+    modports: list[Modport] = field(default_factory=list)
     modules: list[Module] = field(default_factory=list)
     functions: list[Function] = field(default_factory=list)
     structures: list[Structure] = field(default_factory=list)
@@ -574,7 +554,7 @@ ALL_MODELS = (
     | Assignment
     | Module
     | Function
-    | Interface
+    | Modport
 )
 
 
@@ -663,7 +643,7 @@ def standard_cleanup(comps: list[Component]) -> list[Component]:
         component.enums.clear()
         component.functions.clear()
         component.imports.clear()
-        component.interfaces.clear()
+        component.modports.clear()
         component.structures.clear()
         component.flags.clear()
         component.process.clear()

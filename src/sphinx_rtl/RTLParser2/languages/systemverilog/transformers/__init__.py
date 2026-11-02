@@ -12,7 +12,6 @@ from .assignment import VerilogTransformerAssignment
 from .comment import VerilogTransformerComment
 from .enum import VerilogTransformerEnum
 from .imports import VerilogTransformerImport
-from .interface import VerilogTransformerInterface
 from .modport import VerilogTransformerModport
 from .module import VerilogTransformerModule
 from .parameter import VerilogTransformerParameter
@@ -30,7 +29,6 @@ def get_transformers() -> dict[str, Callable]:
         "Q_COMMENTS": VerilogTransformerComment,
         "Q_ENUM": VerilogTransformerEnum,
         "Q_IMPORTS": VerilogTransformerImport,
-        "Q_INTERFACES": VerilogTransformerInterface,
         "Q_MODPORTS": VerilogTransformerModport,
         "Q_MODULES": VerilogTransformerModule,
         "Q_PARAMETERS": VerilogTransformerParameter,
