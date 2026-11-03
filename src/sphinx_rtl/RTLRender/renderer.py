@@ -19,7 +19,6 @@ import itertools
 from sphinx_rtl.RTLRender.helpers import (
     render_table_header,
     render_table_line,
-    render_snippet,
     render_badge,
     BadgeColor,
     render_dropdown,
@@ -30,8 +29,12 @@ from sphinx_rtl.RTLRender.helpers import (
     render_def_list,
     render_flex_array,
     TreeRenderer,
+    render_tabs,
+    render_code,
+    render_raw_code,
 )
 from sphinx_rtl.RTLRender.classifier import ElementClassifier
+from sphinx_rtl.RTLRender.instantiators import INSTANCE_LANGUAGES, INSTANCE_CALLBACKS
 
 from sphinx_rtl.models import Component, Signal, Port
 
@@ -172,6 +175,8 @@ class RTLRender:
         self._render_component_enums(context, component)
         self._render_component_functions(context, component)
         self._render_component_structures(context, component)
+        self._render_component_template(context, component)
+        self._render_component_source(context, component)
 
         # Add a separator last
         self._add_separator(context)
@@ -214,6 +219,8 @@ class RTLRender:
         self._render_component_processes(context, component)
         self._render_component_signals(context, component)
         self._render_component_assigns(context, component)
+        self._render_component_template(context, component)
+        self._render_component_source(context, component)
 
         # Add a separator last
         self._add_separator(context)
@@ -256,6 +263,8 @@ class RTLRender:
         self._render_component_signals(context, component)
         self._render_component_modules(context, component)
         self._render_component_processes(context, component)
+        self._render_component_template(context, component)
+        self._render_component_source(context, component)
 
         # Emit an event after the elements rendering
         self.app.emit(
@@ -294,6 +303,8 @@ class RTLRender:
         self._render_component_parameters(context, component)
         self._render_component_ports(context, component)
         self._render_component_modports(context, component)
+        self._render_component_template(context, component)
+        self._render_component_source(context, component)
 
         # Add a separator last
         self._add_separator(context)
@@ -373,7 +384,7 @@ class RTLRender:
         card_description = nodes.container(
             is_div=True,
             classes=[
-                "sd-card-header",
+                "sd-card-footer",
                 "sd-d-flex",
                 "sd-align-major-justify",
                 "sd-align-minor-center",
@@ -394,7 +405,6 @@ class RTLRender:
 
         # Now, add the different elements about the file status
         # This may be dependant on the git status, so :
-
         footer = nodes.container(
             is_div=True,
             classes=[
@@ -508,12 +518,23 @@ class RTLRender:
         root += card
         return
 
+    def _render_component_config(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component configuration is there's things to be added !
+        This is highly configurable, and may, or may not be useful everywhere.
+        """
+        pass
+
     def _render_component_imports(self, root: nodes.section, comp: Component) -> None:
         """
         Render the component imports
         """
         # Do we have anything to render ?
         if len(comp.imports) == 0:
+            return
+
+        # Does the config specify us something ?
+        if comp.render.internals == False:
             return
 
         # First, build the section we need
@@ -703,6 +724,10 @@ class RTLRender:
         if len(comp.modules) == 0:
             return
 
+        # Does the config specify us something ?
+        if comp.render.internals == False:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Modules", comp.file.name.rsplit(".", 1)[0]
@@ -851,6 +876,10 @@ class RTLRender:
         if len(comp.process) == 0:
             return
 
+        # Does the config specify us something ?
+        if comp.render.internals == False:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Processes", comp.file.name.rsplit(".", 1)[0]
@@ -936,6 +965,10 @@ class RTLRender:
         if len(comp.enums) == 0:
             return
 
+        # Does the config specify us something ?
+        if comp.render.internals == False:
+            return
+
         # First, build the section we need
         section = self._create_section(root, "Enums", comp.file.name.rsplit(".", 1)[0])
 
@@ -1010,6 +1043,10 @@ class RTLRender:
 
         # Do we have anything to render ?
         if len(comp.structures) == 0:
+            return
+
+        # Does the config specify us something ?
+        if comp.render.internals == False:
             return
 
         # First, build the section we need
@@ -1104,6 +1141,10 @@ class RTLRender:
         if len(comp.functions) == 0:
             return
 
+        # Does the config specify us something ?
+        if comp.render.internals == False:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Functions", comp.file.name.rsplit(".", 1)[0]
@@ -1181,6 +1222,10 @@ class RTLRender:
         if len(comp.signals) == 0:
             return
 
+        # Does the config specify us something ?
+        if comp.render.signals == False:
+            return
+
         # First, build the section we need
         section = self._create_section(
             root, "Signals", comp.file.name.rsplit(".", 1)[0]
@@ -1238,6 +1283,10 @@ class RTLRender:
 
         # Do we have anything to render ?
         if len(comp.assigns) == 0:
+            return
+
+        # Does the config specify us something ?
+        if comp.render.internals == False:
             return
 
         # First, build the section we need
@@ -1400,6 +1449,95 @@ class RTLRender:
 
             # Add ourselves to the main body
             body += modport_dd
+
+    def _render_component_source(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render the component source on the page, if needed.
+        This function may do nothing as specified within the component configuration flags.
+        """
+
+        # Do we have things to render ?
+        if comp.render.showSource == False:
+            return
+
+        # Create our section
+        section = self._create_section(root, "Source", comp.file.name.rsplit(".", 1)[0])
+
+        # Create the title
+        title = nodes.paragraph()
+        title += nodes.Text("Raw source")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            "Full file",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # Build a dropdown (default to hidden).
+        # This let the page small enough to be read by humans.
+        dd, body = render_dropdown(title, is_open=False)
+
+        # Now, let's add the code
+        body += render_code(comp.file.path, comp.lang)
+
+        # Add ourselves to the root
+        section += dd
+
+    def _render_component_template(self, root: nodes.section, comp: Component) -> None:
+        """
+        Render a component template, ready to be copied for adding the module into our design.
+        """
+
+        # Do the config say us something ?
+        if comp.render.template == False:
+            return
+
+        # Create our section
+        section = self._create_section(
+            root, "Instantiation templates", comp.file.name.rsplit(".", 1)[0]
+        )
+
+        # Create the title
+        title = nodes.paragraph()
+        title += nodes.Text("Instantiation templates")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(INSTANCE_LANGUAGES)} element{"s" if len(INSTANCE_LANGUAGES) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # Build a dropdown (default to hidden).
+        # This let the page small enough to be read by humans.
+        dd, body = render_dropdown(title, is_open=True)
+
+        # Add a tabs elements into it
+        tab_head, tab_elements = render_tabs(INSTANCE_LANGUAGES, group="RTL")
+
+        # For each languages, fetch the current rendering
+        for lang, tab in tab_elements.items():
+
+            func = INSTANCE_CALLBACKS.get(lang)
+            if func is None:
+                tab += nodes.error(
+                    f"The provided callbacks was not found for the language {lang}. This is a BUG. Fill and submit a report.",
+                )
+                continue
+
+            # Now, call the function
+            content = func(comp)
+
+            # Add the the formatted code to the tab
+            tab += render_raw_code(content)
+
+        body += tab_head
+
+        # Add ourselves to the root
+        section += dd
 
     # --------------------------------------------------------------------------------
     # PRIVATE NODES MANAGEMENT
