@@ -9,8 +9,11 @@
  *
  *  @clock master 100MHz clk
  *  @target Altera MAX10
- *  @target Quartus 24.1
+ *  @tool Quartus 24.1
  *  @sim Verilator
+ *
+ *  @register status    0 32 The status of the ALU.
+ *  @register status_r  4 32 The registered status of the ALU. **Write to clear.**
  */
 
 `timescale 1ns / 1ps

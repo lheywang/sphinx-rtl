@@ -1,13 +1,14 @@
 /*
- *  File :      rtl/core/counter.sv
+ *  Define a private counter module.
  *
- *  Author :    l.heywang <leonard.heywang@proton.me>
- *  Date :      25/10.2025
- *  
- *  Brief :     This file define a PERF_CNT_LEN bits counter, used 
- *              for performance monitoring of the core.
- *              It's output could a single 64 bits outL, or two 32 bits 
- *              outL and outH, which the 32 LSB and 32 MSB respectively.
+ *  This file define a PERF_CNT_LEN bits counter, used 
+ *  for performance monitoring of the core.
+ *  It's output could a single 64 bits outL, or two 32 bits 
+ *  outL and outH, which the 32 LSB and 32 MSB respectively.
+ * 
+ *  @nointernals
+ *  @nosignals
+ *  @nosource
  */
 
 `timescale 1ns / 1ps

@@ -32,7 +32,7 @@ html_theme_options = {
 
 # Configure the project
 rtl_config = RTLConfig()
-rtl_config.configure_shown_elements(mermaid=False, wavedrom=False)
+rtl_config.configure_shown_elements()
 rtl_config.configure_resolution(modules=True)
 rtl_config.add_public_output("db.json")
 rtl_config.add_public_output("backup/db_bckp.json")
