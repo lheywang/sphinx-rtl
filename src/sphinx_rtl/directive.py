@@ -8,13 +8,16 @@
 # Imports
 import glob
 import time
+
+from pathlib import Path
 from sphinx.util import logging
 from sphinx._cli.util.colour import bold, blue
-from pathlib import Path
-from docutils.parsers.rst import Directive
+from docutils.parsers.rst import Directive, directives
+
 from sphinx_rtl.RTLDomain import RTLDomain
 from sphinx_rtl.RTLParser2 import RTLParser2, registry
 from sphinx_rtl.nodes import RTLPlaceholderNode
+from sphinx_rtl.models import RTLConfig, ComponentConfig
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -27,7 +30,80 @@ class RTLAutodocDirective(Directive):
     optional_arguments = 0
     has_content = False
 
+    # Configure the known options to be passed
+    option_spec = {
+        # Standard options
+        "warning": directives.unchanged,
+        "note": directives.unchanged,
+        "target": directives.unchanged,
+        "tool": directives.unchanged,
+        "sim": directives.unchanged,
+        "compliance": directives.unchanged,
+        "security": directives.unchanged,
+        "status": directives.unchanged,
+        "deprecated": directives.unchanged,
+        "task": directives.unchanged,
+        "license": directives.unchanged,
+        "copyright": directives.unchanged,
+        "tag": directives.unchanged,
+        # Render flags
+        "noclocks": directives.flag,
+        "noresets": directives.flag,
+        "noio": directives.flag,
+        "notype": directives.flag,
+        "nopolarity": directives.flag,
+        "nogroups": directives.flag,
+        "nosource": directives.flag,
+        "notemplate": directives.flag,
+        "nosignals": directives.flag,
+        "novendors": directives.flag,
+        "vendor": directives.unchanged,
+    }
+
+    # Set the contextual menu.
+    has_content = True
+
     # Build the functions
+
+    def get_config(self) -> tuple[ComponentConfig, RTLConfig]:
+        """
+        Fetch the config from the options.
+        """
+
+        # Build the Component Config object
+        cfg = ComponentConfig()
+        cfg.warning.append(self.options.get("warning", ""))
+        cfg.notes.append(self.options.get("notes", ""))
+        cfg.target.append(self.options.get("target", ""))
+        cfg.tool.append(self.options.get("tool", ""))
+        cfg.sim.append(self.options.get("sim", ""))
+        cfg.compliance.append(self.options.get("compliance", ""))
+        cfg.security = self.options.get("security", "")
+        cfg.status = self.options.get("status", "")
+        cfg.deprecated = self.options.get("deprecated", "")
+        cfg.task = self.options.get("task", "")
+        cfg.license.append(self.options.get("license", ""))
+        cfg.copyright = self.options.get("copyright", "")
+        cfg.tags.append(self.options.get("tag", ""))
+
+        # Build the RTLConfig object
+        rtl = RTLConfig()
+
+        # Note : Selection is inverted, as flags DISABLE the thing.
+        rtl.inferClocks = "noclocks" not in self.options
+        rtl.inferResets = "noresets" not in self.options
+        rtl.inferIOs = "noios" not in self.options
+        rtl.inferType = "notype" not in self.options
+        rtl.inferPolarity = "nopolarity" not in self.options
+        rtl.inferGroups = "nogroups" not in self.options
+        rtl.showSource = "nosource" not in self.options
+        rtl.template = "notemplate" not in self.options
+        rtl.signals = "nosignals" not in self.options
+        rtl.internals = "nointernals" not in self.options
+        rtl.vendor.append(self.options.get("vendor", ""))
+
+        # Return them
+        return cfg, rtl
 
     def run(self):
         """
@@ -38,6 +114,15 @@ class RTLAutodocDirective(Directive):
         env = self.state.document.settings.env
         docname = env.docname
         rtl_domain: RTLDomain = env.get_domain("rtl")
+
+        # Fetch the config for the component
+        cfg, render_dir = self.get_config()
+
+        # Fetch the default config
+        rtl_cfg: RTLConfig = env.config.rtl_config
+
+        # Merge the config into the components
+        render = render_dir.merge(rtl_cfg)
 
         # Fetch the patterns
         patterns = registry.get_all_extension()
@@ -98,6 +183,12 @@ class RTLAutodocDirective(Directive):
 
             # Add the component to the internal db
             for component in components.values():
+
+                # Update the component config
+                component.render = render.merge(component.render)
+                component.config = cfg.merge(component.config)
+
+                # Register the component
                 rtl_domain.add_component(component, docname)
 
                 # Build the placeholder
