@@ -101,10 +101,10 @@ an additive process : You can only add element to the documentation.
 | Flag       | Syntax                                           | Description                                                                                            |
 | :--------- | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
 | warning    | `@warning <str>`                                 | Display a custom warning in top of the documentation.                                                  |
-| notes      | `@notes <str>`                                   | Display a custom note in top of the documentation.                                                     |
+| note       | `@note <str>`                                    | Display a custom note in top of the documentation.                                                     |
 | testbench  | `@testbench`                                     | Flag this module as a testbench.                                                                       |
 | package    | `@package`                                       | Flag this module as a package.                                                                         |
-| nterface   | `@interface`                                     | Flag this module as an interface.                                                                      |
+| interface  | `@interface`                                     | Flag this module as an interface.                                                                      |
 | constraint | `@constraint`                                    | Add a constraint for this module. Will be displayed in a nice code block.                              |
 | clock      | `@clock <name> <frequency> <net>`                | Configure the clock speed for a net. Will be shown in the panel properties.                            |
 | latency    | `@latency <cycles>`                              | Configure the module latency between input to output.                                                  |
@@ -134,22 +134,20 @@ These flags target the user, by enabling or disabling features for the final ren
 
 #### List of the flags :
 
-| Flag        | Syntax         | Description                                                                                              |
-| :---------- | :------------- | :------------------------------------------------------------------------------------------------------- |
-| noclocks    | `@noclocks`    | Disable the clock inferring process for ports (Output and input).                                        |
-| noresets    | `@noresets`    | Disable the reset inferring process for ports (Output only).                                             |
-| noio        | `@noio`        | Disable the process IO inferring pass.                                                                   |
-| notype      | `@notype`      | Disable the file type inferring (testbench, package ...)                                                 |
-| nopolarity  | `@nopolarity`  | Disable the polarity inferring process                                                                   |
-| nogroups    | `@nogroups`    | Disable the port group inferring pass                                                                    |
-| nosource    | `@nosource`    | Disable the source copy on the documentation.                                                            |
-| nomermaid   | `@nomermaid`   | Disable the mermaid package from a CDN. Could be required for portable doc without internet connection.  |
-| wavedrom    | `@wavedrom`    | Disable the wavedrom package from a CDN. Could be required for portable doc without internet connection. |
-| notemplate  | `@notemplate`  | Disable the template instance generation.                                                                |
-| nosignals   | `@nosignals`   | Disable the signal show at the end of the doc.                                                           |
-| nointernals | `@nointernals` | Disable the process / enums for the doc.                                                                 |
-| novendors   | `@novendors`   | Disable the vendors inferring pass                                                                       |
-| vendor      | `@vendor`      | Set the vendor manually.                                                                                 |
+| Flag        | Syntax         | Description                                                       |
+| :---------- | :------------- | :---------------------------------------------------------------- |
+| noclocks    | `@noclocks`    | Disable the clock inferring process for ports (Output and input). |
+| noresets    | `@noresets`    | Disable the reset inferring process for ports (Output only).      |
+| noio        | `@noio`        | Disable the process IO inferring pass.                            |
+| notype      | `@notype`      | Disable the file type inferring (testbench, package ...)          |
+| nopolarity  | `@nopolarity`  | Disable the polarity inferring process                            |
+| nogroups    | `@nogroups`    | Disable the port group inferring pass                             |
+| nosource    | `@nosource`    | Disable the source copy on the documentation.                     |
+| notemplate  | `@notemplate`  | Disable the template instance generation.                         |
+| nosignals   | `@nosignals`   | Disable the signal show at the end of the doc.                    |
+| nointernals | `@nointernals` | Disable the process / enums for the doc.                          |
+| novendors   | `@novendors`   | Disable the vendors inferring pass                                |
+| vendor      | `@vendor`      | Set the vendor manually.                                          |
 
 ## Plugin integration
 
