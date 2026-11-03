@@ -26,6 +26,8 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [x] ~~Migrate the Verilog parser to tree-sitter based one. Faster and unify both processing lines (more reliable, easier to maintain).~~
 - [x] ~~Add the snipplet generator into the renderer engine.~~
 - [ ] Document which flags are available and where (not all of them are available in any pages, make no sense to create a clock on the global level !)
+- [ ] Update README.md with the latest elements of the parsing (remove AST mentions ...)
+- [ ] Add the rendering pass for the ComponentConfig elements (if possible, limited to the relevant objects !)
 
 ### Target v0.7.0
 
@@ -35,7 +37,7 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
   - get output json from IR pass
 - [ ] Select the function rendering method (natural or complete).
 - [ ] Add the register map inferring process + generation of the C compatible header file (and rust ?).
-- [ ] Add a FanIN / FanOUT inferring pass into the IR.
+- [ ] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
 
 ### Target v0.8.0+
 
