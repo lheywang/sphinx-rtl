@@ -65,3 +65,27 @@ a.rtl-fallback-xref:hover {
   cursor: not-allowed;
   font-family: monospace;
 }
+
+.custom-code-block {
+  background-color: #f8f9fa !important;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+
+code.literal {
+  color: #404040 !important;
+  background-color: #fbfbfb !important;
+}
+
+.sd-tab-set {
+  display: flex;
+  flex-wrap: wrap;
+}
+.sd-tab-set > label.sd-tab-label {
+  flex: 1 1 0;
+  text-align: center;
+}
+.sd-tab-set > .sd-tab-content {
+  order: 99;
+  width: 100%;
+}
