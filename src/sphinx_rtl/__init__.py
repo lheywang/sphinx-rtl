@@ -41,6 +41,7 @@ def setup(app):
     # Load the extensions
     app.setup_extension("myst_parser")
     app.setup_extension("sphinx_design")
+    app.setup_extension("sphinx_copybutton")
 
     # Add the domain
     app.add_domain(RTLDomain)
