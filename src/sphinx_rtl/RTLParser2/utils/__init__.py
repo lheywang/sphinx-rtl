@@ -6,3 +6,4 @@
 # ----------------------------------------------------------------------------
 
 from .file import getFileInfo
+from .apply_flag import apply_flags_cfg, apply_flags_render

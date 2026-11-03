@@ -34,6 +34,4 @@ def VerilogTransformerModport(
         p.line = get_line(c["port"][0])
         m.signals.append(p)
 
-    print(m)
-
     return m

@@ -16,6 +16,7 @@ from .registry import SpecificationRegistry
 from .languages import VHDLSpecification, SystemverilogSpecification
 from .tracker import EntityTracker, AddingPolicy
 from .linker import link_comments
+from .flags import extract_flags
 
 from sphinx_rtl.models import Component, Comment, ALL_MODELS
 
@@ -128,6 +129,17 @@ class RTLParser2:
         if self.specification.comment_transformer is not None:
             logger.info(blue(f"[INFO] Executing the comment transformer provided"))
             comments = self.specification.comment_transformer(comments)
+
+        # Parse the flags and update all components
+        cfg, render = extract_flags(comments[0])
+        for comp in tracker.components.values():
+
+            # Update the config
+            comp.config = cfg
+            comp.render = render
+
+            # Update the languages
+            comp.lang = self.specification.lang_name
 
         # Finally, link the comments with the elements
         if len(comments) > 0:

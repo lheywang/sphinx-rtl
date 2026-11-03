@@ -33,10 +33,13 @@ class SystemverilogSpecification(LanguageSpec):
         self.name = "SystemverilogSpecification"
         self.ts_lang = VERILOG_LANGUAGE
         self.extensions = ["v", "sv", "svh"]
+        self.lang_name = "systemverilog"
 
         # Fill the queries and transformers
         if self.ts_lang is not None:
             self.ts_queries = get_queries(self.ts_lang)
             self.ts_transformers = get_transformers()
             self.ts_explore_query = "Q_ENTITIES"
-            self.ts_top_name = lambda n, c: get_text(n["entity.node"][0], c)
+            self.ts_top_name = lambda n, c: get_text(n["entity.node"][0], c).split(" ")[
+                -1
+            ]

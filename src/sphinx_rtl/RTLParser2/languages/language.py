@@ -42,6 +42,7 @@ class LanguageSpec:
         - name : The name of the language to be shown in the logs
         - extensions : The list of extensions to be used for this format
         - ts_lang : A tree-sitter language to be used.
+        - lang_name : The language name to be used for the literal_block formatter on the rendering stages.
 
         The following fields are only used if ts_lang is not None. That mean the language is an extension based on ts_lang.
         - ts_queries : The dict of queries for the different elements to be fetched.
@@ -59,6 +60,7 @@ class LanguageSpec:
     name: str = ""
     extensions: list[str] = field(default_factory=list)
     ts_lang: Language | None = None
+    lang_name: str = ""
 
     # If language is not None, we'll use these as the parser.
     ts_queries: dict[str, Query] = field(default_factory=dict)

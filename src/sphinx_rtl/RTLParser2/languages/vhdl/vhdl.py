@@ -33,6 +33,7 @@ class VHDLSpecification(LanguageSpec):
         self.name = "VHDLSpecification"
         self.ts_lang = VHDL_LANGUAGE
         self.extensions = ["vhd", "vhdl"]
+        self.lang_name = "vhdl"
 
         # Fill the queries and transformers
         if self.ts_lang is not None:
