@@ -24,8 +24,6 @@ def bind_modports(component: Component) -> Component:
     if len(component.modports) == 0:
         return component
 
-    print("Top")
-
     # Build the signal registry:
     signals: dict[str, Signal] = dict([(x.name, x) for x in component.signals])
 

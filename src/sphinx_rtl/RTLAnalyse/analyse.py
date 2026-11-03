@@ -78,9 +78,10 @@ class RTLAnalyse:
                     output = self._advanced_analyse_component(target, components)
                     components[component] = output
                 else:
-                    logger.warning(
-                        f"Could not fetch a component from the global dict. Ignoring analysis."
-                    )
+                    if component:
+                        logger.warning(
+                            f"Could not fetch a component ({component}) from the global dict. Ignoring analysis for it."
+                        )
             except Exception as e:
                 logger.error(f"Failed to analyse component {component} : {e}")
 
