@@ -8,6 +8,7 @@
 
 # Imports
 import json
+import copy
 from dataclasses import dataclass, field, fields
 from typing import Any
 from pprint import pformat
@@ -364,11 +365,15 @@ class ComponentConfig:
         to configure the optimal render method for the current component.
     """
 
+    # Set by the apply_flag function for any changes done.
+    # This will trigger the rendering pass !
+    changed: bool = False
+
     # @warning
-    warning: str = ""
+    warning: list[str] = field(default_factory=list)
 
     # @notes
-    notes: str = ""
+    notes: list[str] = field(default_factory=list)
 
     # @testbench
     isTestbench: bool = False
@@ -386,7 +391,7 @@ class ComponentConfig:
     constraints: list[str] = field(default_factory=list)
 
     # @clock <name> <frequency>
-    clock: list[tuple[str, int, str]] = field(default_factory=list)
+    clock: list[tuple[str, str, str]] = field(default_factory=list)
 
     # @latency <cycles>
     latency: int = 0
@@ -398,16 +403,16 @@ class ComponentConfig:
     register: list[tuple[str, int, int, str]] = field(default_factory=list)
 
     # @target <name>
-    target: str = ""
+    target: list[str] = field(default_factory=list)
 
     # @tool <name>
-    tool: str = ""
+    tool: list[str] = field(default_factory=list)
 
     # @sim <name>
-    sim: str = ""
+    sim: list[str] = field(default_factory=list)
 
     # @compliance
-    complicante: str = ""
+    compliance: list[str] = field(default_factory=list)
 
     # @burst <size>
     burst: int = 0
@@ -428,7 +433,7 @@ class ComponentConfig:
     task: str = ""
 
     # @license
-    license: str = ""
+    license: list[str] = field(default_factory=list)
 
     # @copyright Altera Corp.
     copyright: str = ""
@@ -440,9 +445,57 @@ class ComponentConfig:
     # FUNCTIONS
     # ----------------------------------------------------------------------
     def __repr__(self) -> str:
-        data = {f.name: getattr(self, f.name) for f in fields(self)}
+        data = {f.name: getattr(self, f.name) for f in fields(self)}  # type: ignore
         formatted = pformat(data, indent=2, width=120, sort_dicts=False)
         return f"{self.__class__.__name__} (\n{formatted}\n)"
+
+    def merge(self, override: ComponentConfig) -> ComponentConfig:
+        """
+        Merge two elements into ourselves, and return a copy of us.
+        """
+
+        # Merge the elements
+        self.changed = self.changed or override.changed
+
+        self.warning.extend(override.warning)
+        self.notes.extend(override.notes)
+
+        self.isTestbench = self.isTestbench or override.isTestbench
+        self.isPackage = self.isPackage or override.isPackage
+        self.isInterface = self.isInterface or override.isInterface
+
+        self.testbenchTarget = override.testbenchTarget
+
+        self.constraints.extend(override.constraints)
+        self.clock.extend(override.clock)
+
+        self.latency = override.latency
+        self.throughput = override.throughput
+
+        self.register.extend(override.register)
+
+        self.target.extend(override.target)
+        self.tool.extend(override.tool)
+        self.sim.extend(override.sim)
+
+        self.compliance.extend(override.compliance)
+
+        self.burst = override.burst
+
+        self.security = override.security
+        self.status = override.status
+        self.deprecated = override.deprecated
+        self.version = override.version
+        self.task = override.task
+
+        self.license.extend(override.license)
+
+        self.copyright = override.copyright
+
+        self.tags.extend(override.tags)
+
+        # Return a copy
+        return copy.deepcopy(self)
 
 
 @dataclass(slots=True)
@@ -496,6 +549,7 @@ class Component:
     comp_type: str = ""
     is_stub: bool = False
     doc_url: list[str] = field(default_factory=list)
+    lang: str = ""
 
     # Render config
     config: ComponentConfig = field(default_factory=ComponentConfig)
@@ -534,7 +588,7 @@ class Component:
     # ----------------------------------------------------------------------
     def __repr__(self) -> str:
         data = {
-            f.name: _summarize_for_repr(getattr(self, f.name)) for f in fields(self)
+            f.name: _summarize_for_repr(getattr(self, f.name)) for f in fields(self)  # type: ignore
         }
         formatted = pformat(data, indent=2, width=120, sort_dicts=False)
         return f"{self.__class__.__name__} (\n{formatted}\n)"
