@@ -6,7 +6,8 @@
 #           within the project.
 # ----------------------------------------------------------------------------
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
+from pprint import pformat
 from pathlib import Path
 import tomllib
 import copy
@@ -34,8 +35,6 @@ class RTLConfig:
         - inferAssignments:     Do we need to infer the constant assignments ?
         - resolveModules:       Do we need to infer the submodules IO types to ourselves ?
         - showSource :          Do we need to show the source file ?
-        - mermaid :             Do we need to load the mermaid render from a CDN ?
-        - wavedrom :            Do we need to load wavefrom render from a CDN ?
         - template :            Do we need to add a template instantiation at the end of the doc ?
         - signals :             Do we need to show all signals in the doc ?
         - internals :           Do we need to show all the internals (Processes, Enums, Imports ...) in the doc ? Setting this will also infer @nosignals.
@@ -66,7 +65,7 @@ class RTLConfig:
     inferGroups: bool = True
 
     # @noassigns
-    inferAssignments: bool = False
+    inferAssignments: bool = True
 
     # @noresolve
     resolveModules: bool = True
@@ -74,19 +73,13 @@ class RTLConfig:
     # @nosource
     showSource: bool = True
 
-    # @nomermaid
-    mermaid: bool = True
-
-    # @wavedrom
-    wavedrom: bool = True
-
     # @notemplate
     template: bool = True
 
     # @nosignals
     signals: bool = True
 
-    # @nointernals:
+    # @nointernals
     internals: bool = True
 
     # @novendors
@@ -108,7 +101,7 @@ class RTLConfig:
         Merge two elements into ourselves, and return a copy of us.
         """
 
-        # Merge the elements
+        # Merge the elements (AND to make the False the higher rank.)
         self.inferClocks = self.inferClocks and override.inferClocks
         self.inferResets = self.inferResets and override.inferResets
         self.inferIOs = self.inferIOs and override.inferIOs
@@ -118,8 +111,6 @@ class RTLConfig:
         self.inferAssignments = self.inferAssignments and override.inferAssignments
         self.resolveModules = self.resolveModules and override.resolveModules
         self.showSource = self.showSource and override.showSource
-        self.mermaid = self.mermaid and override.mermaid
-        self.wavedrom = self.wavedrom and override.wavedrom
         self.template = self.template and override.template
         self.signals = self.signals and override.signals
         self.internals = self.internals and override.internals
@@ -161,8 +152,6 @@ class RTLConfig:
     def configure_shown_elements(
         self,
         source: bool = True,
-        mermaid: bool = True,
-        wavedrom: bool = True,
         template: bool = True,
         signals: bool = True,
         internals: bool = True,
@@ -171,8 +160,6 @@ class RTLConfig:
         Configure the shown elements.
         """
         self.showSource = source
-        self.mermaid = mermaid
-        self.wavedrom = wavedrom
         self.template = template
         self.signals = signals
         self.internals = internals
@@ -214,3 +201,8 @@ class RTLConfig:
             self.external_stubs.append(source)
         elif type(source) is list:
             self.external_stubs.extend(source)
+
+    def __repr__(self) -> str:
+        data = {f.name: getattr(self, f.name) for f in fields(self)}  # type: ignore
+        formatted = pformat(data, indent=2, width=120, sort_dicts=False)
+        return f"{self.__class__.__name__} (\n{formatted}\n)"
