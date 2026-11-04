@@ -7,9 +7,9 @@
  *
  *  @deprecated Use the prediction_v2 module instead. Will lead to better performances.
  *
- *  @register status        0   32    The current status of the prediction module.
- *  @register stats_cfg     4   32    Configuration of the statistics module.
- *  @register stats         8   32    The status of the statistics
+ *  @register status_2      20   32    The current status of the prediction module.
+ *  @register stats_cfg_2   24  32    Configuration of the statistics module.
+ *  @register stats         16  32    The status of the statistics
  *  @register status_fifo   12  32    The output of the N last predictions with the PC value. Especially useful for advanced performance monitoring.
  */
 
