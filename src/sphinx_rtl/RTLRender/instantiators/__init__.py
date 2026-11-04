@@ -16,3 +16,8 @@ INSTANCE_CALLBACKS = {
     "Verilog / SystemVerilog": instantiate_verilog,
     "VHDL": instantiate_vhdl,
 }
+
+PYGMENTS_INSTANCE_LANG = {
+    "Verilog / SystemVerilog": "systemVerilog",
+    "VHDL": "vhdl",
+}

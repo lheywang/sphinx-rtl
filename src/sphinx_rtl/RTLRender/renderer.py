@@ -34,7 +34,17 @@ from sphinx_rtl.RTLRender.helpers import (
     render_raw_code,
 )
 from sphinx_rtl.RTLRender.classifier import ElementClassifier
-from sphinx_rtl.RTLRender.instantiators import INSTANCE_LANGUAGES, INSTANCE_CALLBACKS
+from sphinx_rtl.RTLRender.instantiators import (
+    INSTANCE_LANGUAGES,
+    INSTANCE_CALLBACKS,
+    PYGMENTS_INSTANCE_LANG,
+)
+from sphinx_rtl.RTLRender.register_generator import (
+    HEADER_LANGUAGES,
+    HEADER_CALLBACKS,
+    PYGMENTS_HEADER_LANG,
+    compute_register_layout,
+)
 
 from sphinx_rtl.models import Component, Signal, Port
 
@@ -165,6 +175,7 @@ class RTLRender:
 
         # Common module header
         self._render_file_info(context, component)
+        self._render_component_config(context, component)
 
         # Emit an event before the elements rendering
         self.app.emit("rtl-post-card-rendering", self.app, self.env, context, component)
@@ -175,7 +186,6 @@ class RTLRender:
         self._render_component_enums(context, component)
         self._render_component_functions(context, component)
         self._render_component_structures(context, component)
-        self._render_component_template(context, component)
         self._render_component_source(context, component)
 
         # Add a separator last
@@ -206,11 +216,13 @@ class RTLRender:
 
         # Common module header
         self._render_file_info(context, component)
+        self._render_component_config(context, component)
 
         # Emit an event before the elements rendering
         self.app.emit("rtl-post-card-rendering", self.app, self.env, context, component)
 
         # Add the elements we need here.
+        self._render_component_register_map(context, component)
         self._render_component_imports(context, component)
         self._render_component_parameters(context, component)
         self._render_component_ports(context, component)
@@ -250,6 +262,7 @@ class RTLRender:
 
         # Common module header
         self._render_file_info(context, component)
+        self._render_component_config(context, component)
 
         # Emit an event before the elements rendering
         self.app.emit("rtl-post-card-rendering", self.app, self.env, context, component)
@@ -263,7 +276,6 @@ class RTLRender:
         self._render_component_signals(context, component)
         self._render_component_modules(context, component)
         self._render_component_processes(context, component)
-        self._render_component_template(context, component)
         self._render_component_source(context, component)
 
         # Emit an event after the elements rendering
@@ -292,6 +304,7 @@ class RTLRender:
 
         # Common module header
         self._render_file_info(context, component)
+        self._render_component_config(context, component)
 
         # Emit an event before the elements rendering
         self.app.emit(
@@ -303,7 +316,6 @@ class RTLRender:
         self._render_component_parameters(context, component)
         self._render_component_ports(context, component)
         self._render_component_modports(context, component)
-        self._render_component_template(context, component)
         self._render_component_source(context, component)
 
         # Add a separator last
@@ -336,6 +348,10 @@ class RTLRender:
             is_div=True, classes=["sd-card", "sd-shadow-sm", "sd-mb-3"]
         )
 
+        # Is the component deprecated, add a class to identify it with the final CSS.
+        if comp.config.deprecated:
+            card["classes"].append("deprecated-card")
+
         # First, add the file name
         card_header = nodes.container(
             is_div=True,
@@ -366,6 +382,12 @@ class RTLRender:
                 color = BadgeColor.CYAN
 
         title_box += render_badge(comp.comp_type, color=color, outline=True, pill=True)
+
+        if comp.config.deprecated:
+            title_box += render_badge(
+                "Deprecated", color=BadgeColor.RED, outline=True, pill=True
+            )
+
         card_header += title_box
 
         if len(comp.render.vendor) > 0:
@@ -378,6 +400,26 @@ class RTLRender:
             card_header += vendor_box
 
         card += card_header
+
+        if comp.config.deprecated:
+            deprecation_card = nodes.container(
+                is_div=True,
+                classes=[
+                    "sd-card-footer",
+                    "sd-d-flex",
+                    "sd-align-major-justify",
+                    "sd-align-minor-center",
+                ],
+            )
+
+            deprecation_msg = nodes.paragraph(classes=["sd-m-0", "sd-fw-semibold"])
+            deprecation_msg += render_markdown(
+                comp.config.deprecated, comp.file.path, self.base_doc
+            )
+
+            # Add the box into the hierarchy
+            deprecation_card += deprecation_msg
+            card += deprecation_card
 
         # Component description
         # First, add the file name
@@ -517,6 +559,112 @@ class RTLRender:
         # Finally add ourselves to the root
         root += card
         return
+
+    def _render_component_register_map(
+        self, root: nodes.section, comp: Component
+    ) -> None:
+        """
+        Render the component register map, if needed.
+        This also generates some examples of C and Rust code ready to be copied from the documentation into the embedded firmware.
+        """
+
+        # Is there anything to render
+        if len(comp.config.register) == 0:
+            return
+
+        # Create our section
+        section = self._create_section(
+            root, "Register Map", comp.file.name.rsplit(".", 1)[0]
+        )
+
+        title = nodes.paragraph()
+        title += nodes.Text("Register Map")
+        title += nodes.inline(" ", " ")
+
+        # How many element do we have ?
+        title += render_badge(
+            f"{len(comp.config.register)} register{"s" if len(comp.config.register) > 1 else ""}",
+            BadgeColor.CYAN,
+            outline=True,
+        )
+
+        # First, process the register to sort them in order
+        registers = sorted(comp.config.register, key=lambda x: x[1])
+
+        # Render a dropdown into it
+        dd, body = render_dropdown(title, is_open=True)
+
+        # Add a little bit of text
+        table_name = nodes.paragraph(classes=["sd-mt-3"])
+        table_name += nodes.strong("", text="List of registers :")
+        body += table_name
+
+        # Render the table header
+        headers = ["Name", "Offset", "Size", "Description"]
+        widths = [2, 1, 1, 3]
+
+        table, table_body = render_table_header(headers, widths=widths)
+
+        # Render the registers
+        for register in registers:
+
+            # Build the cells
+            cells = [
+                nodes.paragraph(),
+                nodes.paragraph(),
+                nodes.paragraph(),
+                nodes.paragraph(),
+            ]
+
+            # Add the elements of the table
+            cells[0] += nodes.Text(register[0])
+            cells[1] += nodes.Text(str(register[1]))
+            cells[2] += nodes.Text(str(register[2]))
+            cells[3] += render_markdown(register[3], comp.file.path, self.base_doc)
+
+            # Render the table
+            render_table_line(table_body, cells)
+
+        # Add the table to the body
+        body += table
+
+        # Define an embedded software structure.
+        inst_name = nodes.paragraph(classes=["sd-mt-3"])
+        inst_name += nodes.strong("", text="Embedded software structures")
+        body += inst_name
+
+        # Build the software layout
+        layout = compute_register_layout(registers)
+
+        # Render the templates
+        tab_head, tab_elements = render_tabs(HEADER_LANGUAGES, group="Embedded")
+
+        # For each languages, fetch the current rendering
+        for lang, tab in tab_elements.items():
+
+            func = HEADER_CALLBACKS.get(lang)
+            if func is None:
+                tab += nodes.error(
+                    f"The provided callbacks was not found for the language {lang}. This is a BUG. Fill and submit a report.",
+                )
+                continue
+
+            # Now, call the function
+            content = func(comp.name, layout)
+
+            # Get the color
+            color_lang = PYGMENTS_HEADER_LANG.get(lang)
+            if color_lang is None:
+                color_lang = "c"
+                logger.warning(f"Using default color rendering scheme (c) for {lang}")
+
+            # Add the the formatted code to the tab
+            tab += render_raw_code(content, color_lang)
+
+        body += tab_head
+
+        # Add ourselves to the root
+        section += dd
 
     def _render_component_config(self, root: nodes.section, comp: Component) -> None:
         """
@@ -1531,8 +1679,18 @@ class RTLRender:
             # Now, call the function
             content = func(comp)
 
+            # Fetch the color
+            color_lang = PYGMENTS_INSTANCE_LANG.get(lang)
+            if color_lang is None:
+
+                # set a default value
+                color_lang = "systemverilog"
+                logger.warning(
+                    f"Using default color rendering scheme (systemverilog) for {lang}"
+                )
+
             # Add the the formatted code to the tab
-            tab += render_raw_code(content)
+            tab += render_raw_code(content, color_lang)
 
         body += tab_head
 

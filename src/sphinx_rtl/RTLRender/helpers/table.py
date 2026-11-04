@@ -7,6 +7,7 @@
 
 # Imports
 from docutils import nodes
+from typing import Sequence
 
 
 def render_table_header(
@@ -66,7 +67,7 @@ def render_table_header(
 
 def render_table_line(
     table: nodes.table,
-    cells: list[
+    cells: Sequence[
         nodes.Text
         | nodes.inline
         | list[nodes.Node]
