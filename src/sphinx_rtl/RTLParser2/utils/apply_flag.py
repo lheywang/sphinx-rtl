@@ -46,7 +46,9 @@ def _clock(cfg, args):
 
 def _register(cfg, args):
     name, addr, width, *rest = shlex.split(args)
-    cfg.register.append((name, int(addr, 0), int(width), rest[0] if rest else ""))
+    cfg.register.append(
+        (name, int(addr, 0), int(width), " ".join(rest) if rest else "")
+    )
 
 
 # Flags LUT

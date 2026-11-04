@@ -39,7 +39,13 @@ def VHDLTransformerType(
 
         # Fetch the members
         members = [x.strip() for x in raw_enum.split(",")]
-        ret = Enum(name=name, description="", line=line, members=members)
+        ret = Enum(
+            name=name,
+            description="",
+            line=line,
+            members=members,
+            values=[str(x) for x in range(len(members))],
+        )
 
     elif "type.record" in nodes and nodes["type.record"]:
         signals: list[Signal] = []

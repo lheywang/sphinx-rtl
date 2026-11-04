@@ -26,6 +26,7 @@ def extract_flags(comment: Comment) -> tuple[ComponentConfig, RTLConfig]:
 
     # Extract the flags
     flags = []
+    kept = []
     for i, raw in enumerate(comment.content.splitlines()):
         raw = re.sub(r"^\s*//+", "", raw)
         if m := FLAG_RE.match(raw):
@@ -36,6 +37,8 @@ def extract_flags(comment: Comment) -> tuple[ComponentConfig, RTLConfig]:
                     "line": i,
                 }
             )
+        else:
+            kept.append(raw)
 
     # Process the flags to bind them into the config
     cfg = ComponentConfig()
@@ -51,6 +54,9 @@ def extract_flags(comment: Comment) -> tuple[ComponentConfig, RTLConfig]:
     # Print the warnings
     for warn in warns:
         logger.warning(warn)
+
+    # Update the final comment content without the flags
+    comment.content = "\n".join(kept)
 
     # Return both config
     return cfg, rtl
