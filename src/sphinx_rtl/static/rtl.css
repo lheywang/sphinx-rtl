@@ -89,3 +89,9 @@ code.literal {
   order: 99;
   width: 100%;
 }
+
+.sd-card.deprecated-card {
+  --sd-card-border-color: #ffc107;
+  --sd-card-border-width: 2px;
+  box-shadow: 0 2px 5px rgba(255, 193, 7, 0.2);
+}

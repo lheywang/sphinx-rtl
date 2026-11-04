@@ -6,12 +6,11 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from sphinx.application import Sphinx
-from pathlib import Path
 from sphinx_rtl.nodes import RTLPlaceholderNode
 from sphinx_rtl.RTLDomain import RTLDomain
 from sphinx_rtl.RTLRender import RTLRenderTransform
 from sphinx_rtl.RTLConfig import RTLConfig
+from sphinx_rtl.models import ComponentConfig
 from sphinx_rtl.directive import RTLAutodocDirective
 from sphinx_rtl.callbacks import (
     on_builder_inited,
@@ -37,6 +36,7 @@ def setup(app):
 
     # Add our configuration values
     app.add_config_value("rtl_config", default=RTLConfig(), rebuild="env")
+    app.add_config_value("comp_config", default=ComponentConfig(), rebuild="env")
 
     # Load the extensions
     app.setup_extension("myst_parser")

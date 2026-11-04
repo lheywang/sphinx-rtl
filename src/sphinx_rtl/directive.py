@@ -116,13 +116,15 @@ class RTLAutodocDirective(Directive):
         rtl_domain: RTLDomain = env.get_domain("rtl")
 
         # Fetch the config for the component
-        cfg, render_dir = self.get_config()
+        component, render_dir = self.get_config()
 
         # Fetch the default config
         rtl_cfg: RTLConfig = env.config.rtl_config
+        comp_cfg: ComponentConfig = env.config.comp_config
 
         # Merge the config into the components
         render = render_dir.merge(rtl_cfg)
+        cfg = component.merge(comp_cfg)
 
         # Fetch the patterns
         patterns = registry.get_all_extension()

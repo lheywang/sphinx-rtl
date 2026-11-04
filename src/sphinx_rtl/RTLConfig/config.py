@@ -205,4 +205,4 @@ class RTLConfig:
     def __repr__(self) -> str:
         data = {f.name: getattr(self, f.name) for f in fields(self)}  # type: ignore
         formatted = pformat(data, indent=2, width=120, sort_dicts=False)
-        return f"{self.__class__.__name__} (\n{formatted}\n)"
+        return f"{self.__class__.__name__} (\n{formatted}\n)\n"

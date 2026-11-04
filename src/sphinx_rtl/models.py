@@ -447,7 +447,7 @@ class ComponentConfig:
     def __repr__(self) -> str:
         data = {f.name: getattr(self, f.name) for f in fields(self)}  # type: ignore
         formatted = pformat(data, indent=2, width=120, sort_dicts=False)
-        return f"{self.__class__.__name__} (\n{formatted}\n)"
+        return f"{self.__class__.__name__} (\n{formatted}\n)\n"
 
     def merge(self, override: ComponentConfig) -> ComponentConfig:
         """
@@ -496,6 +496,66 @@ class ComponentConfig:
 
         # Return a copy
         return copy.deepcopy(self)
+
+    # ----------------------------------------------------------------------
+    # CONFIGURATION FUNCTIONS
+    # ----------------------------------------------------------------------
+    def set_toolchain(
+        self, target: str | None = None, tool: str | None = None, sim: str | None = None
+    ):
+        """
+        Configure the toolchain in the component config. Used at the scope level.
+
+        This include :
+            - tool (i.e. Quartus 25.1) (any str is valid).
+            - target (i.e. MAX10, Sky180 ...) (any str is valid).
+            - sim (i.e. Verilator) (any str is valid).
+        """
+        self.target.append(target) if target is not None else None
+        self.tool.append(tool) if tool is not None else None
+        self.sim.append(sim) if sim is not None else None
+        return
+
+    def set_legal(
+        self,
+        compliance: str | None = "",
+        security: str | None = "",
+        copyright: str | None = "",
+        license: str | None = "",
+    ):
+        """
+        Configure the "legal" information about the component.
+
+        This include :
+            - compliance (any str is valid).
+            - security (any str is valid).
+            - copyright (any str is valid).
+            - license (any str is valid).
+        """
+        self.compliance.append(compliance) if compliance is not None else None
+        self.security = security if security is not None else self.security
+        self.copyright = copyright if copyright is not None else self.copyright
+        self.license.append(license) if license is not None else None
+        return
+
+    def set_status(
+        self,
+        status: str | None = None,
+        deprecated: str | None = None,
+        task: str | None = None,
+    ):
+        """
+        Set the component status.
+
+        This include :
+            - status : The component status. (any str is valid).
+            - deprecated : The component deprecation status. (any str is valid).
+            - task : The component related task. (any str is valid).
+        """
+        self.status = status if status is not None else self.status
+        self.deprecated = deprecated if deprecated is not None else self.deprecated
+        self.task = task if task is not None else self.task
+        return
 
 
 @dataclass(slots=True)
