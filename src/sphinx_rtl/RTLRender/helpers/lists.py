@@ -8,9 +8,11 @@
 # Imports
 from docutils import nodes
 
+from typing import Sequence
+
 
 def render_bullet_list(
-    elements: list[
+    elements: Sequence[
         nodes.Text
         | nodes.literal
         | nodes.inline

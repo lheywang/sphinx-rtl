@@ -28,7 +28,7 @@ def render_markdown(
     The source file is used to enable absolute file resolution.
     """
     if not text or not text.strip():
-        return [nodes.paragraph(text="-")]
+        return [nodes.paragraph(text=" ")]
 
     # Configure a document
     document = utils.new_document("")

@@ -7,14 +7,13 @@ Models of imports :
 --------------------
 
 .. rtl-autodoc:: ../examples/vhdl/*.vhd
-    :tool: Quartus 25.1
     :sim: GHDL 5.1.1
-    :target: Altera MAX10
+    :license: MIT License
+    :deprecated: VHDL version is no more supported. Use the SystemVerilog version.
     :notemplate:
 
 .. rtl-autodoc:: ../examples/systemverilog/*.sv
-    :tool: Quartus 25.1
     :sim: Verilator 5.046
-    :target: Altera MAX10
+    :license: Apache 2.0
     :nosource:
 

@@ -6,12 +6,13 @@
 # ----------------------------------------------------------------------------
 
 # Imports
+import traceback
 from graphlib import CycleError, TopologicalSorter
 from sphinx.util import logging
 from sphinx._cli.util.colour import bold, blue
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
-from sphinx_rtl.models import Component, RTLConfig, FileInfo
+from sphinx_rtl.models import Component, RTLConfig
 import time
 
 from .modules import (
@@ -26,7 +27,7 @@ from .modules import (
     infer_submodules,
 )
 
-from .common import bind_modports
+from .common import bind_modports, clean
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -76,17 +77,24 @@ class RTLAnalyse:
                 target = components.get(component)
                 if target is not None:
                     output = self._advanced_analyse_component(target, components)
-                    components[component] = output
+                    components[component] = clean(output)
                 else:
                     if component:
                         logger.warning(
                             f"Could not fetch a component ({component}) from the global dict. Ignoring analysis for it."
                         )
+            except KeyError as e:
+                logger.error(
+                    f"Missing key error while analysing component '{component}': missing attribute/key {e}"
+                )
             except Exception as e:
-                logger.error(f"Failed to analyse component {component} : {e}")
+                logger.error(
+                    f"Failed to analyse component '{component}': {type(e).__name__} - {e}"
+                )
+                logger.debug(traceback.format_exc())
 
         # Emit an event before returning
-        self.app.emit("rtl-pre-analysis", self.app, self.env, components)
+        self.app.emit("rtl-post-analysis", self.app, self.env, components)
         return
 
     # --------------------------------------------------------------------------------

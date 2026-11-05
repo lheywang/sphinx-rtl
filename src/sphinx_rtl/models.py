@@ -390,6 +390,18 @@ class ComponentConfig:
     # @constraint
     constraints: list[str] = field(default_factory=list)
 
+    # @version 1.0.0
+    version: str = ""
+
+    # @task JIRA-928
+    task: str = ""
+
+    # @compliance
+    compliance: list[str] = field(default_factory=list)
+
+    # @security <name>
+    security: str = ""
+
     # @clock <name> <frequency>
     clock: list[tuple[str, str, str]] = field(default_factory=list)
 
@@ -398,6 +410,9 @@ class ComponentConfig:
 
     # @throughput <str>
     throughput: str = ""
+
+    # @burst <size>
+    burst: int = 0
 
     # @register <name> <offset> <size> <description>
     register: list[tuple[str, int, int, str]] = field(default_factory=list)
@@ -411,26 +426,11 @@ class ComponentConfig:
     # @sim <name>
     sim: list[str] = field(default_factory=list)
 
-    # @compliance
-    compliance: list[str] = field(default_factory=list)
-
-    # @burst <size>
-    burst: int = 0
-
-    # @security <name>
-    security: str = ""
-
     # @status released
-    status: str = "release"
+    status: str = ""
 
     # @deprecated <alternative>
     deprecated: str = ""
-
-    # @version 1.0.0
-    version: str = "1.0.0"
-
-    # @task JIRA-928
-    task: str = ""
 
     # @license
     license: list[str] = field(default_factory=list)
@@ -556,6 +556,23 @@ class ComponentConfig:
         self.deprecated = deprecated if deprecated is not None else self.deprecated
         self.task = task if task is not None else self.task
         return
+
+    # ----------------------------------------------------------------------
+    # CONFIGURATION FUNCTIONS
+    # ----------------------------------------------------------------------
+    @property
+    def iter_differences(self):
+        """
+        Iter over the fields that are different for within the config.
+        Especially useful for the final rendering pass.
+        """
+
+        # Build the initial version.
+        ref = ComponentConfig()
+
+        for f in fields(self):
+            if getattr(self, f.name) != getattr(ref, f.name):
+                yield f
 
 
 @dataclass(slots=True)

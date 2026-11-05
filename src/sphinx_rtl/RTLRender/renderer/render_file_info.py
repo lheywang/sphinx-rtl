@@ -9,7 +9,12 @@
 from docutils import nodes
 
 from sphinx_rtl.models import Component
-from sphinx_rtl.RTLRender.helpers import BadgeColor, render_badge, render_markdown
+from sphinx_rtl.RTLRender.helpers import (
+    BadgeColor,
+    render_badge,
+    render_markdown,
+    render_bullet_list,
+)
 
 
 # Class
@@ -293,6 +298,31 @@ class FileInfoRTLRender:
             ],
         )
 
+        # Build the section dict, and fetch them. This will make the rendering more ordered and cleaner.
+        db: dict[str, nodes.container] = {}
+
+        def get_or_create(
+            db: dict[str, nodes.container], name: str, footer: nodes.container
+        ) -> nodes.container:
+            """
+            Return a nodes.container within the provided database.
+            If it cannot be found, create it.
+            """
+
+            # Does the target already exists ?
+            target = db.get(name)
+            if target is not None:
+                return target
+
+            # Create it
+            db[name] = nodes.container(classes=["sd-mt-3"])
+            db[name] += nodes.paragraph(classes=["sd-mt-2"])
+            db[name] += nodes.strong(text=name)
+
+            # Add it to the footer
+            footer += db[name]
+            return db[name]
+
         # Test : iterate over differences
         for diff in differences:
 
@@ -300,55 +330,322 @@ class FileInfoRTLRender:
             match diff.name:
 
                 case "warning":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    warning_paragraph = nodes.paragraph()
+                    warning_paragraph += nodes.Text("Warnings")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for warn in comp.config.warning:
+
+                        warn_paragraph = nodes.paragraph()
+                        warn_paragraph += render_markdown(
+                            warn, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(warn_paragraph)
+
+                    warning_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += warning_paragraph
 
                 case "notes":  # list[str]
-                    pass
 
-                case "version":  # str
-                    pass
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    notes_paragraph = nodes.paragraph()
+                    notes_paragraph += nodes.Text("Notes")
 
-                case "task":  # str
-                    pass
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for note in comp.config.notes:
+                        note_paragraph = nodes.paragraph()
+                        note_paragraph += render_markdown(
+                            note, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(note_paragraph)
+
+                    notes_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += notes_paragraph
 
                 case "constraints":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    constraints_paragraph = nodes.paragraph()
+                    constraints_paragraph += nodes.Text("Constraints")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for constraint in comp.config.constraints:
+                        constraint_paragraph = nodes.paragraph()
+                        constraint_paragraph += render_markdown(
+                            constraint, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(constraint_paragraph)
+
+                    constraints_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += constraints_paragraph
+
+                case "version":  # str
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    version_paragraph = nodes.paragraph()
+                    version_paragraph += nodes.Text("Version")
+                    version_paragraph += nodes.inline(" ", " ")
+                    version_paragraph += render_badge(
+                        comp.config.version, BadgeColor.GREEN, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += version_paragraph
+
+                case "task":  # str
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    task_paragraph = nodes.paragraph()
+                    task_paragraph += nodes.Text("Task")
+                    task_paragraph += nodes.inline(" ", " ")
+                    task_paragraph += render_badge(
+                        comp.config.task, BadgeColor.ORANGE, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += task_paragraph
 
                 case "compliance":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    compliances_paragraph = nodes.paragraph()
+                    compliances_paragraph += nodes.Text("Compliance")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for compliance in comp.config.compliance:
+                        compliance_paragraph = nodes.paragraph()
+                        compliance_paragraph += render_markdown(
+                            compliance, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(compliance_paragraph)
+
+                    compliances_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += compliances_paragraph
 
                 case "security":  # str
-                    pass
 
-                case "clocks":  #  list[tuple[str, str, str]]
-                    pass
+                    # Fetch the master container
+                    container = get_or_create(db, "Information", footer)
+                    security_paragraph = nodes.paragraph()
+                    security_paragraph += nodes.Text("Security :")
+                    security_paragraph += nodes.inline(" ", " ")
+                    security_paragraph += render_badge(
+                        comp.config.security, BadgeColor.RED, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += security_paragraph
+
+                case "clock":  #  list[tuple[str, int, int, str]]
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Hardware", footer)
+                    clocks_paragraph = nodes.paragraph()
+                    clocks_paragraph += nodes.Text("Clocks")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for clock in comp.config.clock:
+
+                        clock_paragraph = nodes.paragraph()
+                        clock_paragraph += render_badge(
+                            clock[0], BadgeColor.GREEN, outline=True
+                        )
+                        clock_paragraph += nodes.inline(" ", " ")
+                        clock_paragraph += render_badge(
+                            clock[1], BadgeColor.BLUE, outline=True
+                        )
+                        elements.append(clock_paragraph)
+
+                    clocks_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += clocks_paragraph
 
                 case "latency":  # int
-                    pass
 
-                case "throughput":  # int
-                    pass
+                    # Fetch the master container
+                    container = get_or_create(db, "Hardware", footer)
+                    latency_paragraph = nodes.paragraph()
+                    latency_paragraph += nodes.Text("Latency :")
+                    latency_paragraph += nodes.inline(" ", " ")
+                    latency_paragraph += render_badge(
+                        str(comp.config.latency), BadgeColor.BLUE, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += latency_paragraph
+
+                case "throughput":  # str
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Hardware", footer)
+                    throughput_paragraph = nodes.paragraph()
+                    throughput_paragraph += nodes.Text("Throughput :")
+                    throughput_paragraph += nodes.inline(" ", " ")
+                    throughput_paragraph += render_badge(
+                        comp.config.throughput, BadgeColor.BLACK, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += throughput_paragraph
 
                 case "burst":  # int
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Hardware", footer)
+                    throughput_paragraph = nodes.paragraph()
+                    throughput_paragraph += nodes.Text("Burst :")
+                    throughput_paragraph += nodes.inline(" ", " ")
+                    throughput_paragraph += render_badge(
+                        str(comp.config.burst), BadgeColor.BLACK, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += throughput_paragraph
 
                 case "target":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Toolchain", footer)
+                    targets_paragraph = nodes.paragraph()
+                    targets_paragraph += nodes.Text("Target")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for target in comp.config.target:
+
+                        target_paragraph = nodes.paragraph()
+                        target_paragraph += render_markdown(
+                            target, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(target_paragraph)
+
+                    targets_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += targets_paragraph
 
                 case "tool":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Toolchain", footer)
+                    tools_paragraph = nodes.paragraph()
+                    tools_paragraph += nodes.Text("Tools")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for tool in comp.config.tool:
+
+                        tool_paragraph = nodes.paragraph()
+                        tool_paragraph += render_markdown(
+                            tool, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(tool_paragraph)
+
+                    tools_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += tools_paragraph
 
                 case "sim":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Toolchain", footer)
+                    sims_paragraph = nodes.paragraph()
+                    sims_paragraph += nodes.Text("Simulator")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for sim in comp.config.sim:
+
+                        sim_paragraph = nodes.paragraph()
+                        sim_paragraph += render_markdown(
+                            sim, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(sim_paragraph)
+
+                    sims_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += sims_paragraph
 
                 case "license":  # list[str]
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Source Control", footer)
+                    licenses_paragraph = nodes.paragraph()
+                    licenses_paragraph += nodes.Text("License")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for license in comp.config.license:
+
+                        license_paragraph = nodes.paragraph()
+                        license_paragraph += render_markdown(
+                            license, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(license_paragraph)
+
+                    licenses_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += licenses_paragraph
 
                 case "copyright":  # str
-                    pass
+
+                    # Fetch the master container
+                    container = get_or_create(db, "Hardware", footer)
+                    copyright_paragraph = nodes.paragraph()
+                    copyright_paragraph += nodes.Text("Copyright :")
+                    copyright_paragraph += nodes.inline(" ", " ")
+                    copyright_paragraph += render_badge(
+                        str(comp.config.burst), BadgeColor.BLACK, outline=True
+                    )
+
+                    # Add ourselves to the container
+                    container += copyright_paragraph
 
                 case "tags":  # list[str]
-                    pass
+
+                    container = get_or_create(db, "Source Control", footer)
+                    tags_paragraph = nodes.paragraph()
+                    tags_paragraph += nodes.Text("Tags")
+
+                    # Render the different elements as a list
+                    elements: list[nodes.paragraph] = []
+                    for tag in comp.config.tags:
+
+                        tag_paragraph = nodes.paragraph()
+                        tag_paragraph += render_markdown(
+                            tag, comp.file.path, self.parent.base_doc
+                        )
+                        elements.append(tag_paragraph)
+
+                    tags_paragraph += render_bullet_list(elements)
+
+                    # Add ourselves to the container
+                    container += tags_paragraph
 
         # Add the footer into the card header
         root += footer

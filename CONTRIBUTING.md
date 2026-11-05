@@ -13,7 +13,7 @@ I essentially work on my side, with little to no interactions with the other. A 
 
 This is essentially my own list, but this could be extended to anyone ! Grab a free task, and here we go !
 
-### Target v0.6.0
+### Target v0.7.0
 
 - [x] ~~VHDL (Target < v1.0.0)~~
 - [x] ~~Bugs : Package / Interface not properly detected.~~
@@ -27,24 +27,25 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [x] ~~Add the snipplet generator into the renderer engine.~~
 - [x] ~~Document which flags are available and where (not all of them are available in any pages, make no sense to create a clock on the global level !)~~
 - [x] ~~Update README.md with the latest elements of the parsing (remove AST mentions ...)~~
-- [ ] Add the rendering pass for the ComponentConfig elements (if possible, limited to the relevant objects !)
-- [x] Remove the flags from the description, once processed.
+- [x] Add the rendering pass for the ComponentConfig elements (if possible, limited to the relevant objects !)
+- [x] ~~Remove the flags from the description, once processed.~~
+- [x] ~~Add the register map inferring process + generation of the C compatible header file (and rust ?).~~
+- [] Correct the missing key for some elements ?!? Cf log analysis.
 
-### Target v0.7.0
+### Target v0.8.0
 
 - [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
 - [ ] CLI tool with different features
   - get include files for SystemC / Scala based and so
   - get output json from IR pass
 - [ ] Select the function rendering method (natural or complete).
-- [x] Add the register map inferring process + generation of the C compatible header file (and rust ?).
 - [ ] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
 
-### Target v0.8.0+
+### Target v0.9.0+
 
-- [ ] Cocotb (Target < v1.0.0)
-- [ ] IPact (Target < v1.0.0)
-- [ ] HWtcl (Target < v1.0.0) --> Emulate the TCL shell by mocking up the functions
+- [ ] Cocotb (Target > v1.0.0)
+- [ ] IPact (Target > v1.0.0)
+- [ ] HWtcl (Target > v1.0.0) --> Emulate the TCL shell by mocking up the functions
 - [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
 - [ ] Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
 - [ ] SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.

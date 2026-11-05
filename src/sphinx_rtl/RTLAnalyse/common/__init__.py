@@ -6,4 +6,6 @@
 #           element working.
 # ----------------------------------------------------------------------------
 
+# Imports
 from .modport import bind_modports
+from .clean import clean
