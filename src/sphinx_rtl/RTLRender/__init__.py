@@ -6,5 +6,5 @@
 #           Sphinx docutils node syntax.
 # ----------------------------------------------------------------------------
 
-from .renderer import RTLRender
+from .engine import RTLRender
 from .transform import RTLRenderTransform

@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # Imports
-from typing import Any, Callable, TypeVar, Generic
+from typing import Callable, TypeVar, Generic
 from docutils import nodes
 from sphinx_rtl.RTLRender.classifier import GroupNode
 from sphinx_rtl.RTLRender.helpers import (
