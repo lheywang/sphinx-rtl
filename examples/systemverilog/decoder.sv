@@ -15,7 +15,7 @@ import core_config_pkg::REG_ADDR_W;
 import core_config_pkg::opcodes_t;
 import core_config_pkg::decoders_t;
 
-module decoder (
+module decoder_sv (
     input  logic                                    clk,                                                    // **Master clock**         
     input  logic                                    clk_en,                                                 // **Clock enable**
     input  logic                                    rst_n,                                                  // **Master reset**
