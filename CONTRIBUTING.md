@@ -27,10 +27,10 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
 - [x] ~~Add the snipplet generator into the renderer engine.~~
 - [x] ~~Document which flags are available and where (not all of them are available in any pages, make no sense to create a clock on the global level !)~~
 - [x] ~~Update README.md with the latest elements of the parsing (remove AST mentions ...)~~
-- [x] Add the rendering pass for the ComponentConfig elements (if possible, limited to the relevant objects !)
+- [x] ~~Add the rendering pass for the ComponentConfig elements (if possible, limited to the relevant objects !)~~
 - [x] ~~Remove the flags from the description, once processed.~~
 - [x] ~~Add the register map inferring process + generation of the C compatible header file (and rust ?).~~
-- [] Correct the missing key for some elements ?!? Cf log analysis.
+- [x] ~~Correct the missing key for some elements ?!? Cf log analysis.~~
 
 ### Target v0.8.0
 
@@ -40,15 +40,16 @@ This is essentially my own list, but this could be extended to anyone ! Grab a f
   - get output json from IR pass
 - [ ] Select the function rendering method (natural or complete).
 - [ ] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
+- [ ] Add a clock domain crossing detection feature.
 
 ### Target v0.9.0+
 
 - [ ] Cocotb (Target > v1.0.0)
-- [ ] IPact (Target > v1.0.0)
-- [ ] HWtcl (Target > v1.0.0) --> Emulate the TCL shell by mocking up the functions
-- [ ] Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
-- [ ] Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
-- [ ] SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.
+- [ ] ~~IPact (Target > v1.0.0)~~ (Cancelled feature)
+- [ ] ~~HWtcl (Target > v1.0.0) --> Emulate the TCL shell by mocking up the functions~~ (Cancelled feature)
+- [ ] ~~Spinal HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.~~ (Cancelled feature)
+- [ ] ~~Chisel HDL (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.~~ (Cancelled feature)
+- [ ] ~~SystemC (Target > v1.0.0) --> Usage of a standard Scala plugin that dump a JSON object to be parsed.~~ (Cancelled feature)
 - [ ] Test other edge-cases and bad documents.
 - [ ] Ensure all elements are properly rendered.
 - [ ] Make the examples cleaner (more files, more text --> Better demonstration)

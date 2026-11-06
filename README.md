@@ -1,29 +1,59 @@
-# sphinx-rtl
+# Sphinx-RTL
 
 A Python package to build docs for any RTL codes (VHDL, Verilog, SystemVerilog ...\*) and related programs (cocotb).
 Operate in three steps :
 
-1. Calling a file parser to build the AST, and naviguate within it. For VHDL, SystemVerilog and CocoTB files, this is done using tree-sitter.
+1. Calling a file parser to build the AST, and naviguate within it. For [VHDL](https://github.com/jpt13653903/tree-sitter-vhdl), [SystemVerilog](https://github.com/tree-sitter/tree-sitter-verilog) and [CocoTB](https://github.com/tree-sitter/tree-sitter-python) files, this is done using [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 2. Inferring elements by performing an analysis of the fetched nodes.
 3. Render of the inferred elements into docutils nodes.
 
 It is designed to offer the lowest friction as possible for the user, by removing most of the documentation process. The code
 says enough to be used !
 
+## Scope
+
+While Sphinx-RTL is designed for RTL, its main scope remains the "low level" RTL, where you want to see to which clocks a signal is tied, it's reset, the fan-out...
+To ensures the best results, a scope was required. Therefore, buses (Avalon, AXI ...) are not identified as that; They remain for Sphinx-RTL simple signals with dedicated properties.
+
+For this kind of works, I recommend using [PeakRDL](https://github.com/SystemRDL/PeakRDL) which would probably be more adapted to this task.
+
 ## Main features
 
-What make Sphinx-RTL better than others ? There are two points :
+What make Sphinx-RTL that nice ?
 
-- IR documentation pass : By reading the intermediate representation after parsing the file, we can extract more information : Related clock, CDC, nets groups, outputs ...
-- Git integration : The tool natively read your repo and search for commits, tags, author, messages ... No need to configure that in the top of the file. And it's by definition always up to date !
-- Plugin integration : Add any custom Python code to edit on the fly the rendered page ! This enables NDA status, brands customizations or even CI/CD status network fetch !
-- Full support of Markdown for comments. Feel free to add tables, images and more directly in the file. Any text provided by the user will go through Myst-parser !
+- **IR documentation pass** : Rather than purely parsing the file, we first read them all into our own IR, and then analyze it as a whole. Results are better !
+- **Git integration** : The tool natively read your repo and search for commits, tags, author, messages ... No need to configure that in the top of the file. And it's by definition always up to date !
+- **Plugin integration** : Add any custom Python code to edit on the fly the rendered page ! This enables NDA status, brands customizations or even CI/CD status network fetch !
+- **Full support of Markdown for comments**. Feel free to add tables, images and more directly in the file. Any text provided by the user will go through Myst-parser !
 
 An example of documentation built with it could be found here
 
 ![Example link](https://example.com)
 
+### RTLAnalyser
+
+The RTLAnalyzer module is composed of different options, almost all are optional.
+
+| Name     | Action                                                                                                                    | Requirements                 |
+| :------- | :------------------------------------------------------------------------------------------------------------------------ | :--------------------------- |
+| io       | Infer the assignments for all sources (concurrent and process ones)                                                       | -                            |
+| clocks   | Infer the clocks for all signals and ports                                                                                | io                           |
+| resets   | Infer the resets for all signals and ports                                                                                | io                           |
+| fanout   | Compute the fanout for all signals and ports.                                                                             | io                           |
+| type     | Infer the type of modules (package, interface, testbench, or module (default))                                            | -                            |
+| modules  | Fetch the properties of the module into the current module                                                                | (io for the fetched modules) |
+| groups   | Identify signals groups (separator is `_`) and display them sorted on the web page. Especially useful for larger modules. | -                            |
+| polarity | Identify signals polarity and add a marker to it.                                                                         | -                            |
+| vendors  | Identify is a component depends on vendor primitives.                                                                     | -                            |
+
 ## How to use it ?
+
+There are two ways of using Sphinx-RTL :
+
+- [Sphinx](https://www.sphinx-doc.org/en/master/) extension, which will produce the standard output (HTML, Tex...)
+- As a CLI tool, with the limited output to a .json file with all the analyzed components.
+
+### As an extension
 
 1. **Install the extension. It's available on PyPi, so :**
 
@@ -53,17 +83,21 @@ This will make the reading wider, fitting the tables used with a cleaner aspect.
 
 3. **Configure the used files :**
 
-Add this line, configured as you need in the main rst file.
+Add this line, configured as you need in the main `.rst` file.
 
 ```rst
 .. rtl-autodoc:: ../examples/systemverilog/*.sv
 .. rtl-autodoc:: ../examples/vhdl/*.vhd
+    :sim: GHDL 5.1.1
+    :license: MIT License
+    :deprecated: VHDL version is no more supported. Use the SystemVerilog version.
+    :notemplate:
 ```
 
 > ℹ️ **INFO**
 > The extension support to modes of adding files :
 >
-> - glob (_, \*\*/_) and any valid syntax to the python glob module
+> - Glob (_, \*\*/_) and any valid syntax to the python glob module
 > - specific files.
 >
 > To be noted : When the glob mode is used, all the modules found will be added to a single page, with all the elements.
@@ -78,11 +112,17 @@ Add this line, configured as you need in the main rst file.
 
 4. **Run sphinx as you always did**
 
+### As a CLI tool
+
+Feature to come later !
+
+---
+
 ## Advanced usages
 
 ### Flags : A generic introduction
 
-More advanced users may want to fine the output documentation. For this, sphinx-rtl propose a three level system :
+More advanced users may want to fine the output documentation. For this, sphinx-RTL propose a three level system :
 
 | Method                                   | Scope                                |
 | :--------------------------------------- | :----------------------------------- |
@@ -96,8 +136,10 @@ All the arguments are reusing an older syntax scheme, close to what Doxygen prop
 @warning This module must be held in reset for at least 10 clock cycle.
 ```
 
-Unless Doxygen, all of them are fully optional. Sphinx-RTL could perfectly run without any of them, and still produce a decent option. The approach retained was
-an additive process : You can only add element to the documentation to make it more precise. Flags affect two different domains :
+Unless Doxygen, all of them are fully optional. Sphinx-RTL could perfectly run without any of them, and still
+produce a decent option. The approach retained was
+an additive process : You can only add element to the documentation to make it more precise. Flags affect two
+different domains :
 
 - The analyses done on the component, after all the parsing.
 - The rendering of the component into nodes tree.
@@ -162,10 +204,12 @@ An imported component will therefore use its creation configuration rather than 
 | :---------- | :------------- | :---------------------------------------------------------------- | :----------------: | :----------------: | :----------------: | --------------- |
 | noclocks    | `@noclocks`    | Disable the clock inferring process for ports (Output and input). | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | noresets    | `@noresets`    | Disable the reset inferring process for ports (Output only).      | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| fanout      | `@nofanout`    | Disable the fanout computation                                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | noio        | `@noio`        | Disable the process IO inferring pass.                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | notype      | `@notype`      | Disable the file type inferring (testbench, package ...)          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | nopolarity  | `@nopolarity`  | Disable the polarity inferring process                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | nogroups    | `@nogroups`    | Disable the port group inferring pass                             | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| modules     | `@nomodules`   | Disable the inter-modules resolution.                             | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | nosource    | `@nosource`    | Disable the source copy on the documentation.                     | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | notemplate  | `@notemplate`  | Disable the template instance generation.                         | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | nosignals   | `@nosignals`   | Disable the signal show at the end of the doc.                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
@@ -194,3 +238,21 @@ Therefore, natively the plugin emit events that you can fetch by writing your ow
 | Component pre Render    | `rtl-pre-elements-rendered`  | app, env, context, component | Provide access to the first section of the component, before the parameters to be rendered.                                               |
 | Component post Render   | `rtl-post-elements-rendered` | app, env, context, component | Provide access to the last section of the component.                                                                                      |
 | Component clear request | `rtl-pre-private-export`     | app, env, components         | Request for the cleaning of the components. Must return the components as a list, otherwise the default function will be called.          |
+
+# Author and License
+
+This project is open-source software released under the [Apache 2.0 License](LICENSE).
+That mean you can :
+
+- Use, including commercially this tool to anyone.
+- Distribute, in both source and binaries, including commercially this tool to anyone.
+
+The conditions are :
+
+- Attribute to owner of the project the copyrights,
+- Give a copy of the license with any distribution,
+- Notify the modifications done to the source code.
+
+**Note** : Any documentation you've built is yours. These license statement does not apply to anything.
+
+> Developed by [**L. Heywang**](https://github.com/lheywang) <[l.heywang@proton.me](mailto:l.heywang@proton.me)> (2026).
