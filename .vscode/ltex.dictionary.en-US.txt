@@ -1,0 +1,9 @@
+docutils
+vhdl-autodoc
+sv-autodoc
+SystemVerilog
+CocoTB
+naviguate
+AXI
+testbench
+enums
