@@ -253,6 +253,6 @@ The conditions are :
 - Give a copy of the license with any distribution,
 - Notify the modifications done to the source code.
 
-**Note** : Any documentation you've built is yours. These license statement does not apply to anything.
+**Note** : Any documentation you've built is yours. These license statement does not apply to these.
 
 > Developed by [**L. Heywang**](https://github.com/lheywang) <[l.heywang@proton.me](mailto:l.heywang@proton.me)> (2026).
