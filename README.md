@@ -10,6 +10,26 @@ Operate in three steps :
 It is designed to offer the lowest friction as possible for the user, by removing most of the documentation process. The code
 says enough to be used !
 
+## Summary
+
+- [Sphinx-RTL](#sphinx-rtl)
+  - [Summary](#summary)
+  - [Scope](#scope)
+  - [Main features](#main-features)
+    - [RTLAnalyser](#rtlanalyser)
+  - [How to use it ?](#how-to-use-it-)
+    - [As an extension](#as-an-extension)
+    - [As a CLI tool](#as-a-cli-tool)
+  - [Advanced usages](#advanced-usages)
+    - [Flags : A generic introduction](#flags--a-generic-introduction)
+    - [Flags : A more precise description](#flags--a-more-precise-description)
+    - [Flags : A complete list](#flags--a-complete-list)
+      - [Component configuration](#component-configuration)
+      - [Render configuration](#render-configuration)
+  - [Plugin integration](#plugin-integration)
+    - [Emitted events :](#emitted-events-)
+  - [Author and License](#author-and-license)
+
 ## Scope
 
 While Sphinx-RTL is designed for RTL, its main scope remains the "low level" RTL, where you want to see to which clocks a signal is tied, it's reset, the fan-out...
@@ -239,7 +259,7 @@ Therefore, natively the plugin emit events that you can fetch by writing your ow
 | Component post Render   | `rtl-post-elements-rendered` | app, env, context, component | Provide access to the last section of the component.                                                                                      |
 | Component clear request | `rtl-pre-private-export`     | app, env, components         | Request for the cleaning of the components. Must return the components as a list, otherwise the default function will be called.          |
 
-# Author and License
+## Author and License
 
 This project is open-source software released under the [Apache 2.0 License](LICENSE).
 That mean you can :
