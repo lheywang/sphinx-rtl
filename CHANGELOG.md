@@ -53,12 +53,23 @@ _Note : This version is not available under a git tag_
   - darkgray for the least important informations.
 - Corrected some missing links here and there in the web page. Shall be good now !
 
-## (Future) [v0.6.0]
+## [v0.7.0]
 
 ### Added
 
 - Added support for the VHDL language.
+- Added support for the configuration flags with the associated actions (render, analyzes...).
+- Added support for the configuration levels and merging.
+- Added support for the rendering configuration flags.
+- Added the register map generator support.
+- Added the instantiator and C/Rust struct generators.
+
+### Changed
+
+- Changed the architecture of RTLParser to "plugin" based ones.
+- Changed the xVerilog parser to Tree-sitter based one.
 
 ### Corrected
 
 - Corrected the missing SystemVerilog interface parsing.
+- Various bugs corrections.
