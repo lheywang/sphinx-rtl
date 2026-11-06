@@ -129,4 +129,6 @@ def VHDLTransformerModule(
             check_generate_context(nodes["inst.unit"][0], source)
         )
 
+        return module
+
     return Module()

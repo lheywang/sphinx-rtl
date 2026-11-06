@@ -95,7 +95,14 @@ def get_queries(lang: Language) -> dict[str, Query]:
             (signal_declaration
                 (identifier_list) @signal.ids
                 (subtype_indication) @signal.subtype
-                (initialiser)? @signal.init)
+                (initialiser)? @signal.init
+            )
+
+            (variable_declaration
+                (identifier_list) @signal.ids
+                (subtype_indication) @signal.subtype
+                (initialiser)? @signal.init
+            )
             """,
         ),
         "Q_PROCESSES": Query(

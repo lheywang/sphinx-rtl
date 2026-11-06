@@ -9,7 +9,7 @@
 import traceback
 from graphlib import CycleError, TopologicalSorter
 from sphinx.util import logging
-from sphinx._cli.util.colour import bold, blue
+from sphinx._cli.util.colour import bold, blue, yellow
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx_rtl.models import Component, RTLConfig
@@ -118,6 +118,16 @@ class RTLAnalyse:
             sorter.add(name)
 
             for modules in component.modules:
+
+                # If unknown, let's skip rather than building it.
+                if modules.entity not in components:
+                    logger.info(
+                        yellow(
+                            f"[WARN] {component.name}/{modules.entity if modules.entity else modules.name} is missing from the analyzed files. Elements using is will be incomplete."
+                        )
+                    )
+                    continue
+
                 sorter.add(component.name, modules.entity)
 
         # Fetch the order
