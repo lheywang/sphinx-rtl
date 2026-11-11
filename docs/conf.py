@@ -8,7 +8,7 @@
 # Imports
 import sys
 from pathlib import Path
-from sphinx_rtl.RTLConfig import RTLConfig
+from sphinx_rtl.models import RTLConfig, ComponentConfig
 
 # Ensure the code will be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
