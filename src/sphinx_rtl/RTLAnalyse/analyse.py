@@ -43,7 +43,7 @@ class RTLAnalyse:
     # PUBLIC FUNCTIONS
     # --------------------------------------------------------------------------------
 
-    def __init__(self, app: Sphinx, env: BuildEnvironment):
+    def __init__(self, app: Sphinx | None, env: BuildEnvironment | None):
         """
         Build the analyse class.
         """
@@ -65,7 +65,8 @@ class RTLAnalyse:
         )
 
         # Emit an event before doing anything
-        self.app.emit("rtl-pre-analysis", self.app, self.env, components)
+        if self.app is not None:
+            self.app.emit("rtl-pre-analysis", self.app, self.env, components)
 
         # Then, build the component internal dict
         component_order = self._sort(components)
@@ -94,7 +95,8 @@ class RTLAnalyse:
                 logger.debug(traceback.format_exc())
 
         # Emit an event before returning
-        self.app.emit("rtl-post-analysis", self.app, self.env, components)
+        if self.app is not None:
+            self.app.emit("rtl-post-analysis", self.app, self.env, components)
         return
 
     # --------------------------------------------------------------------------------
