@@ -19,7 +19,17 @@ says enough to be used !
     - [RTLAnalyser](#rtlanalyser)
   - [How to use it ?](#how-to-use-it-)
     - [As an extension](#as-an-extension)
+      - [Install the extension. It's available on PyPi, so :](#install-the-extension-its-available-on-pypi-so-)
+      - [Add the extension to the project :](#add-the-extension-to-the-project-)
+      - [Configure the used files :](#configure-the-used-files-)
+      - [Configuring the extension](#configuring-the-extension)
+      - [Connect events you may need](#connect-events-you-may-need)
+      - [Run sphinx as you always did](#run-sphinx-as-you-always-did)
     - [As a CLI tool](#as-a-cli-tool)
+      - [Configuration file](#configuration-file)
+      - [Arguments](#arguments)
+      - [Customizing the cleanup](#customizing-the-cleanup)
+      - [Running the CLI](#running-the-cli)
   - [Advanced usages](#advanced-usages)
     - [Flags : A generic introduction](#flags--a-generic-introduction)
     - [Flags : A more precise description](#flags--a-more-precise-description)
@@ -27,7 +37,7 @@ says enough to be used !
       - [Component configuration](#component-configuration)
       - [Render configuration](#render-configuration)
   - [Plugin integration](#plugin-integration)
-    - [Emitted events :](#emitted-events-)
+    - [Emitted events](#emitted-events)
   - [Author and License](#author-and-license)
 
 ## Scope
@@ -75,13 +85,13 @@ There are two ways of using Sphinx-RTL :
 
 ### As an extension
 
-1. **Install the extension. It's available on PyPi, so :**
+#### Install the extension. It's available on PyPi, so :
 
 ```sh
 pip install sphinx-rtl
 ```
 
-2. **Add the extension to the project :**
+#### Add the extension to the project :
 
 Add this line in the conf.py file you used for your sphinx documentation.
 
@@ -101,7 +111,7 @@ html_theme_options = {
 
 This will make the reading wider, fitting the tables used with a cleaner aspect.
 
-3. **Configure the used files :**
+#### Configure the used files :
 
 Add this line, configured as you need in the main `.rst` file.
 
@@ -130,11 +140,129 @@ Add this line, configured as you need in the main `.rst` file.
 > - sv-autodoc
 >   They all do the same, without any differences.\*
 
-4. **Run sphinx as you always did**
+#### Configuring the extension
+
+This extension rely on the conf.py file used by sphinx for its own configuration to also fetch elements on it. For example, a
+variable `rtl_config` of type `RTLConfig` (from `sphinx_rtl.models`) can be defined and used as a config !
+
+```py
+# Configure the project
+rtl_config = RTLConfig()
+rtl_config.configure_shown_elements()
+rtl_config.configure_resolution(modules=True)
+rtl_config.add_public_output("db.json")
+rtl_config.add_public_output("backup/db_bckp.json")
+rtl_config.add_private_output("db_nda.json")
+rtl_config.add_component_source("../examples/db_nda.json")
+```
+
+This is enough to configure the whole builder !
+
+#### Connect events you may need
+
+The extension emit some events during its execution. It may be useful to connect them to your own callbacks.
+Full details below ([Emitted events](#emitted-events)).
+
+This feature is totally optional, the extension will work without and may not be needed at all !
+
+#### Run sphinx as you always did
+
+You may found a lot of documentation online, for example here the [command line reference](https://www.sphinx-doc.org/en/master/man/sphinx-build.html).
+There may be a lot of others options, find the one that suit you !
 
 ### As a CLI tool
 
-Feature to come later !
+The CLI tool is based on runpy to get the config.
+Forget long commands, you can just provide the configuration as a fixed file that will be executed !
+
+The CLI tool is not designed to replace the global sphinx module, therefore only the analysis pass can be done.
+The only output(s) JSON formatted ones.
+
+#### Configuration file
+
+The configuration file reuse most of the config from the sphinx extension, to remains coherent. The single extension done is the support for
+another variable, `components` of type `ComponentConfig` (from `sphinx_rtl.models`).
+
+```py
+# Configure the project
+rtl_config = RTLConfig()
+rtl_config.configure_shown_elements()
+rtl_config.configure_resolution(modules=True)
+rtl_config.add_public_output("db.json")
+rtl_config.add_public_output("backup/db_bckp.json")
+rtl_config.add_private_output("db_nda.json")
+rtl_config.add_component_source("../examples/db_nda.json")
+
+# Let's also configure the components
+components = ComponentConfig()
+components.set_toolchain(
+    "Altera MAX10", "Intel Quartus Prime Standard 24.1", "Verilator 5.0.55"
+)
+components.set_status("Active", "", "Issue #9999")
+```
+
+> ℹ️ **INFO**
+> Unrecognized variables will be ignored for both modes.
+>
+> Therefore, a single config file may be used for all modes,
+> making operations between the automated run and the command line unified.
+
+#### Arguments
+
+The CLI module support basic arguments. Configuration must be provided using the configuration file.
+
+| Name        | Short | Type      | Description                                                                                                |
+| :---------- | :---- | :-------- | :--------------------------------------------------------------------------------------------------------- |
+| `--version` | `-v`  | boolean   | Print the version of the tool                                                                              |
+| `--config`  | `-c`  | string    | Provide the configuration file path                                                                        |
+| `--files`   | `-f`  | str [...] | Provide the file(s) to be analyzed by the tool                                                             |
+| `--cleanup` | ---   | string    | Python function (or direct expression) for the cleanup. If not provided, the default function will be used |
+
+#### Customizing the cleanup
+
+One of the feature of the Sphinx extension is to provide an anchor for a custom cleanup of the database before JSON export.
+This feature is also ported to the CLI package and could be defined as :
+
+- (Recommended) A function name (defined in the configuration file !) to execute. The provided argument is a dict of type [str, Component].
+- (Not recommended) A raw python expression.
+
+The function will be called in between the two exports (standard and cleanup).
+
+> ℹ️ **INFO**
+> Due to the variation of processing, this feature couldn't be shared between sphinx extension and CLI.
+> As a reminder, the sphinx extension does call this system through an event.
+
+In the configuration file, this may looks like :
+
+```py
+# And why not defining a custom clean up function ?
+def custom_cleanup(database):
+    """
+    Let's define a custom function, which is simpler than the default version
+    """
+    for component in database.values():
+
+        # Clear internals
+        component.signals.clear()
+        component.modules.clear()
+
+        # Reset file infos and parameters
+        component.config = ComponentConfig()
+        component.render = RTLConfig()
+```
+
+#### Running the CLI
+
+The CLI can be invoked from anywhere in the system using its name.
+It'll then produce an analyzed list of components under a JSON output.
+
+For example
+
+```sh
+sphinx-rtl --files examples/systemverilog/*.sv examples/vhdl/*.vhd --config cli/config.py --cleanup "custom_cleanup(database)"
+```
+
+This will export as many JSON databases as specified in the configuration.
 
 ---
 
@@ -248,7 +376,7 @@ Therefore, natively the plugin emit events that you can fetch by writing your ow
 >
 > By default, this "user" field is simply ignored by any rendering pass.
 
-### Emitted events :
+### Emitted events
 
 | Event                   | Name                         | Arguments                    | Description                                                                                                                               |
 | :---------------------- | :--------------------------- | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
