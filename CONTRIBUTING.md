@@ -23,9 +23,9 @@ Grab a free task, open an issue or a PR, and here we go!
 
 - [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
   - Add some better CSS to it.
-- [ ] CLI tool with different features
-  - get output json from IR pass
-- [ ] Select the function rendering method (natural or complete).
+- [x] ~~CLI tool with different features~~
+  - ~~get output json from IR pass~~
+- [x] ~~Select the function rendering method (natural or complete).~~ (Feature cancelled, useless for now)
 - [ ] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
 - [ ] Add a clock domain crossing detection feature.
 
