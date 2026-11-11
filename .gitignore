@@ -222,6 +222,7 @@ __marimo__/
 
 # Sphinx build
 *_build/*
+*.json
 
 # VSCode extensions
 *.VSCodeCounter/*
