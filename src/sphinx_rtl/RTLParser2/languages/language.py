@@ -43,6 +43,7 @@ class LanguageSpec:
         - extensions : The list of extensions to be used for this format
         - ts_lang : A tree-sitter language to be used.
         - lang_name : The language name to be used for the literal_block formatter on the rendering stages.
+        - render_type : If specified, all elements will be defined as THIS type. Used for cocotb for now.
 
         The following fields are only used if ts_lang is not None. That mean the language is an extension based on ts_lang.
         - ts_queries : The dict of queries for the different elements to be fetched.
@@ -61,6 +62,7 @@ class LanguageSpec:
     extensions: list[str] = field(default_factory=list)
     ts_lang: Language | None = None
     lang_name: str = ""
+    render_type: str = ""
 
     # If language is not None, we'll use these as the parser.
     ts_queries: dict[str, Query] = field(default_factory=dict)
@@ -95,7 +97,7 @@ class LanguageSpec:
             | list[Comment],
         ],
     ] = field(default_factory=dict)
-    ts_top_name: Optional[Callable[[dict[str, list[Node]], bytes], str]] = None
+    ts_top_name: Optional[Callable[[dict[str, list[Node]], bytes, Path], str]] = None
 
     # Else, let's use the default parser (does)
     std_parser: Optional[Callable[[Path], Any]] = None

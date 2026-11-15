@@ -78,7 +78,7 @@ class EntityTracker:
         nodes: dict[str, list[Node]],
         file: Path,
         code: bytes,
-        namefunc: Callable[[dict[str, list[Node]], bytes], str],
+        namefunc: Callable[[dict[str, list[Node]], bytes, Path], str],
     ) -> None:
         """
         Add an entity into the register. Will reuse them later to
@@ -86,11 +86,15 @@ class EntityTracker:
         """
 
         # Fetch the entity name using the provided function.
-        name = namefunc(nodes, code)
+        name = namefunc(nodes, code, file)
 
-        start_line = get_line(nodes["entity.node"][0])
-        if type(start_line) is tuple:
-            start_line = start_line[0]
+        start_node = nodes.get("entity.node")
+        if start_node is not None:
+            start_line = get_line(start_node[0])
+            if type(start_line) is tuple:
+                start_line = start_line[0]
+        else:
+            start_line = 0
 
         # Update the register
         if self.scopes and self.scopes[-1]["end"] == self.end:

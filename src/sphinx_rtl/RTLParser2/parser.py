@@ -13,7 +13,11 @@ from pathlib import Path
 from tree_sitter import Parser, QueryCursor
 
 from .registry import SpecificationRegistry
-from .languages import VHDLSpecification, SystemverilogSpecification
+from .languages import (
+    VHDLSpecification,
+    SystemverilogSpecification,
+    CocotbSpecification,
+)
 from .tracker import EntityTracker, AddingPolicy
 from .linker import link_comments
 from .flags import extract_flags
@@ -24,6 +28,7 @@ from sphinx_rtl.models import Component, Comment, ALL_MODELS
 registry = SpecificationRegistry()
 registry.add_specification(VHDLSpecification())
 registry.add_specification(SystemverilogSpecification())
+registry.add_specification(CocotbSpecification())
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -140,6 +145,18 @@ class RTLParser2:
 
             # Update the languages
             comp.lang = self.specification.lang_name
+
+            # Did the specification defined an override for the component type ?
+            if self.specification.render_type != "":
+                comp.comp_type = self.specification.render_type
+
+                # Does the component is already tagged ?
+                if self.specification.render_type == "testbench":
+                    comp.config.isTestbench = True
+                elif self.specification.render_type == "package":
+                    comp.config.isPackage = True
+                elif self.specification.render_type == "interface":
+                    comp.config.isInterface = True
 
         # Finally, link the comments with the elements
         if len(comments) > 0:

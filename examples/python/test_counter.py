@@ -1,6 +1,22 @@
-# test_dummy_alu.py
+# Test the ALU operation modes.
+# Multiples tests are done on this pass :
+# - alu_reset : Ensures that the ALU will reset itself nicely
+# - alu_addition : Did an operation completed successfully.
+
 import cocotb  # type: ignore
 from cocotb.triggers import Timer  # type: ignore
+import logging
+
+# Define the timeout of all tests cases.
+TIMEOUT_NS = 5000
+
+# Define our logger
+logger = logging.getLogger(__name__)
+
+
+# Define a custom helper
+def do_add(a, b):
+    return a + b
 
 
 @cocotb.test()
@@ -24,4 +40,6 @@ async def test_alu_addition(dut):
 
     await Timer(20, units="ns")
 
-    assert dut.out.value == 15, f"Expected 15, got {dut.out.value}"
+    assert dut.out.value == do_add(
+        dut.a.value, dut.b.value
+    ), f"Expected 15, got {dut.out.value}"

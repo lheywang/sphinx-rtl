@@ -15,7 +15,8 @@ import tree_sitter_vhdl
 
 from .queries import get_queries
 from .transformers import get_transformers
-from .callbacks import comment_transformer
+
+from sphinx_rtl.RTLParser2.languages.callbacks import comment_transformer
 
 # Define the class
 VHDL_LANGUAGE = Language(tree_sitter_vhdl.language())
@@ -40,7 +41,7 @@ class VHDLSpecification(LanguageSpec):
             self.ts_queries = get_queries(self.ts_lang)
             self.ts_transformers = get_transformers()
             self.ts_explore_query = "Q_ENTITY"
-            self.ts_top_name = lambda n, c: (get_text(n["entity.name"][0], c))
+            self.ts_top_name = lambda n, c, f: (get_text(n["entity.name"][0], c))
 
         # Update the callbacks
         self.comment_transformer = comment_transformer

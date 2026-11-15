@@ -11,3 +11,4 @@ from .language import LanguageSpec
 # Add other languages
 from .vhdl import VHDLSpecification
 from .systemverilog import SystemverilogSpecification
+from .cocotb import CocotbSpecification

@@ -84,19 +84,23 @@ class ProcessRTLRender:
             process_name += nodes.inline(" ", " ")
             process_id += 1
 
-            # Add nice badges for the process elements
-            if process.hdl_type == "flipflop":
-                process_name += render_badge("Clocked", BadgeColor.GREEN, outline=True)
-                process_name += nodes.inline(" ", " ")
-                process_name += render_badge(
-                    f"Clocked by {process.hdl_clock[0]}", BadgeColor.BLUE
-                )
-                process_name += nodes.inline(" ", " ")
-            else:
-                process_name += render_badge(
-                    "Combinatorial", BadgeColor.ORANGE, outline=True
-                )
-                process_name += nodes.inline(" ", " ")
+            # Add nice badges for the process elements.
+            # We do this only for the non testbenchs components, as this would not make any sense otherwise ...
+            if comp.comp_type != "testbench":
+                if process.hdl_type == "flipflop":
+                    process_name += render_badge(
+                        "Clocked", BadgeColor.GREEN, outline=True
+                    )
+                    process_name += nodes.inline(" ", " ")
+                    process_name += render_badge(
+                        f"Clocked by {process.hdl_clock[0]}", BadgeColor.BLUE
+                    )
+                    process_name += nodes.inline(" ", " ")
+                else:
+                    process_name += render_badge(
+                        "Combinatorial", BadgeColor.ORANGE, outline=True
+                    )
+                    process_name += nodes.inline(" ", " ")
 
             # Add the reset flag
             if process.hdl_reset:

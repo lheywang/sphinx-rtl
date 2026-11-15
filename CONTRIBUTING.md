@@ -21,17 +21,19 @@ Grab a free task, open an issue or a PR, and here we go!
 
 ### Target v0.8.0
 
-- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
-  - Add some better CSS to it.
+- [x] Support Cocotb
 - [x] ~~CLI tool with different features~~
   - ~~get output json from IR pass~~
 - [x] ~~Select the function rendering method (natural or complete).~~ (Feature cancelled, useless for now)
-- [ ] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
+- [x] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
 - [ ] Add a clock domain crossing detection feature.
+- [ ] Correct a bug where the comments on multilines aren't properly rendered.
+- [ ] Update the comment linking feature, as I think sometimes things aren't really matched as they should ? (to be verified before.)
 
 ### Target v0.9.0
 
-- [ ] Support Cocotb
+- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
+  - Add some better CSS to it.
 - [ ] Test other edge-cases and bad documents.
 - [ ] Ensure all elements are properly rendered.
 - [ ] Make the examples cleaner (more files, more text --> Better demonstration)

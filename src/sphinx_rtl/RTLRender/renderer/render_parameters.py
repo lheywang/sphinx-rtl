@@ -74,10 +74,12 @@ class ParameterRTLRender:
             name = nodes.strong()
             name += nodes.Text(parameter.name)
             element += name
-            element += nodes.inline(" ", " ")
-            element += render_badge(
-                f"Type : {parameter.hdl_type}", BadgeColor.CYAN, outline=True
-            )
+
+            if parameter.hdl_type:
+                element += nodes.inline(" ", " ")
+                element += render_badge(
+                    f"Type : {parameter.hdl_type}", BadgeColor.CYAN, outline=True
+                )
 
             if parameter.hdl_value:
                 element += nodes.inline(" ", " ")

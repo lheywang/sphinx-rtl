@@ -17,3 +17,6 @@ Models of imports :
     :license: Apache 2.0
     :nosource:
 
+.. rtl-autodoc:: ../examples/**/*.py
+    :sim: Verilator 5.055
+    :tool: Cocotb

@@ -24,7 +24,7 @@ VERILOG_LANGUAGE = Language(tree_sitter_verilog.language())
 @dataclass(slots=True)
 class SystemverilogSpecification(LanguageSpec):
     """
-    Define our custom implementation of the VHDL specification.
+    Define our custom implementation of the SystemVerilog specification.
     """
 
     def __post_init__(self) -> None:
@@ -40,6 +40,6 @@ class SystemverilogSpecification(LanguageSpec):
             self.ts_queries = get_queries(self.ts_lang)
             self.ts_transformers = get_transformers()
             self.ts_explore_query = "Q_ENTITIES"
-            self.ts_top_name = lambda n, c: get_text(n["entity.node"][0], c).split(" ")[
-                -1
-            ]
+            self.ts_top_name = lambda n, c, f: get_text(n["entity.node"][0], c).split(
+                " "
+            )[-1]

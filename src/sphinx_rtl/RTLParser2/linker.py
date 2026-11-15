@@ -123,3 +123,5 @@ def link_comments(source: list[Comment], elements: dict[str, Component]) -> None
     logger.info(
         blue(f"[INFO] Could not find an object to assign for {len(source)} comments.")
     )
+
+    print(source)
