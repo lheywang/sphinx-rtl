@@ -58,6 +58,11 @@ def infer_submodules(component: Component, all: dict[str, Component]) -> Compone
             if (target_port is not None) and (internal_obj is not None):
                 internal_obj.hdl_sync = target_port.hdl_sync
                 internal_obj.hdl_reset = target_port.hdl_reset
+
+                # Fetch the assign fanout
+                target_port.fanout += internal_obj.fanout
+
+                # Increment the log counter
                 count += 1
 
     # Logs

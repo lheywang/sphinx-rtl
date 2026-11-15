@@ -76,6 +76,7 @@ class SignalRTLRender:
             "Type",
             "Size",
             "Kind",
+            "Fanout",
         ]
         widths = [1, 3, 1, 2, 2]
 

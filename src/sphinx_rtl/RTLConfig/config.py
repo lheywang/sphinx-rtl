@@ -29,6 +29,7 @@ class RTLConfig:
         - inferClocks :         Do we need to infer clocks for the different ports ?
         - inferResets :         Do we need to infer resets for the output ports ?
         - inferIOs :            Do we need to infer IO for the different processes ?
+        - inferFanout:          Do we need to infer the fanout of this net ?
         - inferType:            Do we need to infer the component type (testbench, package, interface...) ?
         - inferPolarity :       Do we need to infer the polarity of the signals ?
         - inferGroups :         Do we need to groups the ports and signals following that start similar ?
@@ -54,6 +55,9 @@ class RTLConfig:
 
     # @noio
     inferIOs: bool = True
+
+    # @nofanout
+    inferFanout: bool = True
 
     # @notype
     inferType: bool = True

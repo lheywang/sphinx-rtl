@@ -227,6 +227,13 @@ class RTLAnalyse:
             # Re-assigning assigns may be needed then
             component = infer_assigns(component)
 
+        # As the fanout is inferred in different spots, it's easier to
+        # clear it AFTER rather than enabling it everywhere ...
+        for signal in component.signals:
+            signal.fanout = 0
+        for port in component.ports:
+            port.fanout = 0
+
         # Final logs
         tt = time.time()
         logger.info(

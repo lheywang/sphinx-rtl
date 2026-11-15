@@ -40,6 +40,9 @@ def infer_assigns(component: Component) -> Component:
                     if source_obj is None:
                         source_obj = signals_names.get(source)
 
+                    # Increment the internal counter for the fanout.
+                    target.fanout += 1
+
                     # If we did found something that would match, assign them.
                     # There could only be a single element, as the system CANNOT be combinatorial, which is triggered by the presence of more than 1 operand.
                     if source_obj is not None:

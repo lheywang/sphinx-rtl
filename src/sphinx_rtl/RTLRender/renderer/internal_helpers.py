@@ -120,6 +120,11 @@ class RTLRenderUtils:
             element_kind += nodes.inline(" ", " ")
             element_kind += rst_badge
 
+        # Do we need to add the fanout ?
+        fanout_badge = render_badge(
+            f"Fanout : {element.fanout}", BadgeColor.CYAN, outline=True
+        )
+
         # First, build the table content based on what the headers are asking !
         table_content = []
         headers_l = [x.lower() for x in headers]
@@ -140,6 +145,8 @@ class RTLRenderUtils:
                 table_content.append(element_kind)
             if "polarity" in headers_l:
                 table_content.append(element_pol)
+            if "fanout" in headers_l:
+                table_content.append(fanout_badge)
 
         elif type(element) is Signal:
 
@@ -153,6 +160,8 @@ class RTLRenderUtils:
                 table_content.append(element_size)
             if "kind" in headers_l:
                 table_content.append(element_kind)
+            if "fanout" in headers_l:
+                table_content.append(fanout_badge)
 
         # Render the table as needed
         render_table_line(

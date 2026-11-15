@@ -50,6 +50,7 @@ class RTLAutodocDirective(Directive):
         "noclocks": directives.flag,
         "noresets": directives.flag,
         "noio": directives.flag,
+        "nofanout": directives.flag,
         "notype": directives.flag,
         "nopolarity": directives.flag,
         "nogroups": directives.flag,
@@ -93,6 +94,7 @@ class RTLAutodocDirective(Directive):
         rtl.inferClocks = "noclocks" not in self.options
         rtl.inferResets = "noresets" not in self.options
         rtl.inferIOs = "noios" not in self.options
+        rtl.inferFanout = "nofanout" not in self.options
         rtl.inferType = "notype" not in self.options
         rtl.inferPolarity = "nopolarity" not in self.options
         rtl.inferGroups = "nogroups" not in self.options

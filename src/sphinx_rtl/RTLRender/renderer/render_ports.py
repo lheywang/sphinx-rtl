@@ -70,6 +70,7 @@ class PortRTLRender:
             "Size",
             "Kind",
             "Polarity",
+            "Fanout",
         ]
         widths = [1, 3, 3, 1, 2, 2, 1]
 

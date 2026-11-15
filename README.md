@@ -352,7 +352,7 @@ An imported component will therefore use its creation configuration rather than 
 | :---------- | :------------- | :---------------------------------------------------------------- | :----------------: | :----------------: | :----------------: | --------------- |
 | noclocks    | `@noclocks`    | Disable the clock inferring process for ports (Output and input). | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | noresets    | `@noresets`    | Disable the reset inferring process for ports (Output only).      | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| fanout      | `@nofanout`    | Disable the fanout computation                                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nofanout    | `@nofanout`    | Disable the fanout computation                                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | noio        | `@noio`        | Disable the process IO inferring pass.                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | notype      | `@notype`      | Disable the file type inferring (testbench, package ...)          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 | nopolarity  | `@nopolarity`  | Disable the polarity inferring process                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |

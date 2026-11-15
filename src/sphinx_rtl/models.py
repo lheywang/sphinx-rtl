@@ -91,6 +91,7 @@ class Port(Element):
 
     Fields :
         - direction :       The direction of the port (input, output, inout...)
+        - fanout :          How many times this fanout is rode ?
         - hdl_type :        The type of the port, as passed on the file. May be standard or custom ports.
         - hdl_size :        An array of N pairs of size, typically MSB:LSB. Single bit ports are expressed as "0", "0" (or any same value pair)
         - hdl_value :       The default value given for the port.
@@ -102,6 +103,7 @@ class Port(Element):
     """
 
     direction: str = ""
+    fanout: int = 0
     hdl_type: str = ""
     hdl_size: list[str] = field(default_factory=list)
     hdl_value: str = ""
