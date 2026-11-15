@@ -2,6 +2,8 @@
 # Multiples tests are done on this pass :
 # - alu_reset : Ensures that the ALU will reset itself nicely
 # - alu_addition : Did an operation completed successfully.
+#
+# @hascdc
 
 import cocotb  # type: ignore
 from cocotb.triggers import Timer  # type: ignore

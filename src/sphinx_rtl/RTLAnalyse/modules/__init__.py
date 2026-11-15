@@ -8,6 +8,7 @@
 
 from .assigns import infer_assigns
 from .clocks import infer_clocks
+from .clocksdomains import infer_clocksdomains
 from .groups import infer_groups
 from .module_type import infer_type
 from .polarity import infer_polarity

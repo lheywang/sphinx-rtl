@@ -54,6 +54,7 @@ class RTLAutodocDirective(Directive):
         "notype": directives.flag,
         "nopolarity": directives.flag,
         "nogroups": directives.flag,
+        "noclockdomains": directives.flag,
         "nosource": directives.flag,
         "notemplate": directives.flag,
         "nosignals": directives.flag,

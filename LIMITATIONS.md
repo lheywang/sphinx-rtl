@@ -11,6 +11,9 @@ This file list the known limitations of each language at the date of the latest 
 - UVM is out of scope, and is therefore not matched on the line.
 - tasks IO aren't seen.
 
-## VHDL
+# Cocotb
 
-- Some elements are not parsed correctly, this shall be parsed on a later revision. Especially things that are based on regex and so on.
+- Rendered elements are using the same workflow as the generic tool, but in a limited version. Only some elements relevant to the context are parsed :
+  - Imports
+  - Parameters (global variables in the file according to the PEP spec (uppercase))
+  - Process (functions decorated with @cocotb.test())

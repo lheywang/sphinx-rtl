@@ -35,6 +35,7 @@ class RTLConfig:
         - inferGroups :         Do we need to groups the ports and signals following that start similar ?
         - inferAssignments:     Do we need to infer the constant assignments ?
         - resolveModules:       Do we need to infer the submodules IO types to ourselves ?
+        - inferClockDomains     Do we need to infer the clock domains detection ?
         - showSource :          Do we need to show the source file ?
         - template :            Do we need to add a template instantiation at the end of the doc ?
         - signals :             Do we need to show all signals in the doc ?
@@ -74,6 +75,9 @@ class RTLConfig:
     # @noresolve
     resolveModules: bool = True
 
+    # @noclockdomains
+    inferClockDomains: bool = True
+
     # @nosource
     showSource: bool = True
 
@@ -107,8 +111,10 @@ class RTLConfig:
 
         # Merge the elements (AND to make the False the higher rank.)
         self.inferClocks = self.inferClocks and override.inferClocks
+        self.inferClockDomains = self.inferClockDomains and override.inferClockDomains
         self.inferResets = self.inferResets and override.inferResets
         self.inferIOs = self.inferIOs and override.inferIOs
+        self.inferFanout = self.inferFanout and override.inferFanout
         self.inferType = self.inferType and override.inferType
         self.inferPolarity = self.inferPolarity and override.inferPolarity
         self.inferGroups = self.inferGroups and override.inferGroups
@@ -129,18 +135,22 @@ class RTLConfig:
         clocks: bool = True,
         resets: bool = True,
         IOs: bool = True,
+        fanout: bool = True,
         types: bool = True,
         polarity: bool = True,
         groups: bool = True,
         assignments: bool = True,
+        clockdomains: bool = True,
         vendor=True,
     ) -> None:
         """
         Configure the infer process elements.
         """
         self.inferClocks = clocks
+        self.inferClockDomains = clockdomains
         self.inferResets = resets
         self.inferIOs = IOs
+        self.inferFanout = fanout
         self.inferType = types
         self.inferPolarity = polarity
         self.inferGroups = groups

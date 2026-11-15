@@ -74,6 +74,7 @@ FLAGS = {
     "testbench": _testbench,
     "package": lambda cfg, a: setattr(cfg, "isPackage", True),
     "interface": lambda cfg, a: setattr(cfg, "isInterface", True),
+    "hascdc": lambda cfg, a: setattr(cfg, "hasCDC", True),
     "clock": _clock,
     "register": _register,
 }

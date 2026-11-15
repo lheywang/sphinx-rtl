@@ -344,6 +344,7 @@ class ComponentConfig:
         - testbenchTarget : The name of the component to be tested. Only evaluated if this module is a testbench.
         - isPackage :       Define the current component as a package. This does change some behaviors when the rendering pass is done*.
         - isInterface:      Define the current component as an interface. This does change some behaviors when the rendering pass is done*.
+        - hasCDC:           Does this component has a clock domain crossing in it ?
         - constraints :     The different constraints to be applied to this module.
         - clock :           Define the clock and the associated frequency.
         - latency :         How many cycles will be needed for a result to be computed ?
@@ -388,6 +389,9 @@ class ComponentConfig:
 
     # @interface
     isInterface: bool = False
+
+    # @cdc
+    hasCDC: bool = True
 
     # @constraint
     constraints: list[str] = field(default_factory=list)
@@ -465,6 +469,8 @@ class ComponentConfig:
         self.isTestbench = self.isTestbench or override.isTestbench
         self.isPackage = self.isPackage or override.isPackage
         self.isInterface = self.isInterface or override.isInterface
+
+        self.hasCDC = self.hasCDC or override.hasCDC
 
         self.testbenchTarget = override.testbenchTarget
 

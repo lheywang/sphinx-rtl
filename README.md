@@ -1,7 +1,8 @@
 # Sphinx-RTL
 
 A Python package to build docs for any RTL codes (VHDL, Verilog, SystemVerilog ...\*) and related programs (cocotb).
-Operate in three steps :
+
+Operates in three steps :
 
 1. Calling a file parser to build the AST, and naviguate within it. For [VHDL](https://github.com/jpt13653903/tree-sitter-vhdl), [SystemVerilog](https://github.com/tree-sitter/tree-sitter-verilog) and [CocoTB](https://github.com/tree-sitter/tree-sitter-python) files, this is done using [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 2. Inferring elements by performing an analysis of the fetched nodes.
@@ -17,6 +18,7 @@ says enough to be used !
   - [Scope](#scope)
   - [Main features](#main-features)
     - [RTLAnalyser](#rtlanalyser)
+  - [Limitations](#limitations)
   - [How to use it ?](#how-to-use-it-)
     - [As an extension](#as-an-extension)
       - [Install the extension. It's available on PyPi, so :](#install-the-extension-its-available-on-pypi-so-)
@@ -75,6 +77,17 @@ The RTLAnalyzer module is composed of different options, almost all are optional
 | groups   | Identify signals groups (separator is `_`) and display them sorted on the web page. Especially useful for larger modules. | -                            |
 | polarity | Identify signals polarity and add a marker to it.                                                                         | -                            |
 | vendors  | Identify is a component depends on vendor primitives.                                                                     | -                            |
+
+## Limitations
+
+As with any tools, this one comes with limitations. More details are available in ![Limitations](./LIMITATIONS.md), but I'll try to list them quickly here,
+for the PyPI peoples.
+
+- Syntax : Some very rare elements in languages are not supported.
+- Rendering : Generate loop does not handle complex condition nor increments.
+- CocoTB : Modules are only parsed to be "sufficient" to our needs and does not aim to any forms of completeness.
+
+For a standard usage, none of these shall be a real limitation. And, if it does, why not help me support it ?
 
 ## How to use it ?
 
@@ -329,6 +342,7 @@ An imported component will therefore use its creation configuration rather than 
 | interface       | `@interface`                                     | Flag this module as an interface.                                                                      |        :x:         |        :x:         | :white_check_mark: | `logic or`      |
 | constraint      | `@constraint`                                    | Add a constraint for this module. Will be displayed in a nice code block.                              |        :x:         |        :x:         | :white_check_mark: | `append`        |
 | clock           | `@clock <name> <frequency> <net>`                | Configure the clock speed for a net. Will be shown in the panel properties.                            |        :x:         |        :x:         | :white_check_mark: | `append`        |
+| hascdc          | `@hascdc`                                        | Indicate that this module as a CDC in it                                                               |        :x:         |        :x:         | :white_check_mark: | `logic or`      |
 | latency         | `@latency <cycles>`                              | Configure the module latency between input to output.                                                  |        :x:         |        :x:         | :white_check_mark: | `override`      |
 | throughput      | `@throughput <str>`                              | Configure the throughput of the module.                                                                |        :x:         |        :x:         | :white_check_mark: | `override`      |
 | register        | `@register <name> <offset> <size> <description>` | Add a register to the module, to support for memory mapped elements. A register map will be generated. |        :x:         |        :x:         | :white_check_mark: | `append`        |
@@ -348,22 +362,23 @@ An imported component will therefore use its creation configuration rather than 
 
 #### Render configuration
 
-| Flag        | Syntax         | Description                                                       |   Global Config    |  Directive Config  |    File Config     | Override Method |
-| :---------- | :------------- | :---------------------------------------------------------------- | :----------------: | :----------------: | :----------------: | --------------- |
-| noclocks    | `@noclocks`    | Disable the clock inferring process for ports (Output and input). | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| noresets    | `@noresets`    | Disable the reset inferring process for ports (Output only).      | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| nofanout    | `@nofanout`    | Disable the fanout computation                                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| noio        | `@noio`        | Disable the process IO inferring pass.                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| notype      | `@notype`      | Disable the file type inferring (testbench, package ...)          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| nopolarity  | `@nopolarity`  | Disable the polarity inferring process                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| nogroups    | `@nogroups`    | Disable the port group inferring pass                             | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| modules     | `@nomodules`   | Disable the inter-modules resolution.                             | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| nosource    | `@nosource`    | Disable the source copy on the documentation.                     | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| notemplate  | `@notemplate`  | Disable the template instance generation.                         | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| nosignals   | `@nosignals`   | Disable the signal show at the end of the doc.                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| nointernals | `@nointernals` | Disable the process / enums for the doc.                          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| novendors   | `@novendors`   | Disable the vendors inferring pass                                | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
-| vendor      | `@vendor`      | Set the vendor manually.                                          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| Flag           | Syntax            | Description                                                       |   Global Config    |  Directive Config  |    File Config     | Override Method |
+| :------------- | :---------------- | :---------------------------------------------------------------- | :----------------: | :----------------: | :----------------: | --------------- |
+| noclocks       | `@noclocks`       | Disable the clock inferring process for ports (Output and input). | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| noresets       | `@noresets`       | Disable the reset inferring process for ports (Output only).      | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nofanout       | `@nofanout`       | Disable the fanout computation                                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| noio           | `@noio`           | Disable the process IO inferring pass.                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| notype         | `@notype`         | Disable the file type inferring (testbench, package ...)          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nopolarity     | `@nopolarity`     | Disable the polarity inferring process                            | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nogroups       | `@nogroups`       | Disable the port group inferring pass                             | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nomodules      | `@nomodules`      | Disable the inter-modules resolution.                             | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| noclockdomains | `@noclockdomains` | Disable clock domains detection                                   | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nosource       | `@nosource`       | Disable the source copy on the documentation.                     | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| notemplate     | `@notemplate`     | Disable the template instance generation.                         | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nosignals      | `@nosignals`      | Disable the signal show at the end of the doc.                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| nointernals    | `@nointernals`    | Disable the process / enums for the doc.                          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| novendors      | `@novendors`      | Disable the vendors inferring pass                                | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
+| vendor         | `@vendor`         | Set the vendor manually.                                          | :white_check_mark: | :white_check_mark: | :white_check_mark: | `logic and`     |
 
 ## Plugin integration
 

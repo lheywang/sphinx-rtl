@@ -94,6 +94,15 @@ class FileInfoRTLRender:
                 comp.config.status, color=BadgeColor.BLACK, outline=True, pill=True
             )
 
+        # Has the component a CDC in it ?
+        if comp.config.hasCDC:
+            title_box += nodes.inline(" ", " ")
+            title_box += render_badge(
+                "Multiple Clock Domains",
+                color=BadgeColor.RED,
+                outline=True,
+            )
+
         card_header += title_box
 
         if len(comp.render.vendor) > 0:

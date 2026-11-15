@@ -25,6 +25,7 @@ from .modules import (
     infer_resets,
     infer_vendors,
     infer_submodules,
+    infer_clocksdomains,
 )
 
 from .common import bind_modports, clean
@@ -226,6 +227,12 @@ class RTLAnalyse:
 
             # Re-assigning assigns may be needed then
             component = infer_assigns(component)
+
+        # ------------------------------
+        # CLOCK DOMAINS
+        # ------------------------------
+        if cfg.inferClockDomains:
+            component = infer_clocksdomains(component)
 
         # As the fanout is inferred in different spots, it's easier to
         # clear it AFTER rather than enabling it everywhere ...
