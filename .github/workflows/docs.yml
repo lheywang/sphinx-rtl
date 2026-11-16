@@ -45,7 +45,7 @@ jobs:
           sphinx-build -W --keep-going -b html web/pages docs/_build/html
 
       - name: Upload
-        uses: action/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_build/html
 
