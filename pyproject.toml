@@ -48,9 +48,6 @@ classifiers = [
     # Targets
     "Intended Audience :: Developers",
     "Intended Audience :: Engineers",
-
-    # License
-    "License :: OSI Approved :: Apache Software License",
 ]
 
 dependencies = [

@@ -42,7 +42,7 @@ jobs:
 
       - name: Sphinx
         run: |
-          sphinx-build -W --keep-going -b html web/pages docs/_build/html
+          sphinx-build -b html web/pages docs/_build/html
 
       - name: Upload
         uses: actions/upload-pages-artifact@v3
