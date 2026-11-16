@@ -22,7 +22,7 @@ from .tracker import EntityTracker, AddingPolicy
 from .linker import link_comments
 from .flags import extract_flags
 
-from sphinx_rtl.models import Component, Comment, ALL_MODELS
+from sphinx_rtl.models import Component, Comment, ALL_MODELS, ComponentConfig, RTLConfig
 
 # Configure the global parser and add the different specifications to it
 registry = SpecificationRegistry()
@@ -136,7 +136,12 @@ class RTLParser2:
             comments = self.specification.comment_transformer(comments)
 
         # Parse the flags and update all components
-        cfg, render = extract_flags(comments[0])
+        if len(comments) > 0:
+            cfg, render = extract_flags(comments[0])
+        else:
+            cfg = ComponentConfig()
+            render = RTLConfig()
+
         for comp in tracker.components.values():
 
             # Update the config

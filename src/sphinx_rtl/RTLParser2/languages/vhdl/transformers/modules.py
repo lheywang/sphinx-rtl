@@ -68,13 +68,14 @@ def VHDLTransformerModule(
         )
 
         # Process the library
-        entity = nodes["inst.unit.unit"][0]
-        for child in entity.children:
-            match child.type:
-                case "name":
-                    module.entity = get_text(child, source)
-                case "identifier":
-                    module.architecture = get_text(child, source)
+        if "inst.unit.unit" in nodes:
+            entity = nodes["inst.unit.unit"][0]
+            for child in entity.children:
+                match child.type:
+                    case "name":
+                        module.entity = get_text(child, source)
+                    case "identifier":
+                        module.architecture = get_text(child, source)
 
         # Process the generics
         if "inst.generics" in nodes:

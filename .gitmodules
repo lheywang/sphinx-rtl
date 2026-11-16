@@ -1,0 +1,8 @@
+[submodule "web/sources/verilog"]
+	path = web/sources/verilog
+	url = https://github.com/lheywang/RV32.git
+	branch = verilog
+[submodule "web/sources/vhdl"]
+	path = web/sources/vhdl
+	url = https://github.com/lheywang/RV32.git
+	branch = VHDL

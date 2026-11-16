@@ -28,9 +28,14 @@ def instantiate_vhdl(comp: Component) -> str:
 
         for index, parameter in enumerate(comp.parameters):
             comma = "" if index == len(comp.parameters) - 1 else ","
-            lines.append(
-                f"        {parameter.name.ljust(longest)}  => {parameter.hdl_value if parameter.hdl_value else "UNDEFINED"}{comma}\n"
-            )
+            if "$" in parameter.hdl_value:
+                lines.append(
+                    f"    .{parameter.name.ljust(longest)} /*{parameter.hdl_value if parameter.hdl_value else "UNDEFINED"}*/{comma}\n"
+                )
+            else:
+                lines.append(
+                    f"        {parameter.name.ljust(longest)}  => {parameter.hdl_value if parameter.hdl_value else "UNDEFINED"}{comma}\n"
+                )
 
         lines.append("    )\n")
 

@@ -31,6 +31,9 @@ Grab a free task, open an issue or a PR, and here we go!
 - [x] ~~Update the comment linking feature, as I think sometimes things aren't really matched as they should ? (to be verified before.)~~
 - [ ] Add a github workflow to push the rendered documentation to an example site
 - [ ] Add the online site into the readme.md file
+- [ ] VHDL package / records must be handled
+- [ ] VHDL package assignment shall not only use the last element on it.
+- [ ] VHDL : Bug : i variable from loop are used as assignment target --> Must be ignored.
 
 ### Target v0.9.0
 

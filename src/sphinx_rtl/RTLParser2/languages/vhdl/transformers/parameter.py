@@ -66,7 +66,8 @@ def VHDLTransformerParameter(
             init = init.strip()
 
             if len(init) > 8:
-                init = f"0x{int(init, 2)}"
+                if init.isdigit():
+                    init = f"0x{int(init, 2)}"
 
             params.append(
                 Parameter(
