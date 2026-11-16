@@ -28,7 +28,7 @@ from .modules import (
     infer_clocksdomains,
 )
 
-from .common import bind_modports, clean
+from .common import bind_modports, clean, bind_libraries
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -79,6 +79,7 @@ class RTLAnalyse:
                 target = components.get(component)
                 if target is not None:
                     output = self._advanced_analyse_component(target, components)
+                    output = bind_libraries(output)
                     components[component] = clean(output)
                 else:
                     if component:

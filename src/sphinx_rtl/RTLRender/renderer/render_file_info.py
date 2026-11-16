@@ -629,7 +629,7 @@ class FileInfoRTLRender:
                     copyright_paragraph += nodes.Text("Copyright :")
                     copyright_paragraph += nodes.inline(" ", " ")
                     copyright_paragraph += render_badge(
-                        str(comp.config.burst), BadgeColor.BLACK, outline=True
+                        comp.config.copyright, BadgeColor.BLACK, outline=True
                     )
 
                     # Add ourselves to the container

@@ -31,10 +31,16 @@ def infer_clocksdomains(component: Component) -> Component:
     clocks: list[str] = []
     for item in names.values():
         if item.hdl_sync not in clocks:
-            clocks.append(item.hdl_sync)
+            clocks.extend(item.hdl_sync)
+
+    # Remove empty elements and duplicates
+    clocks = list(set(clocks))
+    clocks = [x for x in clocks if x]
 
     # If there are more than one clock in it, there are a CDC !
     if len(clocks) > 1:
         component.config.hasCDC = True
+    else:
+        component.config.hasCDC = False
 
     return component

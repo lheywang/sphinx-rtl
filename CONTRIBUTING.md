@@ -25,10 +25,10 @@ Grab a free task, open an issue or a PR, and here we go!
 - [x] ~~CLI tool with different features~~
   - ~~get output json from IR pass~~
 - [x] ~~Select the function rendering method (natural or complete).~~ (Feature cancelled, useless for now)
-- [x] Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)
-- [x] Add a clock domain crossing detection feature.
-- [ ] Correct a bug where the comments on multilines aren't properly rendered.
-- [ ] Update the comment linking feature, as I think sometimes things aren't really matched as they should ? (to be verified before.)
+- [x] ~~Add a FanIN / FanOUT inferring pass into the IR (and the matching flag to it !)~~
+- [x] ~~Add a clock domain crossing detection feature.~~
+- [x] ~~Correct a bug where the comments on multilines aren't properly rendered.~~
+- [x] ~~Update the comment linking feature, as I think sometimes things aren't really matched as they should ? (to be verified before.)~~
 - [ ] Add a github workflow to push the rendered documentation to an example site
 - [ ] Add the online site into the readme.md file
 

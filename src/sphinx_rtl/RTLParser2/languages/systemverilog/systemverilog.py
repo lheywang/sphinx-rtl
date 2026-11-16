@@ -17,6 +17,8 @@ from sphinx_rtl.RTLParser2.languages.utils import get_text
 from .queries import get_queries
 from .transformers import get_transformers
 
+from sphinx_rtl.RTLParser2.languages.callbacks import comment_transformer
+
 # Define the class
 VERILOG_LANGUAGE = Language(tree_sitter_verilog.language())
 
@@ -43,3 +45,6 @@ class SystemverilogSpecification(LanguageSpec):
             self.ts_top_name = lambda n, c, f: get_text(n["entity.node"][0], c).split(
                 " "
             )[-1]
+
+        # Update the callbacks
+        self.comment_transformer = comment_transformer

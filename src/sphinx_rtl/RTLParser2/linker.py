@@ -93,7 +93,7 @@ def link_comments(source: list[Comment], elements: dict[str, Component]) -> None
     if "\n" in header:
         brief, details = [x.strip() for x in header.split("\n", 1)]
     elif "." in header:
-        brief, details = [x.strip() for x in header.split(".", 1)]
+        brief, *details = [x.strip() for x in header.split(". ", 1)]
     else:
         brief = header.strip()
 
@@ -101,7 +101,7 @@ def link_comments(source: list[Comment], elements: dict[str, Component]) -> None
 
         # Update the elements
         element.brief = brief
-        element.details = details
+        element.details = "".join(details) if details is not None else ""
 
         # Do the recursive linking
         count = 0
@@ -123,5 +123,3 @@ def link_comments(source: list[Comment], elements: dict[str, Component]) -> None
     logger.info(
         blue(f"[INFO] Could not find an object to assign for {len(source)} comments.")
     )
-
-    print(source)

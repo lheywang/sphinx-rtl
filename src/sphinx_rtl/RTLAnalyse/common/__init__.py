@@ -9,3 +9,4 @@
 # Imports
 from .modport import bind_modports
 from .clean import clean
+from .library import bind_libraries

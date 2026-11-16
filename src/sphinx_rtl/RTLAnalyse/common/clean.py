@@ -10,7 +10,6 @@ from sphinx_rtl.models import Component
 
 # Configure logger
 from sphinx.util import logging
-from sphinx._cli.util.colour import blue
 
 logger = logging.getLogger(__name__)
 

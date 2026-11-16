@@ -1,4 +1,5 @@
-// All credits to : [ChipVerify](https://chipverify.com/systemverilog/systemverilog-simple-testbench)
+// This file is an example test bench.
+// This is not related to any file you may have seen before.
 //
 // @version 0.1.0
 // @copyright https://chipverify.com/systemverilog/systemverilog-simple-testbench
