@@ -60,7 +60,7 @@ What make Sphinx-RTL that nice ?
 
 An example of documentation built with it could be found here
 
-![Sphinx-RTL Showcase](https://lheywang.github.io/sphinx-rtl/)
+[Sphinx-RTL Showcase](https://lheywang.github.io/sphinx-rtl/)
 
 ### RTLAnalyser
 
