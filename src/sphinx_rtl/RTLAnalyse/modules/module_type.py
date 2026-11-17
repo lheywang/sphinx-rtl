@@ -41,6 +41,7 @@ def infer_type(component: Component) -> Component:
     parameter_count = len(component.parameters)
     enums_count = len(component.enums)
     signal_count = len(component.signals)
+    structures_count = len(component.structures)
 
     # A testbench or a package could not have any ports
     if ports_count == 0:
@@ -51,7 +52,9 @@ def infer_type(component: Component) -> Component:
             component.comp_type = "testbench"
             logger.info(blue(f"[INFO] Flagged type : testbench"))
 
-        elif ((enums_count > 0) or (parameter_count > 0)) and (signal_count == 0):
+        elif (
+            (enums_count > 0) or (parameter_count > 0) or (structures_count > 0)
+        ) and (signal_count == 0):
             component.config.isPackage = True
             component.comp_type = "package"
             logger.info(blue(f"[INFO] Flagged type : package"))

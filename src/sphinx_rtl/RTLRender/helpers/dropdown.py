@@ -36,7 +36,6 @@ def render_dropdown(
         classes=[
             "sd-summary-title",
             "sd-card-header",
-            "sd-bg-light",
             "sd-d-flex-row",
             "sd-align-major-justify",
             "sd-align-minor-center",

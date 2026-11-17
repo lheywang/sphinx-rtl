@@ -12,7 +12,7 @@ import itertools
 
 # Configure logger
 from sphinx.util import logging
-from sphinx._cli.util.colour import blue
+from sphinx._cli.util.colour import blue, yellow
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,15 @@ def infer_clocks(component: Component) -> Component:
     for process in component.process:
         clk_length.append(len(process.hdl_clock))
         for target in itertools.chain(process.signals, process.signals_write):
-            setattr(names[target], "hdl_sync", process.hdl_clock)
-            count += 1
+            if target in names:
+                setattr(names[target], "hdl_sync", process.hdl_clock)
+                count += 1
+            else:
+                logger.info(
+                    yellow(
+                        f"[WARN] Signal {target} is missing from the internals elements. Assignment may be incomplete."
+                    )
+                )
 
     # Add some logs
     clk_count = max(clk_length) if len(clk_length) > 0 else 0

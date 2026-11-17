@@ -106,9 +106,11 @@ class StructureRTLRender:
                 for begin, end in zip(signal.hdl_size[::2], signal.hdl_size[1::2]):
                     if not begin == end:
                         signal_size = signal_size + f"[{begin} : {end}]"
-                if len(signal_size) == 0:
-                    signal_size = "-"
-                signal_name += render_badge(signal_size, BadgeColor.GREEN, outline=True)
+                if signal_size != "":
+                    signal_name += nodes.inline(" ", " ")
+                    signal_name += render_badge(
+                        signal_size, BadgeColor.GREEN, outline=True
+                    )
 
                 signal_description = nodes.paragraph()
                 signal_description += render_markdown(

@@ -6,12 +6,27 @@
 # ----------------------------------------------------------------------------
 
 # Import
-from tree_sitter import Node
+import tree_sitter_vhdl
+
+from tree_sitter import Node, QueryCursor, Query, Language
 
 from sphinx_rtl.models import Enum, Structure, Signal
 from sphinx_rtl.RTLParser2.languages.utils import get_text, get_line
 
 from .utils import get_size_type
+
+# Define a custom query for some elements in there
+VHDL_LANGUAGE = Language(tree_sitter_vhdl.language())
+
+RECORD_ELEMENTS_Q = Query(
+    VHDL_LANGUAGE,
+    """
+    (element_declaration
+        (identifier_list) @name
+        (subtype_indication) @type
+    )
+    """,
+)
 
 
 # Functions
@@ -49,22 +64,24 @@ def VHDLTransformerType(
 
     elif "type.record" in nodes and nodes["type.record"]:
         signals: list[Signal] = []
-        for field in nodes["type.fields"]:
 
-            # Get text and line
-            field_text = get_text(field, source)
-            field_line = get_line(field)
+        for _, match in QueryCursor(RECORD_ELEMENTS_Q).matches(nodes["type.record"][0]):
 
             # Fetch the name and subtype indications
-            field_name, subtype = field_text.split(":", 1)
-            field_name = field_name.strip()
+            field_name = get_text(match["name"][0], source).strip()
+            field_subtype = get_text(match["type"][0], source).strip()
 
-            typ, size = get_size_type(subtype)
+            # Get the line
+            field_line = get_line(match["name"][0])
+
+            typ, size = get_size_type(field_subtype)
 
             # Build a signal from it
             signals.append(
                 Signal(name=field_name, line=field_line, hdl_type=typ, hdl_size=size)
             )
+
+            print(Signal(name=field_name, line=field_line, hdl_type=typ, hdl_size=size))
 
         ret = Structure(
             name=name, description="", line=line, signals=signals, isPacked=False

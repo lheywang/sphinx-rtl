@@ -19,6 +19,8 @@ says enough to be used !
   - [Main features](#main-features)
     - [RTLAnalyser](#rtlanalyser)
   - [Limitations](#limitations)
+    - [Syntax](#syntax)
+    - [Analysis](#analysis)
   - [How to use it ?](#how-to-use-it-)
     - [As an extension](#as-an-extension)
       - [Install the extension. It's available on PyPi, so :](#install-the-extension-its-available-on-pypi-so-)
@@ -80,14 +82,27 @@ The RTLAnalyzer module is composed of different options, almost all are optional
 
 ## Limitations
 
-As with any tools, this one comes with limitations. More details are available in ![Limitations](./LIMITATIONS.md), but I'll try to list them quickly here,
-for the PyPI peoples.
+As with any tools, this one comes with limitations. For a standard usage, none of these should be a real limitation.
+And if one is, why not open a PR and help me support it?
 
-- Syntax : Some very rare elements in languages are not supported.
-- Rendering : Generate loop does not handle complex condition nor increments.
-- CocoTB : Modules are only parsed to be "sufficient" to our needs and does not aim to any forms of completeness.
+### Syntax
 
-For a standard usage, none of these shall be a real limitation. And, if it does, why not help me support it ?
+A few languages constructs are not supported. Since the parsers are Tree-sitter query-based, nothing will crash—unsupported constructs are simply ignored:
+
+This includes :
+
+- .\* SystemVerilog connections
+- Two modports on a single line cannot be identified separately.
+- UVM is out of scope, and is therefore not matched on the line.
+- SystemVerilog tasks IO aren't seen.
+- Cocotb modules are parsed only to the extent needed for testbench documentation and do not aim for full Python AST completeness.
+
+### Analysis
+
+To keep static analysis fast and maintainable (without writing a full HDL elaborator), the following constraints apply:
+
+- **Generate loops:** Complex loop conditions or custom increments are not evaluated (e.g., `for (genvar i = 0; i < 8; i += 2)` will infer 8 instances rather than 4).
+- **Aggregate types:** Interfaces, structures, and records (or any composite object grouping signals) do not retain per-signal hardware properties (clocks, fan-in/fan-out, etc.). Signal propagation analysis stops when encountering them.
 
 ## How to use it ?
 

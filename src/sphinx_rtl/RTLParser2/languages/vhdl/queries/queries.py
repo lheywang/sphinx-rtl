@@ -79,12 +79,7 @@ def get_queries(lang: Language) -> dict[str, Query]:
                 [
                     (array_type_definition) @type.array
                     (enumeration_type_definition) @type.enum
-                    (record_type_definition
-                        (element_declaration
-                            (identifier_list) @record.field.ids
-                            (subtype_indication) @record.field.type
-                        )+ @type.fields
-                    ) @type.record
+                    (record_type_definition) @type.record
                 ]?
             )
             """,
@@ -174,6 +169,10 @@ def get_queries(lang: Language) -> dict[str, Query]:
             (entity_declaration
                 (identifier) @entity.name
             ) @entity.node 
+
+            (package_declaration
+                . (identifier) @entity.name
+            ) @entity.decl
             """,
         ),
     }

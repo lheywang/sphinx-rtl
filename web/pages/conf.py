@@ -38,8 +38,5 @@ rtl_config.configure_resolution(modules=True)
 components = ComponentConfig()
 components.set_legal(license="MIT License")
 
-# IP aren't documented for legal reasons, so ...
-suppress_warnings = ["ref.port"]
-
 # Use the ReadTheDocs theme here
 html_theme = "furo"

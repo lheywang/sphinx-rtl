@@ -19,7 +19,7 @@ Grab a free task, open an issue or a PR, and here we go!
 
 ---
 
-### Target v0.8.0
+### Target 1.0.0
 
 - [x] ~~Support Cocotb~~
 - [x] ~~CLI tool with different features~~
@@ -31,15 +31,16 @@ Grab a free task, open an issue or a PR, and here we go!
 - [x] ~~Update the comment linking feature, as I think sometimes things aren't really matched as they should ? (to be verified before.)~~
 - [x] ~~Add a github workflow to push the rendered documentation to an example site~~
 - [x] ~~Add the online site into the readme.md file~~
-- [ ] VHDL package / records must be handled
-- [ ] VHDL package assignment shall not only use the last element on it.
-- [ ] VHDL : Bug : i variable from loop are used as assignment target --> Must be ignored.
-- [ ] Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?
-  - Add some better CSS to it.
-- [ ] Test other edge-cases and bad documents.
+- [x] ~~VHDL package / records must be handled~~
+- [ ] VHDL package assignment shall not only use the last element on it. (WHAATT ???)
+- [x] ~~VHDL : Bug : i variable from loop are used as assignment target --> Must be ignored.~~
+- [x] ~~Make the render a bit cleaner (I don't know what, but things could get a bit better). Perhaps ask the community ?~~
+  - ~~Add some better CSS to it.~~ (Let the users do it, won't perturb too much with their CSS.)
+- [x] ~~Test other edge-cases and bad documents.~~
 - [ ] Ensure all elements are properly rendered.
-- [ ] Make the examples cleaner (more files, more text --> Better demonstration)
-- [ ] Dropdown are not working great on dark mode.
+- [x] ~~Make the examples cleaner (more files, more text --> Better demonstration)~~
+- [x] ~~Dropdown are not working great on dark mode.~~
+- [ ] Some links on fallbacks are NOT correctly handled. Must be corrected.
 
 ---
 
