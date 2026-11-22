@@ -47,7 +47,6 @@ classifiers = [
 
     # Targets
     "Intended Audience :: Developers",
-    "Intended Audience :: Engineers",
 ]
 
 dependencies = [
