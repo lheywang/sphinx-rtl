@@ -73,3 +73,21 @@ _Note : This version is not available under a git tag_
 
 - Corrected the missing SystemVerilog interface parsing.
 - Various bugs corrections.
+
+## [v1.0.0]
+
+### Target 1.0.0
+
+### Added
+
+- Added support for CocoTB files (minimal support).
+- Added a CLI tool to export the data to our internal JSON format.
+- Added clock domain crossing detection.
+- Added a FanIn / FanOut computation
+- Added an example website
+
+### Corrected
+
+- Corrected rendering of dropdowns on dark mode
+- Corrected the VHDL parser that would ignore "records"
+- Corrected the analysis pass that would crash on unhandled object (loop variables for example).

@@ -4,7 +4,8 @@
 
 # Public recipes
 clean:
-	rm -rf _build/html
+	rm -rf _build/web/html
+	rm -rf _build/docs/html
 
 web: _build/web/html/index.html
 docs: _build/docs/html/index.html

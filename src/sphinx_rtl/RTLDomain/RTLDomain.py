@@ -343,9 +343,6 @@ class RTLDomain(Domain):
         if not target_doc:
             return None
 
-        # Extract the missing part
-        remainder = target_slug[len(parent_slug) :].strip("-")  # type: ignore
-
         # Now, we can search for the right module name.
         # This has an effect : Will always match the first element in case multiple elements are assigned.
         # This is fine as it's a backup.
